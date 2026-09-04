@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Épicas y Backlog — Tema 09 Mercado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#f5f6fa; --panel:#ffffff; --ink:#1b2333; --ink-soft:#4d5872;
+    --border:#e1e4ec; --accent:#2454ff; --accent-soft:#eaf0ff;
+    --green:#127a4f; --green-soft:#e6f6ee;
+    --amber:#a2650a; --amber-soft:#fff2df;
+    --red:#b0203a; --red-soft:#fdeaee;
+    --purple:#6d3fae; --purple-soft:#f2e9fb;
+    --mono-bg:#101423; --mono-ink:#dfe6ff;
+    --radius:12px;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1320; --panel:#171c2c; --ink:#eef1fb; --ink-soft:#aab2cc;
+      --border:#2a3149; --accent:#7c9bff; --accent-soft:#1c2748;
+      --green:#5fd3a0; --green-soft:#12261f;
+      --amber:#f0b35c; --amber-soft:#2c2413;
+      --red:#ff7c92; --red-soft:#301620;
+      --purple:#c4a4ec; --purple-soft:#241a34;
+      --mono-bg:#0a0d18; --mono-ink:#c9d3ff;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 100px;}
+  header.hero{
+    background:linear-gradient(135deg,#101a3d,#1d3fae 55%,#2454ff);
+    color:#fff;padding:52px 24px 40px;margin-bottom:8px;
+  }
+  header.hero .wrap{padding:0;max-width:1080px;margin:0 auto;}
+  .kicker{
+    display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(255,255,255,.14);padding:5px 12px;border-radius:999px;margin-bottom:16px;
+  }
+  h1{font-size:2.1rem;margin:0 0 10px;line-height:1.2;}
+  .hero p{max-width:720px;color:#dbe3ff;font-size:1.02rem;margin:0;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;font-size:.85rem;color:#c6d1ff;}
+  .meta-row b{color:#fff;display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+
+  section{margin:44px 0;}
+  h2{font-size:1.4rem;margin:0 0 6px;display:flex;align-items:center;gap:10px;}
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+    background:var(--accent);color:#fff;border-radius:8px;font-size:.9rem;font-weight:700;flex:none;
+  }
+  .lede{color:var(--ink-soft);max-width:760px;margin:0 0 22px;font-size:.97rem;}
+
+  .callout{
+    border-radius:var(--radius);padding:18px 20px;margin:16px 0;border:1px solid var(--border);
+    background:var(--panel);
+  }
+  .callout.warn{background:var(--amber-soft);border-color:#e8c98a;}
+  .callout.warn .tag{color:var(--amber);}
+  .callout.info{background:var(--accent-soft);border-color:#b9c9ff;}
+  .callout.info .tag{color:var(--accent);}
+  .callout .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;display:block;margin-bottom:6px;}
+  .callout p{margin:.4em 0;}
+  .callout p:first-of-type{margin-top:0;}
+  .callout p:last-child{margin-bottom:0;}
+
+  .grid-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0;}
+  .rule-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;font-size:.9rem;}
+  .rule-card b{display:block;color:var(--accent);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+
+  /* Epic cards */
+  .epic{
+    background:var(--panel);border:1px solid var(--border);border-radius:16px;
+    padding:26px 28px;margin:22px 0;position:relative;overflow:hidden;
+  }
+  .epic::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent);}
+  .epic.phase-mvp::before{background:var(--green);}
+  .epic.phase-2::before{background:var(--amber);}
+  .epic.phase-3::before{background:var(--purple);}
+  .epic.phase-spike::before{background:var(--red);}
+
+  .epic-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:6px;}
+  .epic-id{font-family:"SFMono-Regular",Consolas,monospace;font-size:.75rem;color:var(--ink-soft);background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:6px;}
+  .epic-title{font-size:1.18rem;font-weight:700;margin:0;}
+  .badge{
+    font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+    padding:4px 10px;border-radius:999px;
+  }
+  .badge.mvp{background:var(--green-soft);color:var(--green);}
+  .badge.p2{background:var(--amber-soft);color:var(--amber);}
+  .badge.p3{background:var(--purple-soft);color:var(--purple);}
+  .badge.spike{background:var(--red-soft);color:var(--red);}
+
+  .story{
+    background:var(--bg);border:1px dashed var(--border);border-radius:10px;
+    padding:14px 16px;margin:14px 0;font-size:.92rem;
+  }
+  .story b{color:var(--accent);}
+
+  .epic h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:20px 0 10px;}
+  .tasklist{list-style:none;margin:0;padding:0;display:grid;gap:7px;}
+  .tasklist li{
+    display:flex;gap:10px;align-items:flex-start;font-size:.92rem;padding:8px 10px;
+    background:var(--bg);border-radius:8px;border:1px solid var(--border);
+  }
+  .tasklist li::before{content:"☐";color:var(--accent);flex:none;font-size:1rem;line-height:1.3;}
+
+  .gherkin{
+    background:var(--mono-bg);color:var(--mono-ink);border-radius:10px;padding:16px 18px;
+    font-family:"SFMono-Regular",Consolas,monospace;font-size:.82rem;overflow-x:auto;margin:14px 0;
+    white-space:pre-wrap;
+  }
+  .gherkin .kw{color:#ffb454;font-weight:700;}
+  .gherkin .sc{color:#7fd0ff;font-weight:700;}
+
+  .dep-note{
+    margin-top:16px;padding:12px 14px;border-left:3px solid var(--accent);
+    background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:.88rem;
+  }
+  .dep-note b{color:var(--accent);}
+
+  /* dependency table */
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden;border:1px solid var(--border);font-size:.88rem;}
+  thead th{background:var(--accent);color:#fff;text-align:left;padding:11px 14px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;}
+  tbody td{padding:11px 14px;border-top:1px solid var(--border);vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--bg);}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;}
+  .pill.sync{background:var(--red-soft);color:var(--red);}
+  .pill.event{background:var(--green-soft);color:var(--green);}
+  .pill.data{background:var(--accent-soft);color:var(--accent);}
+
+  .qa-list{display:grid;gap:14px;margin-top:16px;}
+  .qa{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .qa .q{font-weight:700;margin-bottom:6px;}
+  .qa .q::before{content:"❓ ";}
+  .qa .why{color:var(--ink-soft);font-size:.88rem;}
+
+  .dor-dod{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media (max-width:720px){.dor-dod{grid-template-columns:1fr;}}
+  .dor-dod .box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+  .dor-dod h3{margin-top:0;font-size:1rem;}
+  .dor-dod ul{margin:0;padding-left:20px;font-size:.9rem;}
+  .dor-dod li{margin-bottom:6px;}
+
+  footer{color:var(--ink-soft);font-size:.8rem;text-align:center;margin-top:60px;padding-top:20px;border-top:1px solid var(--border);}
+
+  .toc{display:flex;flex-wrap:wrap;gap:8px 18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-top:-8px;}
+  .toc a{color:var(--accent);text-decoration:none;font-size:.86rem;font-weight:600;}
+  .toc a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">TP Integrador · Metodología de Sistemas II</span>
+    <h1>Épicas y Backlog — Tema 09 · Mercado</h1>
+    <p>Planificación inicial del equipo de Mercado a partir del PRD y la Propuesta de Arquitectura del TPI. Incluye épicas con historias de usuario, desglose de tareas, dependencias con otros equipos y preguntas abiertas para la reunión de integración.</p>
+    <div class="meta-row">
+      <div><b>Rol de origen</b>Scrum Master / Arquitecto de software sr.</div>
+      <div><b>Fuentes</b>PRD (Secc. 2, 9, 10, 17, 18, 19, 20) · Propuesta de Arquitectura (Tema 09, láminas 1–7)</div>
+      <div><b>Marco</b>Historias de usuario (3C, INVEST, Gherkin, DoR/DoD) — Scrum</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav class="toc">
+    <a href="#contexto">Contexto</a>
+    <a href="#reglas">Reglas de negocio clave</a>
+    <a href="#backlog">Backlog de épicas</a>
+    <a href="#dependencias">Dependencias con otros equipos</a>
+    <a href="#preguntas">Preguntas abiertas</a>
+    <a href="#dor-dod">DoR / DoD del equipo</a>
+  </nav>
+
+  <section id="contexto">
+    <h2><span class="num">1</span>Contexto y alcance de Mercado</h2>
+    <p class="lede">Mercado es el sistema de catálogo, compra e inventario de ítems dentro de un curso-cohorte. No tiene saldo propio: reserva y confirma contra el Banco (Tema 08), que es el único dueño del ledger. Es, según la propia propuesta de arquitectura, <b>"el tema más liviano del reparto"</b> — dato relevante para nivelar carga con otros equipos (ver Épica M7).</p>
+
+    <div class="callout warn">
+      <span class="tag">⚠ Tensión detectada entre los dos documentos fuente</span>
+      <p>La <b>Propuesta de Arquitectura</b> pone "Catálogo, Compra contra reserva del banco, Inventario y Consumo de ítems" en la columna <i>"Pedido para empezar"</i> de Mercado (o sea: prioridad de construcción alta, desde el primer sprint).</p>
+      <p>Pero el <b>PRD</b> (Tabla 2, Sección 2 y Tabla 11, Sección 18) fasifica oficialmente el "sistema de intercambio (compra directa)" en <b>Fase 2</b>, no en el MVP. El checklist de release del MVP (Sección 19) tampoco exige que el circuito de compra esté funcionando de punta a punta.</p>
+      <p>Interpretación de trabajo recomendada: <b>construir la infraestructura base de Mercado ya en el primer sprint</b> (modelo de datos, contrato con Banco, catálogo, inventario) aunque el flujo completo de compra no sea exigible para el demo del MVP — así se evita que Mercado quede bloqueando a Backoffice más adelante. Confirmar este criterio con el resto de los equipos / docente (ver Sección "Preguntas abiertas").</p>
+    </div>
+  </section>
+
+  <section id="reglas">
+    <h2><span class="num">2</span>Reglas de negocio que todas las historias deben respetar</h2>
+    <p class="lede">Extraídas del PRD (RF-INT-01 a 06) y de la arquitectura (economía y reglas no negociables). Son restricciones de diseño, no funcionalidades a "hacer": cualquier historia que las viole está mal formulada.</p>
+    <div class="grid-rules">
+      <div class="rule-card"><b>Sentido único de canje</b>Las monedas solo se canjean por vidas o equipamiento. Nunca al revés, nunca se generan monedas por intercambio (RF-INT-01).</div>
+      <div class="rule-card"><b>Solo moneda es intercambiable</b>Insignias, XP y vidas no se canjean directamente; solo las monedas circulan en el mercado (RF-INT-02).</div>
+      <div class="rule-card"><b>Alcance por curso</b>Las monedas usadas deben pertenecer al mismo curso-cohorte donde ocurre el intercambio (RF-INT-04). No existe saldo global.</div>
+      <div class="rule-card"><b>Reserva, nunca "descuento y después entrego"</b>Toda compra reserva monedas contra el Banco y recién confirma si la operación se completa; si algo falla, se libera (arquitectura §4.5).</div>
+      <div class="rule-card"><b>Sin comunicación directa entre microservicios</b>Todo llamado de Mercado a Banco (o a cualquier otro tema) vuelve a pasar por el API Gateway. Nunca acceso directo a la base de otro servicio (regla no negociable #3 y #4).</div>
+      <div class="rule-card"><b>Dueño único del dato</b>Mercado es dueño del catálogo, el inventario y las transacciones de intercambio. Banco es dueño exclusivo del ledger y los saldos.</div>
+    </div>
+  </section>
+
+  <section id="backlog">
+    <h2><span class="num">3</span>Backlog de épicas</h2>
+    <p class="lede">Cada épica es una hipótesis grande que no entra en un sprint tal cual — se descompone en historias más chicas al acercarse su implementación (ciclo lean startup / HDD). Priorización tomada de la columna de la arquitectura: <b>Pedido para empezar</b> (verde), <b>Para más adelante</b> (ámbar), <b>Podría ser</b> (violeta).</p>
+
+    <!-- EPIC 0 - SPIKE -->
+    <article class="epic phase-spike">
+      <div class="epic-head">
+        <span class="epic-id">M-00</span>
+        <h3 class="epic-title">Spike técnico: contrato de reserva/confirmación con el Banco</h3>
+        <span class="badge spike">Spike · Bloqueante</span>
+      </div>
+      <div class="story">Historia técnica: <b>Explorar</b> con el equipo de Banco (Tema 08) el mecanismo de reserva de monedas para operaciones de Mercado, <b>para poder</b> diseñar el flujo de compra sin acoplar las bases de datos ni asumir un contrato que Banco no vaya a sostener.</div>
+      <h4>Preguntas a responder (criterios de aceptación del spike)</h4>
+      <ul class="tasklist">
+        <li>¿El endpoint de reserva de Banco bloquea monedas con un TTL, o requiere que Mercado confirme/libere explícitamente?</li>
+        <li>¿Cómo se identifica una operación de reserva (idempotency key) para evitar dobles cobros ante reintentos de red?</li>
+        <li>¿Qué pasa si dos compras simultáneas agotan el mismo saldo — el Banco arbitra o Mercado debe serializar?</li>
+        <li>¿Este mismo contrato sirve para las subastas de Fase 2 (RF-INT-05) o hace falta una variante?</li>
+      </ul>
+      <div class="dep-note"><b>Time-box sugerido:</b> 2–3 días. Salida esperada: documento de contrato de API (no código de producto) que habilite estimar M-02 con confianza.</div>
+      <div class="dep-note" style="border-left-color:var(--green);background:var(--green-soft);margin-top:10px;">
+        <b style="color:var(--green);">Resultado del spike (resuelto parcialmente):</b> reserva y confirmación en el mismo request; el timeout cubre reservas huérfanas por caída de proceso, la atomicidad del lado del Banco cubre el doble gasto por concurrencia; validaciones (disponibilidad → curso → saldo → moneda del curso correcto) antes de reservar; fallo posterior a la confirmación → reintentos → reembolso; experiencia asíncrona ("compra en proceso") con visibilidad para profesor y alumno. El límite de vidas por alumno ya está resuelto (máximo 3 vigentes, arranca con 3, PAR-12 vía Tema 10 — Mercado solo consulta). Quedan abiertos: stock/límite de compras de <b>equipamiento</b> (sin base en el PRD, extensión de alcance propia), canal de notificación del resultado y parámetros de reintentos/timeout. Detalle completo: <a href="Spike-M00-Reserva-Compra.html" style="color:var(--green);font-weight:700;">Spike-M00-Reserva-Compra.html</a>.
+      </div>
+    </article>
+
+    <!-- EPIC 1 -->
+    <article class="epic phase-mvp">
+      <div class="epic-head">
+        <span class="epic-id">M-01</span>
+        <h3 class="epic-title">Catálogo de ítems</h3>
+        <span class="badge mvp">Pedido para empezar</span>
+      </div>
+      <div class="story"><b>Como</b> alumno, <b>quiero</b> ver el catálogo de ítems disponibles en mi curso <b>para poder</b> decidir qué comprar con mis monedas.</div>
+      <h4>Desglose de tareas</h4>
+      <ul class="tasklist">
+        <li>Modelar entidad Ítem (tipo vida/equipamiento, precio, curso-cohorte al que pertenece, estado activo/inactivo)</li>
+        <li>Endpoint de listado de catálogo filtrado por curso-cohorte del token</li>
+        <li>Leer precios por defecto desde los parámetros compartidos PAR-06 (precio de 1 vida) y PAR-07 (precio de equipamiento) — coordinar formato de lectura con el owner de configuración (ver Épica M-00b más abajo)</li>
+        <li>UI de catálogo (alcance escritorio únicamente en MVP, RF-NFR-06)</li>
+        <li>Definir de dónde sale el equipamiento con efecto mecánico que se muestra (¿lo carga el profesor, o son ítems predefinidos por plataforma?) — punto no cerrado en el PRD, decisión de diseño del equipo</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 2 -->
+    <article class="epic phase-mvp">
+      <div class="epic-head">
+        <span class="epic-id">M-02</span>
+        <h3 class="epic-title">Compra directa con reserva contra el Banco</h3>
+        <span class="badge mvp">Pedido para empezar</span>
+      </div>
+      <div class="story"><b>Como</b> alumno, <b>quiero</b> comprar un ítem del catálogo con mis monedas <b>para poder</b> obtenerlo sin arriesgarme a perder saldo si la operación falla a mitad de camino.</div>
+
+      <div class="gherkin"><span class="sc"># Escenario 1: compra exitosa</span>
+<span class="kw">Dado que</span> el alumno tiene saldo suficiente en el curso
+<span class="kw">Y</span> el ítem está disponible en el catálogo de ese curso
+<span class="kw">Cuando</span> el alumno confirma la compra
+<span class="kw">Entonces</span> el sistema reserva las monedas contra el Banco
+<span class="kw">Y</span> si la confirmación es exitosa, el ítem se acredita al inventario del alumno
+<span class="kw">Y</span> las monedas reservadas se descuentan en forma definitiva
+
+<span class="sc"># Escenario 2: falla la confirmación</span>
+<span class="kw">Dado que</span> el alumno inició una compra y las monedas quedaron reservadas
+<span class="kw">Cuando</span> la confirmación contra el Banco falla
+<span class="kw">Entonces</span> la reserva se libera
+<span class="kw">Y</span> el ítem no se acredita al inventario
+<span class="kw">Y</span> el alumno recupera la disponibilidad de sus monedas
+
+<span class="sc"># Escenario 3: monedas de otro curso (RF-INT-04)</span>
+<span class="kw">Dado que</span> el alumno tiene monedas acreditadas en el curso A
+<span class="kw">Cuando</span> intenta comprar un ítem del catálogo del curso B
+<span class="kw">Entonces</span> la operación se rechaza
+<span class="kw">Y</span> se informa que las monedas no pertenecen a ese curso</div>
+
+      <h4>Desglose de tareas</h4>
+      <ul class="tasklist">
+        <li>Implementar el flujo reserva → confirmación en un mismo request sincrónico contra Banco, según el contrato resuelto en M-00</li>
+        <li>Validar en orden: disponibilidad del ítem → pertenencia del alumno al curso-cohorte (Tema 02) → saldo suficiente → que las monedas sean del curso correcto (RF-INT-04), todo antes de reservar</li>
+        <li>Implementar reintentos automáticos ante fallo de acreditación del ítem tras confirmación del Banco, y la compensación (reembolso) al agotarlos</li>
+        <li>Diseñar la respuesta asíncrona ("compra en proceso") y el aviso final de resultado al alumno</li>
+        <li>Publicar evento de "compra confirmada"/"compra fallida" en el bus (contrato a acordar con Tema 11 — ver dependencias; confirmar si es el mismo canal que las notificaciones in-app existentes)</li>
+        <li>Si el ítem comprado es una vida: consultar a Tema 10 el máximo de vidas vigentes (PAR-12 = 3) antes de reservar, y definir cómo se acredita la nueva vida en su contador (evento vs. consulta síncrona)</li>
+        <li><b>Abierto:</b> mecanismo de stock y de límite de compras para <b>equipamiento</b> — sin base en el PRD, ver puntos abiertos del spike M-00</li>
+        <li>Pruebas de concurrencia sobre compras simultáneas del mismo ítem (doble gasto de saldo)</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 3 -->
+    <article class="epic phase-mvp">
+      <div class="epic-head">
+        <span class="epic-id">M-03</span>
+        <h3 class="epic-title">Inventario del alumno</h3>
+        <span class="badge mvp">Pedido para empezar</span>
+      </div>
+      <div class="story"><b>Como</b> alumno, <b>quiero</b> ver mi inventario de ítems comprados en el curso <b>para poder</b> saber qué tengo disponible para usar.</div>
+      <h4>Desglose de tareas</h4>
+      <ul class="tasklist">
+        <li>Modelar Inventario con alcance por curso-cohorte (las recompensas de un curso solo se usan en ese curso — RF-REC-01)</li>
+        <li>Endpoint de consulta de inventario propio</li>
+        <li>Comportamiento de solo lectura cuando el curso pasa a archivado (RF-CUR-09)</li>
+        <li>Modelar el flag de "consumido" a nivel de ítem individual (no a nivel tipo de ítem), porque el equipamiento se consume al usarse (uso único, RF-REC-05)</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 4 -->
+    <article class="epic phase-mvp">
+      <div class="epic-head">
+        <span class="epic-id">M-04</span>
+        <h3 class="epic-title">Consumo de ítems</h3>
+        <span class="badge mvp">Pedido para empezar</span>
+      </div>
+      <div class="story"><b>Como</b> alumno, <b>quiero</b> consumir un ítem de equipamiento con efecto mecánico <b>para poder</b> usar su beneficio en un desafío.</div>
+      <h4>Desglose de tareas</h4>
+      <ul class="tasklist">
+        <li>Endpoint de consumo que marca el ítem como usado (uso único, no reutilizable)</li>
+        <li>Diferenciar reglas: equipamiento se consume al usarse; insignias no pasan por Mercado (son cosméticas, dueño Tema 10/Recompensas — RF-REC-02/03, no confundir dominios)</li>
+        <li>Definir con el equipo de Desafíos (Tema 03) si el efecto mecánico del ítem se aplica ahí o se resuelve enteramente en Mercado antes de notificar</li>
+        <li>Publicar evento de "ítem consumido" si algún otro tema necesita reaccionar (a confirmar en integración)</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 5 - FASE 2 -->
+    <article class="epic phase-2">
+      <div class="epic-head">
+        <span class="epic-id">M-05</span>
+        <h3 class="epic-title">Vencimiento de ítems</h3>
+        <span class="badge p2">Para más adelante</span>
+      </div>
+      <div class="story"><b>Como</b> profesor, <b>quiero</b> que ciertos ítems tengan fecha de vencimiento <b>para poder</b> generar urgencia de uso dentro del curso.</div>
+      <h4>Desglose de tareas (preparar terreno ahora, implementar después)</h4>
+      <ul class="tasklist">
+        <li>Agregar campo de expiración opcional al modelo de Inventario desde M-03, aunque no se use todavía — evita migración de datos más adelante</li>
+        <li>Definir política: ¿qué pasa con las monedas si el ítem vence sin consumirse? (no se devuelven — el PRD no prevé reembolsos)</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 6 - FASE 2 -->
+    <article class="epic phase-2">
+      <div class="epic-head">
+        <span class="epic-id">M-06</span>
+        <h3 class="epic-title">Subastas con ventana temporal</h3>
+        <span class="badge p2">Para más adelante · RF-INT-05/06</span>
+      </div>
+      <div class="story"><b>Como</b> profesor, <b>quiero</b> lanzar un ítem a subasta con una duración definida <b>para poder</b> generar una dinámica competitiva alternativa a la compra directa.</div>
+      <h4>Desglose de tareas</h4>
+      <ul class="tasklist">
+        <li>Lanzamiento de subasta por el profesor: duración y puja mínima de entrada opcional</li>
+        <li>Pujar: bloquear/reservar monedas del pujador (no disponibles para compra directa ni otras subastas mientras la puja está abierta)</li>
+        <li>Regla: el pujador puede aumentar su oferta pero nunca retirarla ni bajarla mientras la subasta esté abierta</li>
+        <li>Cierre: descontar al ganador, liberar sin costo las monedas bloqueadas del resto de los participantes</li>
+        <li>Cierre sin pujas: el ítem queda sin asignar, no hay saldo que liberar</li>
+        <li>Cancelación de subasta por el profesor: libera íntegramente todas las pujas realizadas hasta ese momento (RF-INT-06)</li>
+        <li><b>Nota de NFR:</b> a diferencia del catálogo de compra directa (solo escritorio), el seguimiento y la puja de subastas sí deben soportarse desde acceso móvil consultivo (RF-NFR-06, Tabla 9) — porque la ventana horaria puede cerrarse mientras el alumno no está frente a una computadora</li>
+      </ul>
+    </article>
+
+    <!-- EPIC 7 - COULD BE -->
+    <article class="epic phase-3">
+      <div class="epic-head">
+        <span class="epic-id">M-07</span>
+        <h3 class="epic-title">Extras de equilibrio de carga</h3>
+        <span class="badge p3">Podría ser</span>
+      </div>
+      <div class="story">Grupo de historias candidatas a absorber si el equipo de Mercado termina su núcleo antes que otros equipos con más carga (Desafíos, Backoffice). La propia arquitectura señala a Mercado como "el tema más liviano del reparto" y a estos extras como el mecanismo previsto para equilibrarlo.</div>
+      <h4>Candidatas</h4>
+      <ul class="tasklist">
+        <li>Intercambio entre alumnos (peer-to-peer, dentro del mismo curso)</li>
+        <li>Ítems por temporada (rotación periódica del catálogo)</li>
+        <li>Catálogo configurable por curso (el profesor define qué ítems aparecen, más allá del set por defecto)</li>
+      </ul>
+    </article>
+  </section>
+
+  <section id="dependencias">
+    <h2><span class="num">4</span>Dependencias y comunicación con otros equipos</h2>
+    <p class="lede">Mercado no es un tema aislado: según la arquitectura, ninguna llamada entre microservicios es directa (todo vuelve a pasar por el API Gateway) y toda comunicación asincrónica va por el bus de eventos que define el Tema 11. Esto es lo que el equipo de Mercado necesita coordinar antes de comprometerse con las estimaciones.</p>
+    <table>
+      <thead>
+        <tr><th>Equipo</th><th>Qué necesitamos de ellos</th><th>Qué les damos nosotros</th><th>Tipo</th><th>Épica relacionada</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Tema 08 · Banco</b></td>
+          <td>Contrato de reserva/confirmación/liberación de monedas; regla de qué pasa ante compras simultáneas</td>
+          <td>Volumen esperado de operaciones para dimensionar el ledger</td>
+          <td><span class="pill sync">Sincrónico</span></td>
+          <td>M-00, M-02, M-06</td>
+        </tr>
+        <tr>
+          <td><b>Tema 02 · Cursos y Matrícula</b></td>
+          <td>Consulta de pertenencia del alumno a la cohorte; estado del curso (activo/archivado); definición de qué pasa con inventario ante desmatriculación a mitad de cuatrimestre</td>
+          <td>—</td>
+          <td><span class="pill sync">Sincrónico</span></td>
+          <td>M-02, M-03</td>
+        </tr>
+        <tr>
+          <td><b>Tema 10 · Roadmap y Progreso</b></td>
+          <td>Acuerdo sobre cómo se acredita una vida comprada al contador de vidas vigentes (evento o llamada síncrona)</td>
+          <td>Notificación de compra de vida confirmada</td>
+          <td><span class="pill event">Evento</span></td>
+          <td>M-02</td>
+        </tr>
+        <tr>
+          <td><b>Tema 11 · Social y Notificaciones</b></td>
+          <td>Contrato/esquema del bus de eventos que ellos gobiernan (nombres de campos, formato)</td>
+          <td>Eventos de "compra confirmada" y "nuevos intercambios disponibles" (mencionado explícitamente en RF-NOT-02)</td>
+          <td><span class="pill event">Evento</span></td>
+          <td>M-02, M-06</td>
+        </tr>
+        <tr>
+          <td><b>Tema 12 · Backoffice</b></td>
+          <td>Formato en que quieren consumir los datos de Mercado para sus reportes</td>
+          <td>Contrato de lectura sobre catálogo, transacciones e inventario (sin este contrato, Backoffice "no tiene nada demostrable" en el sprint 1)</td>
+          <td><span class="pill data">Lectura</span></td>
+          <td>Todas</td>
+        </tr>
+        <tr>
+          <td><b>ADMIN / dueño de PAR-01 a PAR-24</b></td>
+          <td>Confirmar que Mercado puede leer PAR-06 (precio de vida) y PAR-07 (precio de equipamiento) del mismo lugar donde lo leen los Temas 03, 05, 08 y 10 — la lámina de arquitectura no incluye explícitamente a Mercado en esa lista de lectores, posible vacío a señalar</td>
+          <td>—</td>
+          <td><span class="pill data">Configuración</span></td>
+          <td>M-01</td>
+        </tr>
+        <tr>
+          <td><b>Tema 01 · Identidad y Usuarios</b></td>
+          <td>Validación de rol y vigencia del token en cada operación (comprar, pujar, consumir)</td>
+          <td>—</td>
+          <td><span class="pill sync">Sincrónico</span></td>
+          <td>Todas</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="preguntas">
+    <h2><span class="num">5</span>Preguntas abiertas para la reunión de integración</h2>
+    <p class="lede">Puntos que no están cerrados en la documentación fuente y que conviene resolver entre equipos (o con el docente / Product Owner) antes de comprometer estimaciones definitivas.</p>
+    <div class="qa-list">
+      <div class="qa">
+        <div class="q">¿Se construye la infraestructura de compra directa desde el primer sprint, o se prioriza otro tema mientras Mercado hace solo el spike de integración?</div>
+        <div class="why">La arquitectura marca el catálogo/compra/inventario como "pedido para empezar", pero el PRD fasifica oficialmente ese mismo alcance en Fase 2 y no lo exige en el checklist de release del MVP (Sección 19).</div>
+      </div>
+      <div class="qa">
+        <div class="q">¿Qué pasa con las monedas y el inventario de un alumno que se desmatricula a mitad de cuatrimestre?</div>
+        <div class="why">Está explícitamente listado en la Propuesta de Arquitectura (Sección 3, "Decisiones abiertas") como algo que afecta a los Temas 02, 08, 09 y 10 a la vez, sin resolución cerrada.</div>
+      </div>
+      <div class="qa">
+        <div class="q">¿Mercado debe estar en la lista de servicios que leen los parámetros compartidos de economía (PAR-01 a PAR-24), junto a los Temas 03, 05, 08 y 10?</div>
+        <div class="why">Mercado necesita PAR-06 y PAR-07 para fijar precios, pero la lámina de Backoffice de la arquitectura no lo incluye entre los lectores listados — posible omisión a confirmar con el equipo de Backoffice/ADMIN.</div>
+      </div>
+      <div class="qa">
+        <div class="q">¿Quién decide qué equipamiento con efecto mecánico existe y cómo se define su efecto — Mercado, o el equipo de Desafíos (Tema 03)?</div>
+        <div class="why">El PRD define que el equipamiento es la única recompensa con efecto mecánico en desafíos, pero no dice qué servicio es dueño de definir/aplicar ese efecto.</div>
+      </div>
+      <div class="qa">
+        <div class="q">Para el equipamiento comprado: ¿la acreditación al inventario y el descuento de moneda deben ser una transacción atómica, o se acepta el patrón de reserva con reconciliación diferida usado en las subastas?</div>
+        <div class="why">Define directamente la complejidad técnica de M-02 y si hace falta un mecanismo de reconciliación/timeout para reservas que quedan "colgadas".</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="dor-dod">
+    <h2><span class="num">6</span>DoR / DoD sugeridas para el equipo de Mercado</h2>
+    <p class="lede">Puertas de calidad propuestas a nivel historia, adaptando el marco general de Definition of Ready / Definition of Done al dominio de Mercado.</p>
+    <div class="dor-dod">
+      <div class="box">
+        <h3>Definition of Ready (antes de entrar a un sprint)</h3>
+        <ul>
+          <li>La historia usa el formato Como/quiero/para poder y el equipo la entiende sin ambigüedad</li>
+          <li>Tiene criterios de aceptación definidos (Gherkin para las que tocan el flujo de reserva/confirmación de monedas)</li>
+          <li>Si depende de otro tema (Banco, Cursos, Roadmap, Notificaciones), el contrato de esa integración ya está acordado o tiene un spike planificado</li>
+          <li>Está estimada por el equipo y cabe en un único sprint</li>
+          <li>Se identificó si toca datos de configuración global (PAR-06/07) y de dónde se leen</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>Definition of Done (para dar por terminada una historia)</h3>
+        <ul>
+          <li>Cumple los criterios de aceptación, incluidos los escenarios de falla (reserva liberada, curso incorrecto)</li>
+          <li>No hay comunicación directa con otro microservicio: todo pasa por el API Gateway</li>
+          <li>Las pruebas cubren al menos un escenario de concurrencia si la historia toca saldo o inventario</li>
+          <li>Los eventos publicados (si aplica) respetan el contrato acordado con el Tema 11</li>
+          <li>Borrado lógico respetado en cualquier entidad de Mercado (nunca hard delete, según RF-NFR-01)</li>
+          <li>Aprobado por el Product Owner</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Documento generado a partir de <i>PRD-Plataforma-Gamificada-TP.pdf</i> y <i>TUP_PIV_BE_PROPUESTA_ARQ.pdf</i> (Tema 09 · Mercado), aplicando el marco de historias de usuario y Scrum de <i>Agilismo &amp; Scrum</i> (MSII, UTN-FRC). Material de planificación de equipo, no especificación cerrada — revisar y ajustar en la reunión de integración.
+  </footer>
+
+</div>
+</body>
+</html>

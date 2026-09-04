@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="proyector">
+<head>
+<meta charset="UTF-8">
+<title>Arquitectura y Flujos de Integración — Tema 09 · Mercado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  /* ==========================================================================
+     DESIGN SYSTEM: UI-UX PRO (Palette: B2B Enterprise / High-Contrast EdTech)
+     Optimizado para Proyector de Aula y Presentación Técnica
+     ========================================================================== */
+  
+  /* Tema Proyector (Light / High-Contrast por defecto para visibilidad en aula) */
+  :root[data-theme="proyector"] {
+    --bg-app: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-subtle: #e2e8f0;
+    --border-color: #cbd5e1;
+    --border-strong: #94a3b8;
+    
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-subtle: #64748b;
+    
+    /* Servicios y Fronteras */
+    --mercado-primary: #1d4ed8;
+    --mercado-bg: #eff6ff;
+    --mercado-border: #93c5fd;
+    
+    --banco-primary: #047857;
+    --banco-bg: #ecfdf5;
+    --banco-border: #6ee7b7;
+    
+    --roadmap-primary: #6d28d9;
+    --roadmap-bg: #f5f3ff;
+    --roadmap-border: #c4b5fd;
+    
+    --desafios-primary: #b45309;
+    --desafios-bg: #fffbeb;
+    --desafios-border: #fde68a;
+    
+    --gateway-primary: #334155;
+    --gateway-bg: #f8fafc;
+    --gateway-border: #94a3b8;
+    
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  /* Tema Oscuro (Opcional) */
+  :root[data-theme="dark"] {
+    --bg-app: #0b0f19;
+    --bg-surface: #131b2e;
+    --bg-surface-elevated: #1e293b;
+    --bg-subtle: #243048;
+    --border-color: #2b3853;
+    --border-strong: #475569;
+    
+    --text-main: #f8fafc;
+    --text-muted: #cbd5e1;
+    --text-subtle: #94a3b8;
+    
+    --mercado-primary: #3b82f6;
+    --mercado-bg: rgba(59, 130, 246, 0.15);
+    --mercado-border: #3b82f6;
+    
+    --banco-primary: #10b981;
+    --banco-bg: rgba(16, 185, 129, 0.15);
+    --banco-border: #10b981;
+    
+    --roadmap-primary: #a855f7;
+    --roadmap-bg: rgba(168, 85, 247, 0.15);
+    --roadmap-border: #a855f7;
+    
+    --desafios-primary: #f59e0b;
+    --desafios-bg: rgba(245, 158, 11, 0.15);
+    --desafios-border: #f59e0b;
+    
+    --gateway-primary: #94a3b8;
+    --gateway-bg: #1e293b;
+    --gateway-border: #475569;
+    
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ==========================================================================
+     HEADER PRINCIPAL (Limpio, Académico, sin ruidos)
+     ========================================================================== */
+  header.hero-header {
+    background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-surface-elevated) 100%);
+    border-bottom: 1px solid var(--border-color);
+    padding: 36px 32px 28px;
+  }
+  .header-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .header-main {
+    flex: 1;
+    min-width: 320px;
+  }
+  .kicker-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mercado-primary);
+    background: var(--mercado-bg);
+    border: 1px solid var(--mercado-border);
+    padding: 4px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  h1.hero-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 8px 0;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  p.hero-desc {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 820px;
+    margin: 0;
+  }
+  
+  /* Controles superiores (Selector de tema) */
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-theme-toggle {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+  .btn-theme-toggle:hover {
+    background: var(--bg-subtle);
+  }
+
+  /* ==========================================================================
+     BARRA DE NAVEGACIÓN POR PESTAÑAS (Para switching en clase)
+     ========================================================================== */
+  nav.sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg-surface);
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+  .nav-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+    padding: 10px 24px;
+    overflow-x: auto;
+  }
+  .nav-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .nav-tab-btn:hover {
+    color: var(--text-main);
+    background: var(--bg-subtle);
+  }
+  .nav-tab-btn.active {
+    color: #ffffff;
+    background: var(--mercado-primary);
+  }
+
+  /* ==========================================================================
+     LAYOUT PRINCIPAL
+     ========================================================================== */
+  main.main-viewport {
+    max-width: 1280px;
+    margin: 28px auto 60px;
+    padding: 0 24px;
+  }
+  .tab-section {
+    display: none;
+  }
+  .tab-section.active {
+    display: block;
+    animation: fadeIn 0.25s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==========================================================================
+     TARJETAS Y SECCIONES DE CONTENIDO
+     ========================================================================== */
+  .content-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    gap: 16px;
+  }
+  .card-header-bar h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--text-main);
+  }
+  .card-header-bar p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  /* ==========================================================================
+     DIAGRAMAS VISUALES DE ALTA ESTÉTICA (SVG / CSS FLOWS)
+     Reemplazo de los diagramas confusos por diagramas claros tipo Figma/Miro
+     ========================================================================== */
+  
+  /* Contenedor Canvas */
+  .visual-canvas {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+
+  /* Diagrama 1: Mapa de Arquitectura y Fronteras */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
+    gap: 20px;
+    align-items: center;
+    position: relative;
+  }
+  @media (max-width: 980px) {
+    .arch-grid { grid-template-columns: 1fr; }
+  }
+
+  .service-node {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease;
+  }
+  .service-node:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .service-node.center-mercado {
+    border-color: var(--mercado-primary);
+    background: var(--mercado-bg);
+  }
+  .service-node.node-banco {
+    border-color: var(--banco-primary);
+    background: var(--banco-bg);
+  }
+  .service-node.node-roadmap {
+    border-color: var(--roadmap-primary);
+    background: var(--roadmap-bg);
+  }
+  .service-node.node-desafios {
+    border-color: var(--desafios-primary);
+    background: var(--desafios-bg);
+  }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .node-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+  }
+  .node-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+  }
+  .node-body {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .node-responsibilities {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: var(--text-main);
+  }
+  .node-responsibilities li { margin-bottom: 3px; }
+
+  /* Centro: Gateway y Bus */
+  .center-spine {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spine-box {
+    background: var(--gateway-bg);
+    border: 2px dashed var(--gateway-border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .spine-box h4 {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+  }
+  .spine-box p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  /* Conexiones / Canales de Datos */
+  .conduit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin: 4px 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ==========================================================================
+     SWIMLANES DE SECUENCIA INTERACTIVA (Reemplazo de Mermaid confuso)
+     ========================================================================== */
+  .flow-lane-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .flow-step-card {
+    display: grid;
+    grid-template-columns: 80px 160px 1fr 180px;
+    gap: 16px;
+    align-items: center;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 14px 18px;
+    transition: all 0.15s ease;
+  }
+  @media (max-width: 860px) {
+    .flow-step-card { grid-template-columns: 1fr; }
+  }
+  .flow-step-card:hover {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .flow-step-card.step-validation {
+    border-left-color: var(--roadmap-primary);
+  }
+  .flow-step-card.step-bank {
+    border-left-color: var(--banco-primary);
+  }
+  .flow-step-card.step-success {
+    border-left-color: var(--success);
+    background: var(--bg-surface);
+  }
+  .flow-step-card.step-compensate {
+    border-left-color: var(--danger);
+    background: rgba(220, 38, 38, 0.04);
+  }
+
+  .step-num-badge {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-subtle);
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+  .step-parties {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .step-parties span.sub {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .step-narrative {
+    font-size: 0.92rem;
+    color: var(--text-main);
+    line-height: 1.4;
+  }
+  .step-narrative b {
+    color: var(--text-main);
+  }
+  .step-endpoint {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    color: var(--accent);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ==========================================================================
+     VISOR DE CONTRATOS REST
+     ========================================================================== */
+  .api-contract-card {
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  .api-signature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .http-method {
+    font-family: monospace;
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: #ffffff;
+  }
+  .http-method.post { background: var(--banco-primary); }
+  .http-method.get { background: var(--mercado-primary); }
+  .api-path {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .code-json {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 8px 0;
+  }
+  .code-json .key { color: #93c5fd; }
+  .code-json .str { color: #86efac; }
+  .code-json .num { color: #fde047; }
+  .code-json .highlight-header { color: #f472b6; font-weight: bold; }
+
+  /* ==========================================================================
+     DEFENSA TÉCNICA (PREGUNTAS EN CLASE)
+     ========================================================================== */
+  .defense-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .defense-question {
+    padding: 18px 22px;
+    background: var(--bg-surface-elevated);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .defense-answer {
+    padding: 18px 22px;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .defense-answer b {
+    color: var(--text-main);
+  }
+  .badge-tag-q {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--mercado-bg);
+    color: var(--mercado-primary);
+    border: 1px solid var(--mercado-border);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  /* Callout de Alerta */
+  .alert-box {
+    border-left: 4px solid var(--accent);
+    background: var(--bg-surface-elevated);
+    padding: 14px 18px;
+    border-radius: 0 8px 8px 0;
+    margin: 16px 0;
+    font-size: 0.92rem;
+  }
+  .alert-box.green { border-left-color: var(--success); }
+  .alert-box.amber { border-left-color: var(--warning); }
+</style>
+</head>
+<body>
+
+<!-- HEADER PRINCIPAL -->
+<header class="hero-header">
+  <div class="header-content">
+    <div class="header-main">
+      <div class="kicker-tag">
+        <span>TPI · Programación IV Back End · UTN FRC</span>
+      </div>
+      <h1 class="hero-title">Flujos de Trabajo y Arquitectura de Integración</h1>
+      <p class="hero-desc">Tema 09 · Mercado: Catálogo, Compra Directa con Débito Atómico en Banco (Opción B) y Consumo de Equipamiento de uso único (Alternativa 1).</p>
+    </div>
+    <div class="header-controls">
+      <button class="btn-theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span> <span id="theme-label">Modo Proyector</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- BARRA DE PESTAÑAS STICKY -->
+<nav class="sticky-nav">
+  <div class="nav-inner">
+    <button class="nav-tab-btn active" onclick="switchTab('tab-fronteras')">1. Fronteras de Arquitectura</button>
+    <button class="nav-tab-btn" onclick="switchTab('tab-compra')">2. Flujo: Compra Directa</button>
+    <button class="nav-tab-btn" onclick="switchTab('tab-consumo')">3. Flujo: Consumo Equipamiento</button>
+    <button class="nav-tab-btn" onclick="switchTab('tab-contratos')">4. Contratos de API</button>
+    <button class="nav-tab-btn" onclick="switchTab('tab-defensa')">5. Defensa en Clase</button>
+  </div>
+</nav>
+
+<!-- CUERPO PRINCIPAL -->
+<main class="main-viewport">
+
+  <!-- ========================================================================
+       PESTAÑA 1: FRONTERAS Y ARQUITECTURA
+       ======================================================================== -->
+  <section id="tab-fronteras" class="tab-section active">
+    <div class="content-card">
+      <div class="card-header-bar">
+        <div>
+          <h2>Mapa de Fronteras y Conexiones de Mercado</h2>
+          <p>Ningún microservicio llama directo a otro: todo tráfico sincrónico pasa por el API Gateway y lo asincrónico por el bus de eventos.</p>
+        </div>
+      </div>
+
+      <!-- Canvas Visual de Arquitectura -->
+      <div class="visual-canvas">
+        <div class="arch-grid">
+          
+          <!-- Columna Izquierda: Clientes y Cursos -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="service-node">
+              <div class="node-header">
+                <span class="node-tag">Frontend</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Web / Desktop</span>
+              </div>
+              <h3 class="node-title">Alumno (Angular)</h3>
+              <p class="node-body">Consulta catálogo, dispara orden de compra y activa equipamiento.</p>
+            </div>
+
+            <div class="service-node">
+              <div class="node-header">
+                <span class="node-tag">Tema 02</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Core</span>
+              </div>
+              <h3 class="node-title">Cursos y Matrícula</h3>
+              <p class="node-body">Valida que el alumno pertenezca a la cohorte. Emite evento <code>curso.archivado</code>.</p>
+            </div>
+          </div>
+
+          <!-- Columna Central: Gateway y Mercado (Nuestro Servicio) -->
+          <div class="center-spine">
+            <div class="spine-box">
+              <h4>🚪 API Gateway Central</h4>
+              <p>Valida JWT, extrae identidad y rutea todas las peticiones sincrónicas inter-servicio.</p>
+            </div>
+
+            <div class="service-node center-mercado">
+              <div class="node-header">
+                <span class="node-tag" style="background: var(--mercado-primary); color: #fff;">NUESTRO TEMA</span>
+                <span style="font-size: 0.8rem; font-weight: bold; color: var(--mercado-primary);">TEMA 09</span>
+              </div>
+              <h3 class="node-title" style="font-size: 1.25rem; color: var(--mercado-primary);">MERCADO</h3>
+              <ul class="node-responsibilities">
+                <li><b>Catálogo de Ofertas:</b> Ofertas activas por cohorte y precio snapshot.</li>
+                <li><b>Gestor de Órdenes:</b> Orquestación de compra y manejo de fallos.</li>
+                <li><b>Inventario Personal:</b> Instancias únicas de ítems por alumno (RF-REC-05).</li>
+              </ul>
+            </div>
+
+            <div class="spine-box" style="border-style: solid; background: var(--bg-surface);">
+              <h4>📡 Bus de Eventos (Tema 11)</h4>
+              <p>Mercado publica <code>mercado.compra.confirmada</code> para notificaciones y acreditación.</p>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Dependencias Críticas (Banco, Roadmap, Desafíos) -->
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="service-node node-banco">
+              <div class="node-header">
+                <span class="node-tag" style="background: var(--banco-primary); color: #fff;">Tema 08</span>
+                <span style="font-size: 0.78rem; font-weight: bold; color: var(--banco-primary);">Bloqueante</span>
+              </div>
+              <h3 class="node-title">Banco</h3>
+              <p class="node-body"><b>Único dueño del Ledger y Saldos.</b> Expone débito directo atómico y reembolso.</p>
+            </div>
+
+            <div class="service-node node-roadmap">
+              <div class="node-header">
+                <span class="node-tag" style="background: var(--roadmap-primary); color: #fff;">Tema 10</span>
+                <span style="font-size: 0.78rem; font-weight: bold; color: var(--roadmap-primary);">Reglas Vidas</span>
+              </div>
+              <h3 class="node-title">Roadmap & Progreso</h3>
+              <p class="node-body"><b>Dueño de Vidas (PAR-12 tope 3) y XP.</b> Valida si el alumno puede comprar más vidas.</p>
+            </div>
+
+            <div class="service-node node-desafios">
+              <div class="node-header">
+                <span class="node-tag" style="background: var(--desafios-primary); color: #fff;">Tema 03</span>
+                <span style="font-size: 0.78rem; font-weight: bold; color: var(--desafios-primary);">Consumidor</span>
+              </div>
+              <h3 class="node-title">Motor de Desafíos</h3>
+              <p class="node-body">Al evaluar entregas, consulta a Mercado si hay un escudo equipado antes de restar vida.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="alert-box green">
+        <b>Regla de Oro de la Plataforma:</b> Cada entidad tiene un dueño único. Mercado <b>nunca</b> almacena saldos de monedas (dueño: Banco) ni persiste vidas (dueño: Roadmap). Mercado es dueño exclusivo del <i>Catálogo</i>, las <i>Órdenes</i> y el <i>Inventario</i> del alumno.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       PESTAÑA 2: FLUJO DE COMPRA DIRECTA
+       ======================================================================== -->
+  <section id="tab-compra" class="tab-section">
+    <div class="content-card">
+      <div class="card-header-bar">
+        <div>
+          <h2>Flujo 1: Compra Directa (Opción B: Débito Directo Atómico)</h2>
+          <p>Diseño ágil y robusto: un solo salto de cobro garantizado por <code>Idempotency-Key</code> en Banco, con compensación automática.</p>
+        </div>
+        <span class="kicker-tag" style="margin:0;">Decisión: Opción B</span>
+      </div>
+
+      <!-- Swimlane Visual de Pasos -->
+      <div class="flow-lane-container">
+        
+        <div class="flow-step-card step-validation">
+          <div class="step-num-badge">01</div>
+          <div class="step-parties">
+            <span>Mercado</span>
+            <span class="sub">Validación Local</span>
+          </div>
+          <div class="step-narrative">
+            El alumno solicita comprar un ítem. Mercado valida localmente:
+            <b>1)</b> Oferta activa en la cohorte, <b>2)</b> Pertenencia del alumno, <b>3)</b> Monedas corresponden al mismo curso (RF-INT-04).
+          </div>
+          <div class="step-endpoint">POST /mercado/ordenes</div>
+        </div>
+
+        <div class="flow-step-card step-validation">
+          <div class="step-num-badge">02</div>
+          <div class="step-parties">
+            <span>Mercado → Roadmap</span>
+            <span class="sub">Chequeo PAR-12</span>
+          </div>
+          <div class="step-narrative">
+            <b>Si el ítem es una VIDA:</b> Mercado consulta al Tema 10 si el alumno ya tiene el tope de vidas (máximo 3).
+            Si ya tiene 3 vidas, la compra se <b>rechaza de inmediato sin tocar dinero</b>.
+          </div>
+          <div class="step-endpoint">GET /roadmap/.../vidas</div>
+        </div>
+
+        <div class="flow-step-card step-bank">
+          <div class="step-num-badge">03</div>
+          <div class="step-parties">
+            <span>Mercado → Banco</span>
+            <span class="sub">Débito Atómico</span>
+          </div>
+          <div class="step-narrative">
+            Mercado llama a Banco solicitando el débito de monedas con <b>Idempotency-Key</b>.
+            El Banco descuenta de forma atómica en su ledger. Si no hay saldo suficiente, Banco responde <code>422 Saldo Insuficiente</code>.
+          </div>
+          <div class="step-endpoint">POST /banco/transacciones/debito-directo</div>
+        </div>
+
+        <div class="flow-step-card step-success">
+          <div class="step-num-badge" style="background: var(--banco-bg); color: var(--banco-primary);">04A</div>
+          <div class="step-parties">
+            <span>Mercado</span>
+            <span class="sub">Camino Feliz</span>
+          </div>
+          <div class="step-narrative">
+            Banco responde <code>201 Created</code>. Mercado crea la <b>Orden CONFIRMADA</b> y acredita el <b>ItemInventario</b> (estado <code>DISPONIBLE</code>).
+            Emite evento <code>mercado.compra.confirmada</code> al bus para notificaciones y acreditación de vida en Roadmap.
+          </div>
+          <div class="step-endpoint">201 OK (Entrega Ítem)</div>
+        </div>
+
+        <div class="flow-step-card step-compensate">
+          <div class="step-num-badge" style="background: rgba(220,38,38,0.1); color: var(--danger);">04B</div>
+          <div class="step-parties">
+            <span>Mercado → Banco</span>
+            <span class="sub">Compensación Saga</span>
+          </div>
+          <div class="step-narrative">
+            <b>Si falla la persistencia local de Mercado tras haber cobrado:</b>
+            El sistema ejecuta automáticamente una compensación: invoca <code>POST /banco/transacciones/reembolso</code> reintegrando el 100% de las monedas al alumno.
+          </div>
+          <div class="step-endpoint">POST /banco/transacciones/reembolso</div>
+        </div>
+
+      </div>
+
+      <div class="alert-box">
+        <b>¿Por qué no usamos Reserva clásica de 2 fases aquí?</b> Porque en compra directa no hay espera humana: agregar una reserva obligaba a hacer 2 llamadas HTTP por el Gateway (`POST /reservas` + `POST /confirmar`) duplicando latencia y puntos de fallo. El débito atómico con clave de idempotencia es más rápido y seguro.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       PESTAÑA 3: CONSUMO DE EQUIPAMIENTO
+       ======================================================================== -->
+  <section id="tab-consumo" class="tab-section">
+    <div class="content-card">
+      <div class="card-header-bar">
+        <div>
+          <h2>Flujo 2: Consumo de Equipamiento (Alternativa 1: Activación Previa)</h2>
+          <p>El alumno activa voluntariamente su equipamiento defensivo antes de rendir. Desafíos consulta a Mercado antes de restar vidas.</p>
+        </div>
+        <span class="kicker-tag" style="margin:0;">Decisión: Alternativa 1</span>
+      </div>
+
+      <div class="flow-lane-container">
+        
+        <div class="flow-step-card">
+          <div class="step-num-badge">A</div>
+          <div class="step-parties">
+            <span>Alumno → Mercado</span>
+            <span class="sub">Activación Manual</span>
+          </div>
+          <div class="step-narrative">
+            El alumno entra a su Inventario y presiona <b>"Equipar Escudo"</b>.
+            Mercado valida y transiciona el ítem de estado <code>DISPONIBLE</code> a <code>EQUIPADO</code>.
+          </div>
+          <div class="step-endpoint">POST /mercado/inventario/{id}/activar</div>
+        </div>
+
+        <div class="flow-step-card">
+          <div class="step-num-badge">B</div>
+          <div class="step-parties">
+            <span>Alumno → Desafíos</span>
+            <span class="sub">Evaluación Académica</span>
+          </div>
+          <div class="step-narrative">
+            El alumno envía la resolución de un desafío práctico al Tema 03.
+            El motor de evaluación lo corrige automáticamente y determina: <b>REPROBADO</b> ❌.
+          </div>
+          <div class="step-endpoint">POST /desafios/{id}/entregar</div>
+        </div>
+
+        <div class="flow-step-card" style="border-left-color: var(--desafios-primary);">
+          <div class="step-num-badge">C</div>
+          <div class="step-parties">
+            <span>Desafíos → Mercado</span>
+            <span class="sub">Consulta de Escudo</span>
+          </div>
+          <div class="step-narrative">
+            Antes de descontar una vida, Desafíos consulta a Mercado:
+            <i>"¿Tiene este alumno un ítem activo con efecto <b>ESCUDO_VIDA</b> en esta cohorte?"</i>.
+          </div>
+          <div class="step-endpoint">POST /mercado/inventario/consumir-equipamiento</div>
+        </div>
+
+        <div class="flow-step-card step-success">
+          <div class="step-num-badge" style="background: var(--banco-bg); color: var(--banco-primary);">D</div>
+          <div class="step-parties">
+            <span>Mercado</span>
+            <span class="sub">Uso Único (RF-REC-05)</span>
+          </div>
+          <div class="step-narrative">
+            Mercado busca la instancia en estado <code>EQUIPADO</code> y la transiciona atómicamente a <code>CONSUMIDO</code>.
+            Responde <code>200 OK (Protegido)</code>. Desafíos anula la pérdida de vida: <b>¡Escudo activado!</b> 🛡️.
+          </div>
+          <div class="step-endpoint">200 OK { protegido: true }</div>
+        </div>
+
+      </div>
+
+      <div class="alert-box amber">
+        <b>¿Por qué el alumno debe activarlo previamente?</b> Si se consumiera automáticamente de forma pasiva, un alumno podría gastar un escudo valioso en un ejercicio simple de 5 minutos por un simple error de tipeo. La activación voluntaria le da soberanía táctica al estudiante.
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       PESTAÑA 4: CONTRATOS REST
+       ======================================================================== -->
+  <section id="tab-contratos" class="tab-section">
+    <div class="content-card">
+      <div class="card-header-bar">
+        <div>
+          <h2>Especificación de Contratos de API para la Puesta en Común</h2>
+          <p>Payloads y endpoints listos para coordinar con los líderes de Banco (08), Roadmap (10) y Desafíos (03).</p>
+        </div>
+      </div>
+
+      <!-- Contrato 1: Banco Débito -->
+      <div class="api-contract-card">
+        <div class="api-signature">
+          <span class="http-method post">POST</span>
+          <span class="api-path">/banco/transacciones/debito-directo</span>
+          <span class="conduit-badge">Destino: Tema 08 (Banco)</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 8px;">
+          Llamada sincrónica desde Mercado. Requiere header obligatorio <code>Idempotency-Key</code> para tolerancia a fallas.
+        </p>
+        <div class="code-json">
+<span class="highlight-header">// Headers requeridos</span>
+<b>Idempotency-Key:</b> "ord-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
+<b>Content-Type:</b> "application/json"
+
+<span class="highlight-header">// Request Body</span>
+{
+  <span class="key">"alumnoId"</span>: <span class="str">"3fa85f64-5717-4562-b3fc-2c963f66afa6"</span>,
+  <span class="key">"cursoCohorteId"</span>: <span class="str">"7c9e6679-7425-40de-944b-e07fc1f90ae7"</span>,
+  <span class="key">"monto"</span>: <span class="num">300</span>,
+  <span class="key">"concepto"</span>: <span class="str">"COMPRA_CATALOGO"</span>,
+  <span class="key">"referenciaOrdenId"</span>: <span class="str">"ord-9b1deb4d-3b7d-4bad"</span>
+}
+
+<span class="highlight-header">// Respuesta 201 Created (Éxito)</span>
+{
+  <span class="key">"transaccionId"</span>: <span class="str">"tx-88921-banco"</span>,
+  <span class="key">"saldoRestante"</span>: <span class="num">450</span>
+}
+
+<span class="highlight-header">// Respuesta 422 Unprocessable Entity (Sin Fondos)</span>
+{
+  <span class="key">"error"</span>: <span class="str">"SALDO_INSUFICIENTE"</span>,
+  <span class="key">"saldoActual"</span>: <span class="num">120</span>
+}
+        </div>
+      </div>
+
+      <!-- Contrato 2: Banco Reembolso -->
+      <div class="api-contract-card">
+        <div class="api-signature">
+          <span class="http-method post">POST</span>
+          <span class="api-path">/banco/transacciones/reembolso</span>
+          <span class="conduit-badge" style="border-color: var(--danger); color: var(--danger);">Compensación</span>
+        </div>
+        <div class="code-json">
+<span class="highlight-header">// Request Body de Compensación</span>
+{
+  <span class="key">"alumnoId"</span>: <span class="str">"3fa85f64-5717-4562-b3fc-2c963f66afa6"</span>,
+  <span class="key">"cursoCohorteId"</span>: <span class="str">"7c9e6679-7425-40de-944b-e07fc1f90ae7"</span>,
+  <span class="key">"monto"</span>: <span class="num">300</span>,
+  <span class="key">"transaccionOriginalId"</span>: <span class="str">"tx-88921-banco"</span>,
+  <span class="key">"motivo"</span>: <span class="str">"FALLO_ENTREGA_INVENTARIO"</span>
+}
+        </div>
+      </div>
+
+      <!-- Contrato 3: Desafíos Consumo -->
+      <div class="api-contract-card">
+        <div class="api-signature">
+          <span class="http-method post">POST</span>
+          <span class="api-path">/mercado/inventario/consumir-equipamiento</span>
+          <span class="conduit-badge">Expuesto por Mercado para Tema 03</span>
+        </div>
+        <div class="code-json">
+<span class="highlight-header">// Request Body</span>
+{
+  <span class="key">"alumnoId"</span>: <span class="str">"3fa85f64-5717-4562-b3fc-2c963f66afa6"</span>,
+  <span class="key">"cursoCohorteId"</span>: <span class="str">"7c9e6679-7425-40de-944b-e07fc1f90ae7"</span>,
+  <span class="key">"efectoRequerido"</span>: <span class="str">"ESCUDO_VIDA"</span>
+}
+
+<span class="highlight-header">// Respuesta 200 OK (Protección aplicada)</span>
+{
+  <span class="key">"protegido"</span>: <span class="str">true</span>,
+  <span class="key">"itemConsumidoId"</span>: <span class="str">"inv-item-771"</span>,
+  <span class="key">"nombreItem"</span>: <span class="str">"Escudo Protector"</span>
+}
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       PESTAÑA 5: DEFENSA EN CLASE
+       ======================================================================== -->
+  <section id="tab-defensa" class="tab-section">
+    <div class="content-card">
+      <div class="card-header-bar">
+        <div>
+          <h2>Guía de Defensa Técnica frente al Docente y Otros Grupos</h2>
+          <p>Argumentos arquitectónicos fundamentados para responder las preguntas más exigentes durante la proyección.</p>
+        </div>
+      </div>
+
+      <div class="defense-item">
+        <div class="defense-question">
+          <span class="badge-tag-q">Pregunta 1</span>
+          ¿Por qué eligieron Débito Directo Atómico en vez de la Reserva en 2 pasos para la compra directa?
+        </div>
+        <div class="defense-answer">
+          Porque en una compra directa con tarjeta o dinero digital el usuario no tiene una ventana de confirmación posterior: es una operación inmediata. Implementar reserva en 2 pasos obligaba a que cada compra hiciera dos llamadas completas de ida y vuelta por el API Gateway (<code>POST /reservas</code> y luego <code>POST /confirmar</code>), sumando latencia innecesaria y duplicando los puntos de fallo de red. En su lugar, adoptamos <b>débito directo atómico con clave de idempotencia</b> y una <b>transacción compensatoria (reembolso)</b> si falla la persistencia local, cumpliendo formalmente con el patrón Saga de microservicios.
+        </div>
+      </div>
+
+      <div class="defense-item">
+        <div class="defense-question">
+          <span class="badge-tag-q">Pregunta 2</span>
+          ¿Cómo garantizan que un alumno no gaste monedas ganadas en otra materia (RF-INT-04)?
+        </div>
+        <div class="defense-answer">
+          Existe una validación en doble capa:
+          <br><b>1. Capa Mercado:</b> Al crear la orden, se valida que el <code>cursoCohorteId</code> del catálogo coincida con el curso al que pertenece el alumno según su matrícula.
+          <br><b>2. Capa Banco:</b> El payload hacia el Banco envía explícitamente el <code>cursoCohorteId</code>. El ledger del Banco almacena saldos estrictamente segregados por curso y rechaza cualquier débito si la cuenta de esa cohorte particular no tiene saldo suficiente. No existe saldo global en la base de datos.
+        </div>
+      </div>
+
+      <div class="defense-item">
+        <div class="defense-question">
+          <span class="badge-tag-q">Pregunta 3</span>
+          ¿Por qué el alumno tiene que "activar" el escudo en lugar de consumirse solo?
+        </div>
+        <div class="defense-answer">
+          Por diseño pedagógico y de gamificación (RF-REC-03 / RF-REC-05). Si el consumo fuera pasivo automático, un alumno que compró un escudo para defenderse en un examen parcial o final difícil podría gastárselo sin darse cuenta en un ejercicio menor por un simple error tipográfico. La activación manual en el inventario le da la decisión estratégica al alumno, pasando el ítem de <code>DISPONIBLE</code> a <code>EQUIPADO</code>, y recién cuando el motor de desafíos desaprueba la entrega, pasa a <code>CONSUMIDO</code> de manera irreversible.
+        </div>
+      </div>
+
+      <div class="defense-item">
+        <div class="defense-question">
+          <span class="badge-tag-q">Pregunta 4</span>
+          ¿Cómo evitan que un alumno compre vidas por encima del límite permitido?
+        </div>
+        <div class="defense-answer">
+          Consultamos sincrónicamente el contador de vidas al Tema 10 (Roadmap) <b>antes de iniciar cualquier llamada al Banco</b>. Si el Roadmap responde que el alumno ya tiene 3 vidas vigentes (límite fijado por el parámetro global PAR-12), Mercado rechaza la orden de inmediato con código <code>400 Bad Request</code>. De esta forma, nunca se debitan monedas por una vida que no puede ser entregada.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+    document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+    
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+    
+    const activeBtn = Array.from(document.querySelectorAll('.nav-tab-btn')).find(b => b.getAttribute('onclick').includes(tabId));
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const current = html.getAttribute('data-theme');
+    const next = current === 'proyector' ? 'dark' : 'proyector';
+    html.setAttribute('data-theme', next);
+    
+    document.getElementById('theme-icon').textContent = next === 'proyector' ? '☀️' : '🌙';
+    document.getElementById('theme-label').textContent = next === 'proyector' ? 'Modo Proyector' : 'Modo Oscuro';
+  }
+</script>
+
+</body>
+</html>

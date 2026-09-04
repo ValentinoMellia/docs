@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Límites Mercado ↔ Banco ↔ Roadmap — Tema 09</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#f5f6fa; --panel:#ffffff; --ink:#1b2333; --ink-soft:#4d5872;
+    --border:#e1e4ec; --accent:#2454ff; --accent-soft:#eaf0ff;
+    --green:#127a4f; --green-soft:#e6f6ee;
+    --amber:#a2650a; --amber-soft:#fff2df;
+    --red:#b0203a; --red-soft:#fdeaee;
+    --purple:#6d3fae; --purple-soft:#f2e9fb;
+    --teal:#0d7f83; --teal-soft:#e2f5f5;
+    --mono-bg:#101423; --mono-ink:#dfe6ff;
+    --radius:12px;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1320; --panel:#171c2c; --ink:#eef1fb; --ink-soft:#aab2cc;
+      --border:#2a3149; --accent:#7c9bff; --accent-soft:#1c2748;
+      --green:#5fd3a0; --green-soft:#12261f;
+      --amber:#f0b35c; --amber-soft:#2c2413;
+      --red:#ff7c92; --red-soft:#301620;
+      --purple:#c4a4ec; --purple-soft:#241a34;
+      --teal:#5fd7da; --teal-soft:#132625;
+      --mono-bg:#0a0d18; --mono-ink:#c9d3ff;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px 100px;}
+  header.hero{
+    background:linear-gradient(135deg,#101a3d,#1d3fae 55%,#2454ff);
+    color:#fff;padding:52px 24px 40px;margin-bottom:8px;
+  }
+  header.hero .wrap{padding:0;max-width:1080px;margin:0 auto;}
+  .kicker{
+    display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(255,255,255,.14);padding:5px 12px;border-radius:999px;margin-bottom:16px;
+  }
+  h1{font-size:2.05rem;margin:0 0 10px;line-height:1.2;}
+  .hero p{max-width:740px;color:#dbe3ff;font-size:1.02rem;margin:0;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:24px;font-size:.85rem;color:#c6d1ff;}
+  .meta-row b{color:#fff;display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+
+  .backlink{display:inline-block;margin:20px 0 0;font-size:.85rem;color:var(--accent);text-decoration:none;font-weight:600;}
+  .backlink:hover{text-decoration:underline;}
+
+  .toc{display:flex;flex-wrap:wrap;gap:8px 18px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin:20px 0 0;}
+  .toc a{color:var(--accent);text-decoration:none;font-size:.86rem;font-weight:600;}
+  .toc a:hover{text-decoration:underline;}
+
+  section{margin:44px 0;}
+  h2{font-size:1.4rem;margin:0 0 6px;display:flex;align-items:center;gap:10px;}
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+    background:var(--accent);color:#fff;border-radius:8px;font-size:.9rem;font-weight:700;flex:none;
+  }
+  h3{font-size:1.05rem;margin:26px 0 10px;}
+  .lede{color:var(--ink-soft);max-width:780px;margin:0 0 22px;font-size:.97rem;}
+
+  .callout{border-radius:var(--radius);padding:18px 20px;margin:16px 0;border:1px solid var(--border);background:var(--panel);}
+  .callout.warn{background:var(--amber-soft);border-color:#e8c98a;}
+  .callout.warn .tag{color:var(--amber);}
+  .callout.info{background:var(--accent-soft);border-color:#b9c9ff;}
+  .callout.info .tag{color:var(--accent);}
+  .callout.good{background:var(--green-soft);border-color:#8fd6b8;}
+  .callout.good .tag{color:var(--green);}
+  .callout .tag{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;display:block;margin-bottom:6px;}
+  .callout p{margin:.4em 0;}
+  .callout p:first-of-type{margin-top:0;}
+  .callout p:last-child{margin-bottom:0;}
+  .callout ul{margin:.4em 0;padding-left:20px;}
+
+  /* boundary flow */
+  .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:22px 0;}
+  .flow-box{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px 18px;flex:1 1 190px;min-width:160px;position:relative;
+  }
+  .flow-box b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;color:var(--ink-soft);}
+  .flow-box ul{margin:0;padding-left:18px;font-size:.86rem;}
+  .flow-box li{margin-bottom:4px;}
+  .flow-box.own-mercado{border-top:4px solid var(--accent);}
+  .flow-box.own-banco{border-top:4px solid var(--teal);}
+  .flow-box.own-other{border-top:4px solid var(--purple);}
+  .flow-arrow{display:flex;align-items:center;justify-content:center;flex:0 0 40px;color:var(--ink-soft);font-size:1.3rem;}
+  @media (max-width:820px){.flow{flex-direction:column;} .flow-arrow{transform:rotate(90deg);height:20px;}}
+
+  .boundary-line{
+    border:2px dashed var(--red);border-radius:var(--radius);padding:14px 18px;
+    background:var(--red-soft);font-size:.9rem;margin:18px 0;color:var(--ink);
+  }
+  .boundary-line b{color:var(--red);}
+
+  /* scope table */
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden;border:1px solid var(--border);font-size:.88rem;}
+  thead th{background:var(--accent);color:#fff;text-align:left;padding:11px 14px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;}
+  tbody td{padding:11px 14px;border-top:1px solid var(--border);vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--bg);}
+  .pill{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+  .pill.mvp{background:var(--green-soft);color:var(--green);}
+  .pill.later{background:var(--amber-soft);color:var(--amber);}
+  .pill.could{background:var(--purple-soft);color:var(--purple);}
+  .pill.mercado{background:var(--accent-soft);color:var(--accent);}
+  .pill.banco{background:var(--teal-soft);color:var(--teal);}
+  .pill.gris{background:var(--red-soft);color:var(--red);}
+
+  /* question cards */
+  .qa-list{display:grid;gap:14px;margin-top:16px;}
+  .qa{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;padding-left:22px;}
+  .qa::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px;background:var(--accent);}
+  .qa.crit::before{background:var(--red);}
+  .qa .q{font-weight:700;margin-bottom:6px;display:flex;gap:10px;align-items:baseline;}
+  .qa .q .qn{font-family:"SFMono-Regular",Consolas,monospace;color:var(--ink-soft);font-weight:700;font-size:.8rem;flex:none;}
+  .qa .why{color:var(--ink-soft);font-size:.87rem;}
+  .qa .why b{color:var(--ink);}
+  .qa-tag{display:inline-block;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:999px;margin-left:8px;background:var(--red-soft);color:var(--red);vertical-align:middle;}
+
+  /* gray zone cards */
+  .gris-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:18px;}
+  .gris-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 20px;position:relative;overflow:hidden;
+  }
+  .gris-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--red);}
+  .gris-card h4{margin:0 0 8px;font-size:.98rem;padding-left:2px;}
+  .gris-card p{margin:.4em 0;font-size:.88rem;color:var(--ink-soft);}
+  .gris-card .split{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .gris-card .side{flex:1 1 120px;font-size:.78rem;padding:8px 10px;border-radius:8px;}
+  .gris-card .side.m{background:var(--accent-soft);color:var(--accent);}
+  .gris-card .side.b{background:var(--teal-soft);color:var(--teal);}
+  .gris-card .side b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+
+  .mono{font-family:"SFMono-Regular",Consolas,monospace;background:var(--mono-bg);color:var(--mono-ink);border-radius:10px;padding:14px 16px;font-size:.82rem;overflow-x:auto;margin:14px 0;white-space:pre-wrap;}
+
+  footer{color:var(--ink-soft);font-size:.8rem;text-align:center;margin-top:60px;padding-top:20px;border-top:1px solid var(--border);}
+  footer a{color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">TP Integrador · Tema 09 — Mercado</span>
+    <h1>Dónde termina Mercado y dónde empiezan Banco y Roadmap</h1>
+    <p>Documento de frontera del Tema 09 (Mercado) con sus dos dependencias críticas: el Tema 08 (Banco), dueño del ledger y los saldos, y el Tema 10 (Roadmap y Progreso), dueño de vidas, XP, niveles e insignias. Para cada uno: qué es núcleo de Mercado, qué es exclusivo del otro equipo, qué preguntas hay que llevarles, y cuáles son los puntos grises donde el trabajo se solapa.</p>
+    <div class="meta-row">
+      <div><b>Fuentes</b>Documento de arranque y diagramas del Tema 09 · Propuesta de Arquitectura (láminas 5 y 7, tablas Tema 08/09/10) · Spike M-00 (Reserva y confirmación de compra) · Backlog de épicas de Mercado · discusión de equipo sobre vidas, insignias y consumo de ítems</div>
+      <div><b>Para qué sirve</b>Base de discusión con los equipos de Banco y Roadmap en la sesión de integración</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <a class="backlink" href="Epicas-Mercado-Sprint-Planning.html">← Backlog de épicas de Mercado</a>
+  &nbsp;·&nbsp;
+  <a class="backlink" href="Spike-M00-Reserva-Compra.html">Spike M-00 — Reserva de compra →</a>
+
+  <nav class="toc">
+    <a href="#contexto">Contexto</a>
+    <a href="#limites-mercado">Límites del Tema 09</a>
+    <a href="#comienzo-banco">Comienzo del Banco</a>
+    <a href="#preguntas">Preguntas para el Banco</a>
+    <a href="#grises">Los grises con Banco</a>
+    <a href="#frontera-roadmap">Frontera con Roadmap</a>
+    <a href="#preguntas-roadmap">Preguntas para Roadmap</a>
+    <a href="#grises-roadmap">Los grises con Roadmap</a>
+  </nav>
+
+  <section id="contexto">
+    <h2><span class="num">1</span>Por qué esta frontera es la que más importa</h2>
+    <p class="lede">De las seis dependencias de Mercado (Banco, Roadmap, Cursos, Backoffice, Social, Identidad), el equipo de Banco es la <b>única bloqueante para poder construir el flujo central del tema</b>: sin el contrato de reserva de monedas, no se puede implementar la compra directa, que es el corazón del "pedido para empezar" de Mercado. Las otras dependencias limitan funcionalidades puntuales; esta condiciona el modelo de dominio entero.</p>
+    <div class="callout info">
+      <span class="tag">Regla de plataforma que enmarca todo esto</span>
+      <p>"Cada entidad tiene un dueño único" y "cada servicio es dueño exclusivo de su base" (reglas no negociables de la arquitectura). Mercado <b>nunca</b> guarda saldo de monedas — ese dato vive una sola vez, en el Banco. Todo lo que Mercado necesita saber sobre plata se lo pregunta al Banco por el Gateway; nunca lo infiere ni lo cachea como fuente de verdad.</p>
+    </div>
+  </section>
+
+  <section id="limites-mercado">
+    <h2><span class="num">2</span>Límites del Tema 09 — Mercado</h2>
+    <p class="lede">El inicio y el final del tema no son un punto único: es útil pensarlo como una tira de responsabilidad, con lo que queda estrictamente antes y estrictamente después.</p>
+
+    <div class="flow">
+      <div class="flow-box own-other">
+        <b>Antes de Mercado</b>
+        <ul>
+          <li>Existencia del curso-cohorte (Tema 02)</li>
+          <li>Identidad y rol del alumno/profesor (Tema 01)</li>
+          <li>Precios de referencia PAR-06 / PAR-07 (Tema 12)</li>
+        </ul>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box own-mercado">
+        <b>Mercado (Tema 09)</b>
+        <ul>
+          <li>Catálogo de ítems por curso</li>
+          <li>Orden de compra (validación + reserva/confirmación)</li>
+          <li>Inventario del alumno (instancias, no contador)</li>
+          <li>Consumo de ítems</li>
+          <li>Subastas y pujas (Fase 2)</li>
+        </ul>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box own-other">
+        <b>Después de Mercado</b>
+        <ul>
+          <li>Descuento real de moneda (Tema 08)</li>
+          <li>Acreditación de vida / interpretación del efecto (Tema 10)</li>
+          <li>Notificación al alumno (Tema 11)</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Qué entra en el núcleo (inicio real del trabajo)</h3>
+    <table>
+      <thead><tr><th style="width:26%">Ítem</th><th style="width:16%">Prioridad</th><th>Por qué es de Mercado y no de otro tema</th></tr></thead>
+      <tbody>
+        <tr><td>Catálogo de ítems</td><td><span class="pill mvp">Pedido para empezar</span></td><td>Mercado es dueño de qué se ofrece y a qué precio vigente, aunque el precio base lo administre el Tema 12</td></tr>
+        <tr><td>Compra directa con reserva contra el Banco</td><td><span class="pill mvp">Pedido para empezar</span></td><td>Es el proceso central: orquesta la saga de reserva/confirmación, pero el saldo mismo nunca es suyo</td></tr>
+        <tr><td>Inventario del alumno (alcance por curso)</td><td><span class="pill mvp">Pedido para empezar</span></td><td>Mercado es el único dueño de qué ítems posee un alumno y en qué estado</td></tr>
+        <tr><td>Consumo de ítems</td><td><span class="pill mvp">Pedido para empezar</span></td><td>Mercado gobierna la existencia y el estado del ítem; el Tema 10 solo interpreta su efecto</td></tr>
+        <tr><td>Subastas con ventana temporal</td><td><span class="pill later">Para más adelante</span></td><td>Mismo dominio que la compra directa, pero con reserva de larga duración — diseño propio (ver spike M-00, punto 8)</td></tr>
+        <tr><td>Vencimiento de ítems</td><td><span class="pill later">Para más adelante</span></td><td>Extiende el modelo de Inventario que ya es de Mercado</td></tr>
+        <tr><td>Intercambio entre alumnos / catálogo configurable / ítems por temporada</td><td><span class="pill could">Podría ser</span></td><td>Extras de equilibrio de carga — el tema más liviano del reparto (nota explícita de la arquitectura)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Dónde termina, exactamente (lo que NO es de Mercado)</h3>
+    <div class="callout warn">
+      <span class="tag">Frontera de dominio</span>
+      <ul>
+        <li><b>El saldo de monedas</b> — es del Tema 08. Mercado nunca lo persiste, solo reserva/confirma/libera contra él.</li>
+        <li><b>Las vidas y el XP</b> — son del Tema 10. Mercado cobra por una vida, pero quien la acredita y valida el máximo vigente (PAR-12) es el Roadmap.</li>
+        <li><b>La pertenencia del alumno al curso-cohorte</b> — la responde el Tema 02, no el token (el token solo dice identidad y rol, lámina 7).</li>
+        <li><b>El precio base y los parámetros globales</b> — PAR-06/07 los administra el Tema 12; Mercado los lee, nunca los fija ni los hardcodea.</li>
+        <li><b>El efecto mecánico del equipamiento</b> (qué hace un escudo, por ejemplo) — lo interpreta el Tema 10; Mercado solo declara el nombre del efecto por contrato.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="comienzo-banco">
+    <h2><span class="num">3</span>Dónde empieza el dominio del Banco (Tema 08)</h2>
+    <p class="lede">Según la Propuesta de Arquitectura (tabla del Tema 08), su "pedido para empezar" es: <b>ledger de movimientos, transacciones, saldos con alcance por curso, reglas de acreditación y reservas.</b> Para Reversión de movimientos, acreditación de rachas/misiones, multiplicador de eventos y conciliación quedan en "para más adelante"; historial exportable, límites por período y tablero de circulante quedan en "podría ser".</p>
+
+    <p>Desde el punto de vista de Mercado, el comienzo del dominio del Banco no es un tema abstracto: es <b>una línea exacta en el flujo de la compra</b>, ya resuelta en el spike M-00.</p>
+
+    <div class="mono">1. Mercado valida (en su propio dominio, sin tocar al Banco):
+     disponibilidad del ítem → pertenencia al curso → saldo suficiente (consulta) →
+     moneda del curso correcto → si es vida, máximo vigente (consulta al Tema 10)
+
+──────────────── línea de frontera ────────────────
+
+2. Mercado llama, por el Gateway: reservar + confirmar contra el Banco
+   (mismo request sincrónico — decisión ya tomada en el spike M-00)
+
+3. El Banco ejecuta la operación económica real:
+   - resta el saldo de forma atómica (evita doble gasto)
+   - deja rastro en el ledger
+   - responde éxito, saldo insuficiente, u error
+
+──────────────── línea de frontera ────────────────
+
+4. Mercado interpreta la respuesta: acredita el ítem al inventario,
+   o revierte / compensa si algo falló después de confirmar</div>
+
+    <div class="boundary-line">
+      <b>La frontera en una frase:</b> todo lo que decide <i>si la compra debería poder hacerse</i> (catálogo, curso, tope de vidas) es de Mercado; todo lo que decide <i>si hay plata y de moverla de verdad</i> es del Banco. Mercado nunca resta saldo por su cuenta ni guarda una copia de "cuánto le queda" al alumno.
+    </div>
+
+    <div class="callout good">
+      <span class="tag">Ya resuelto en el spike M-00 (no hace falta repreguntarlo)</span>
+      <p>Reserva y confirmación ocurren en el mismo request sincrónico, sin ventana abierta esperando al alumno. El timeout del lado del Banco cubre reservas huérfanas por caída de proceso. La atomicidad frente a compras simultáneas es responsabilidad del Banco. Fallo posterior a la confirmación → reintentos automáticos → reembolso explícito (no rollback ACID).</p>
+    </div>
+  </section>
+
+  <section id="preguntas">
+    <h2><span class="num">4</span>Preguntas para llevarle al equipo de Banco</h2>
+    <p class="lede">Ordenadas de más a menos bloqueantes. Las marcadas <span class="qa-tag">bloqueante</span> impiden estimar con confianza la Épica M-02 (Compra directa) si quedan sin cerrar.</p>
+
+    <div class="qa-list">
+      <div class="qa crit">
+        <div class="q"><span class="qn">B-01</span>¿Cuál es la forma exacta del contrato REST de reserva/confirmación/liberación? <span class="qa-tag">bloqueante</span></div>
+        <div class="why">Endpoints, verbos, payload y códigos de respuesta. Sin esto, Mercado no puede levantar ni siquiera un stub creíble.</div>
+      </div>
+      <div class="qa crit">
+        <div class="q"><span class="qn">B-02</span>¿Quién genera la <b>idempotency key</b> y quién la controla? <span class="qa-tag">bloqueante</span></div>
+        <div class="why">Si Mercado reintenta un <code>reservar</code> por timeout de red, no puede terminar reservando (y menos confirmando) dos veces. Hace falta acordar el formato y quién es responsable de rechazar duplicados.</div>
+      </div>
+      <div class="qa crit">
+        <div class="q"><span class="qn">B-03</span>¿Cómo distingue el Banco, en su respuesta, "saldo insuficiente" de "reserva inexistente" de "reserva ya confirmada" de "reserva expirada"? <span class="qa-tag">bloqueante</span></div>
+        <div class="why">Mercado necesita códigos de error diferenciados para decidir si rechaza la compra, reintenta, o dispara una compensación. Un único error genérico no alcanza.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-04</span>¿Con qué mecanismo evita el Banco el doble gasto ante dos compras simultáneas del mismo saldo?</div>
+        <div class="why">El spike ya asumió que es responsabilidad exclusiva del Banco (lock optimista o update condicional), pero Mercado necesita saberlo para diseñar sus propias pruebas de concurrencia (DoD de la Épica M-02) contra un comportamiento real, no supuesto.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-05</span>¿Cuál es el TTL exacto de una reserva huérfana, y quién corre el job de reconciliación?</div>
+        <div class="why">El spike resolvió que la reserva expira sola, pero no el valor del timeout ni si el job que la libera vive en el Banco o hace falta coordinación con Mercado para las reservas que quedan "colgadas" del lado de la orden.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-06</span>¿El Banco expone una operación explícita de <b>reembolso</b>, distinta de "liberar"?</div>
+        <div class="why">Cuando el descuento ya se confirmó pero la acreditación del ítem falla después (reintentos agotados), no hay nada que "liberar" — hace falta una reversión auditable y distinta del flujo normal.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-07</span>Para subastas (Fase 2): cuando un alumno <b>aumenta su puja</b>, ¿el Banco soporta reservar solo el delta, o hay que liberar la reserva anterior y re-reservar el total?</div>
+        <div class="why">RF-INT-05 exige que la puja solo pueda subir, nunca bajar. Es una decisión que golpea tanto al Banco como a Mercado, y define si hace falta una variante del contrato de reserva para pujas de larga duración.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-08</span>¿Qué volumen de operaciones concurrentes dimensionaron para el ledger?</div>
+        <div class="why">El pico de Mercado no es el catálogo, es el cierre simultáneo de una subasta con 120 sesiones concurrentes (RF-NFR-03). Conviene que el Banco lo sepa antes de fijar su propio diseño de concurrencia.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">B-09</span>Desmatriculación a mitad de cuatrimestre: si un alumno se va con una reserva abierta o saldo de un curso, ¿el Banco congela, libera o anula?</div>
+        <div class="why">Está listada en la Propuesta de Arquitectura como decisión abierta que afecta a los Temas 02, 08, 09 y 10 a la vez — ningún equipo la puede resolver unilateralmente.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grises">
+    <h2><span class="num">5</span>Los grises — donde el trabajo de ambos equipos se solapa</h2>
+    <p class="lede">No son preguntas para "que el Banco responda": son puntos donde <b>ambos equipos podrían terminar construyendo una versión propia de lo mismo</b> si no se reparte explícitamente quién hace qué. Vale la pena llevarlos a la sesión de integración como temas de reparto, no solo de contrato.</p>
+
+    <div class="gris-grid">
+      <div class="gris-card">
+        <h4>Pruebas de concurrencia sobre el doble gasto</h4>
+        <p>La atomicidad del saldo es responsabilidad del Banco, pero Mercado tiene en su propia DoD "pruebas de concurrencia sobre compras simultáneas del mismo ítem". Si cada equipo prueba solo su lado, nadie prueba el camino completo.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>testea que dos órdenes no acrediten dos veces el mismo ítem</div>
+          <div class="side b"><b>Banco</b>testea que dos reservas no descuenten el mismo saldo dos veces</div>
+        </div>
+      </div>
+
+      <div class="gris-card">
+        <h4>Job de reconciliación de reservas huérfanas</h4>
+        <p>El TTL vive del lado del Banco, pero la orden que quedó "a mitad de camino" es de Mercado. Sin acordarlo, puede terminar existiendo un job de cada lado mirando el mismo problema desde ángulos distintos, o ninguno cubriendo el caso completo.</p>
+        <div class="split">
+          <div class="side b"><b>Banco</b>libera la reserva sola al vencer el TTL</div>
+          <div class="side m"><b>Mercado</b>necesita enterarse para cerrar su propia orden como EXPIRADA</div>
+        </div>
+      </div>
+
+      <div class="gris-card">
+        <h4>Orquestación de reintentos y compensación</h4>
+        <p>El reembolso lo ejecuta el Banco, pero decidir cuántos reintentos, con qué backoff, y cuándo "dar por perdida" la acreditación del ítem es lógica que hoy no tiene dueño único — ambos equipos tienen una pieza de la máquina de estados.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>orquesta los reintentos de acreditar el ítem</div>
+          <div class="side b"><b>Banco</b>ejecuta el reembolso cuando Mercado lo pide</div>
+        </div>
+      </div>
+
+      <div class="gris-card">
+        <h4>Contrato de reserva para subastas vs. compra directa</h4>
+        <p>El spike M-00 aclaró que subastas no reutilizan el mecanismo de compra directa. Pero si el Banco diseña un único endpoint de "reserva" pensando solo en compra directa, puede no soportar una reserva acumulativa de días de duración sin que ambos equipos lo hayan hablado antes.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>define cuándo una puja sube el monto reservado</div>
+          <div class="side b"><b>Banco</b>define si eso es un endpoint nuevo o una variante del existente</div>
+        </div>
+      </div>
+
+      <div class="gris-card">
+        <h4>"Circulante gastado por curso" para Backoffice</h4>
+        <p>El Tema 12 pidió ese dato como contrato de lectura. El Banco tiene el ledger completo (todo movimiento); Mercado tiene el detalle de qué se compró con esa plata. Ninguno de los dos tiene, solo, la respuesta completa que probablemente pida el panel del profesor.</p>
+        <div class="split">
+          <div class="side b"><b>Banco</b>sabe cuánto se gastó, no en qué</div>
+          <div class="side m"><b>Mercado</b>sabe en qué se gastó, no si se confirmó de verdad</div>
+        </div>
+      </div>
+
+      <div class="gris-card">
+        <h4>Fuente de verdad del historial de compras del alumno</h4>
+        <p>El Banco puede querer "historial exportable" (está en su columna "podría ser"); Mercado ya tiene el historial de Órdenes. Si ambos lo construyen, van a divergir apenas se registre un reembolso o una reserva expirada.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>historial de qué compró y qué tiene</div>
+          <div class="side b"><b>Banco</b>historial de qué se movió en el ledger</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:22px;">
+      <span class="tag">Cómo usar esta lista en la sesión de integración</span>
+      <p>Para cada gris, la salida esperada no es "quién tiene razón" sino <b>una frase de una línea que diga quién hace qué</b> (ej. "Mercado orquesta reintentos, Banco solo ejecuta reembolso cuando se lo piden"). Eso es exactamente lo que ya se hizo en el spike M-00 para el flujo central — conviene repetir el mismo formato acá antes de escribir código de ninguno de los dos lados.</p>
+    </div>
+  </section>
+
+  <section id="frontera-roadmap">
+    <h2><span class="num">6</span>Frontera con el Tema 10 — Roadmap y Progreso</h2>
+    <p class="lede">Roadmap es el equipo dueño de todo lo que mide el avance académico del alumno: grafo de contenidos, prerequisitos y desbloqueo, XP y niveles, logros e insignias, <b>vidas</b>, y el ranking. Su "para más adelante" incluye XP retroactivamente reducible (por eso no pueden modelar el progreso como contador que solo suma, necesitan historial) y rachas/misiones que pagan solo en monedas e insignias, nunca en XP.</p>
+
+    <p>El cruce con Mercado es angosto pero real: <b>venden vidas y equipamiento, pero no son dueños de lo que esos ítems terminan afectando.</b> La regla de fondo es la misma que con el Banco — dueño único del dato — aplicada a otro dominio.</p>
+
+    <h3>Vidas: quién hace qué</h3>
+    <div class="flow">
+      <div class="flow-box own-mercado">
+        <b>Mercado vende</b>
+        <ul>
+          <li>Ofrece la vida como ítem de catálogo (precio PAR-06)</li>
+          <li>Cobra: reserva/confirma contra el Banco</li>
+          <li>Valida ANTES de cobrar si el alumno ya está en el máximo (consulta a Roadmap, PAR-12 = 3)</li>
+          <li>Avisa que la compra se confirmó</li>
+        </ul>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box own-other">
+        <b>Roadmap administra</b>
+        <ul>
+          <li>Mantiene el contador de vidas vigentes del alumno</li>
+          <li>Decide y aplica el tope (PAR-12)</li>
+          <li>Descuenta vidas cuando el alumno pierde un desafío</li>
+          <li>Nunca delega ese contador a otro servicio</li>
+        </ul>
+      </div>
+    </div>
+    <div class="boundary-line">
+      <b>En una frase:</b> Mercado es el punto de venta, Roadmap es el dueño del inventario de vidas — misma relación que tienen ustedes con el Banco y las monedas, aplicada acá.
+    </div>
+
+    <div class="callout warn">
+      <span class="tag">Abierto — no lo decidieron todavía</span>
+      <ul>
+        <li><b>Sync vs. evento en el aviso de compra confirmada:</b> ¿<code>mercado.compra.confirmada</code> como evento asíncrono que Roadmap escucha, o una llamada síncrona? Si es evento y Roadmap lo rechaza después de que ya se cobró (por ejemplo, por una condición de carrera entre dos compras casi simultáneas que empujan al alumno por encima del máximo), hace falta compensar. La validación previa reduce el riesgo pero no lo elimina del todo.</li>
+        <li><b>¿La vida comprada genera una instancia en el inventario de Mercado</b> (<code>ItemInventario</code>) o es un "pasa-plata" que nunca se materializa como ítem propio? A diferencia del equipamiento, una vida no tiene estado consumible (DISPONIBLE/CONSUMIDO) — se convierte directamente en un +1 al contador de Roadmap. Sigue anotado como pregunta abierta en el modelo de dominio.</li>
+      </ul>
+    </div>
+
+    <h3>Consumo de equipamiento con efecto mecánico</h3>
+    <p>El caso real es el escudo: evita perder una vida, pero quien "hace perder vidas" es Roadmap, no Mercado. Dos formas de resolverlo:</p>
+    <div class="mono">Opción A — dos llamadas:
+  Roadmap → Mercado: "¿tiene un escudo disponible?"
+  Roadmap → Mercado: "consumilo"
+  (riesgo: entre una llamada y la otra, otro proceso puede consumir el mismo ítem)
+
+Opción B — una sola llamada atómica (recomendada):
+  Roadmap → Mercado: POST /mercado/inventario/consumir-efecto
+                      {alumnoId, cursoCohorteId, efecto:"ESCUDO"}
+  Mercado busca un ítem DISPONIBLE con ese efecto, lo marca CONSUMIDO
+  y responde en el mismo request si encontró uno o no</div>
+    <div class="callout good">
+      <span class="tag">Recomendación</span>
+      <p>La opción B evita el mismo problema de concurrencia que ya resolvieron con el Banco para el doble gasto: si separan "preguntar" de "consumir" en dos llamadas, dos desafíos fallando casi al mismo tiempo podrían leer "sí tiene escudo" los dos y consumir el mismo ítem dos veces. Con una operación atómica e idempotente, ese race condition desaparece.</p>
+      <p><b>Contrapartida a tener presente:</b> es una llamada síncrona de Roadmap hacia Mercado en un momento sensible a la latencia (mitad de un desafío). El endpoint de consumo tiene que responder rápido y con alta disponibilidad — si se cae, bloquea el flujo de Roadmap, no solo el de Mercado. Vale la pena escribirlo como requisito no funcional del endpoint, no solo como contrato funcional.</p>
+    </div>
+    <p>Dueño de la interpretación del efecto: Roadmap decide qué hace el escudo. Dueño de la existencia y el estado del ítem: Mercado. El acoplamiento es por <b>contrato de nombres de efecto</b> (el string <code>"ESCUDO"</code>), no por código compartido.</p>
+
+    <h3>Insignias: por qué no son de Mercado</h3>
+    <div class="callout info">
+      <span class="tag">Aclaración — no es una decisión de diseño, es lo que dice el requerimiento</span>
+      <p>Las insignias <b>no tienen ningún punto de contacto con Mercado</b>. No es que Roadmap tenga que avisarles cuando alguien gana una — directamente nunca pasan por ustedes:</p>
+      <ul>
+        <li><b>RF-REC-03:</b> insignia = cosmético/prestigio, <i>sin efecto mecánico</i> — es un logro que se gana, no un producto.</li>
+        <li><b>RF-INT-02:</b> "insignias, XP y vidas no se canjean directamente" — ni siquiera son intercambiables entre sí, mucho menos comprables con moneda.</li>
+        <li>Su propio backlog (Épica M-04) ya lo tenía anotado: "insignias no pasan por Mercado (son cosméticas, dueño Tema 10/Recompensas — no confundir dominios)".</li>
+      </ul>
+      <p>El catálogo de Mercado vende <b>exactamente dos familias</b> (RF-INT-01: vidas o equipamiento). La insignia se gana por desafío, se muestra en el perfil, y vive y muere dentro de Roadmap: sin catálogo, sin compra, sin inventario de Mercado.</p>
+    </div>
+
+    <h3>Cosméticos futuros (vestimenta, skins): no está en el PRD hoy</h3>
+    <div class="callout warn">
+      <span class="tag">Extensión de alcance propia, si se propone</span>
+      <p>La idea de vender objetos cosméticos sin efecto mecánico (vestimenta, skins) es razonable como producto, pero <b>no existe en ningún documento fuente</b>: no está en el PRD, y no aparece ni siquiera en la columna "podría ser" del Tema 09 en la Propuesta de Arquitectura (que solo lista intercambio entre alumnos, ítems por temporada y catálogo configurable por curso).</p>
+      <p>Si a futuro se propone: sí, sería dominio de Mercado (todo lo que se compra con moneda es su catálogo/inventario), pero sería un <b>tercer tipo de ítem</b> que no encaja en las dos categorías actuales — equipamiento siempre tiene efecto mecánico y se consume (RF-REC-05); un cosmético no tendría efecto y quedaría "puesto" permanentemente, no consumido. Haría falta un <code>TipoItem.COSMETICO</code> nuevo con su propio estado (¿EQUIPADO en vez de CONSUMIDO?). Mismo precedente que el stock de equipamiento: se puede proponer, pero hay que llevarlo al PO explícitamente como algo agregado por el equipo, no como interpretación de un requerimiento existente.</p>
+    </div>
+  </section>
+
+  <section id="preguntas-roadmap">
+    <h2><span class="num">7</span>Preguntas para llevarle al equipo de Roadmap</h2>
+    <div class="qa-list">
+      <div class="qa crit">
+        <div class="q"><span class="qn">R-01</span>¿La acreditación de una vida comprada es un evento asíncrono o una llamada síncrona? <span class="qa-tag">bloqueante</span></div>
+        <div class="why">Define si hace falta diseñar una compensación para el caso en que Roadmap rechace la acreditación después de que Mercado ya cobró.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">R-02</span>Ante dos compras de vida casi simultáneas del mismo alumno, ¿quién arbitra la condición de carrera sobre el máximo vigente (PAR-12)?</div>
+        <div class="why">La validación previa de Mercado no alcanza si ambas compras la consultan al mismo tiempo y ninguna ve todavía el resultado de la otra. ¿Roadmap serializa esa validación de su lado?</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">R-03</span>¿Aceptan el diseño de un único endpoint atómico <code>consumir-efecto</code> en Mercado, invocado por Roadmap, en vez de dos llamadas separadas (consultar + consumir)?</div>
+        <div class="why">Evita el race condition de "dos desafíos consumen el mismo escudo". Si Roadmap ya tiene otro patrón en mente, hay que acordarlo antes de implementar cualquiera de los dos lados.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">R-04</span>¿Cuál es el catálogo de nombres de "efecto" que Roadmap va a interpretar (ej. <code>"ESCUDO"</code>)?</div>
+        <div class="why">Es un contrato de nombres, no de código compartido — Mercado necesita saber qué strings puede declarar en <code>ItemDefinicion.efecto</code> para que Roadmap los reconozca.</div>
+      </div>
+      <div class="qa">
+        <div class="q"><span class="qn">R-05</span>¿La vida comprada necesita quedar registrada como instancia en el inventario de Mercado, o Roadmap prefiere que solo llegue el evento/llamada y no haya rastro del lado de Mercado?</div>
+        <div class="why">Afecta el modelo de dominio de Mercado: si no queda instancia, <code>ItemInventario</code> es exclusivamente para equipamiento, y las vidas nunca aparecen ahí.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grises-roadmap">
+    <h2><span class="num">8</span>Los grises con Roadmap</h2>
+    <p class="lede">Igual que con Banco: puntos donde ambos equipos podrían terminar resolviendo el mismo problema por separado si no se reparte explícitamente.</p>
+    <div class="gris-grid">
+      <div class="gris-card">
+        <h4>Validación previa del máximo de vidas</h4>
+        <p>Mercado consulta antes de cobrar, pero la condición de carrera real (dos compras casi simultáneas) se resuelve mejor si Roadmap serializa esa validación de su lado — mismo problema de atomicidad que el doble gasto de moneda con el Banco.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>consulta antes de reservar moneda</div>
+          <div class="side b"><b>Roadmap</b>necesita garantizar la atomicidad del conteo</div>
+        </div>
+      </div>
+      <div class="gris-card">
+        <h4>Instancia de vida en el inventario de Mercado</h4>
+        <p>¿La modela Mercado por consistencia con el resto de las compras (todo lo comprado deja rastro en <code>ItemInventario</code>), o queda fuera y solo vive como movimiento del lado de Roadmap? Ninguno de los dos documentos fuente lo resuelve.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>quiere trazabilidad de "qué compró" cada alumno</div>
+          <div class="side b"><b>Roadmap</b>ya tiene su propio historial de vidas por el XP reducible</div>
+        </div>
+      </div>
+      <div class="gris-card">
+        <h4>Diccionario de nombres de efecto</h4>
+        <p>Mercado declara el nombre del efecto al crear el ítem; Roadmap lo interpreta. Si no se acuerda un vocabulario común por escrito, cada equipo puede terminar inventando nombres distintos para lo mismo (<code>"ESCUDO"</code> vs <code>"shield"</code> vs <code>"proteccion_vida"</code>).</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>define el catálogo de <code>ItemDefinicion.efecto</code></div>
+          <div class="side b"><b>Roadmap</b>define qué hace cada efecto declarado</div>
+        </div>
+      </div>
+      <div class="gris-card">
+        <h4>Cuándo se invoca el consumo</h4>
+        <p>Mercado expone y posee el endpoint de consumo, pero "cuándo llamarlo" vive enteramente en la lógica de negocio de Roadmap (perder una vida en un desafío). Si esa lógica cambia sin avisar, el contrato puede quedar mal usado sin que Mercado se entere.</p>
+        <div class="split">
+          <div class="side m"><b>Mercado</b>garantiza que el endpoint sea atómico e idempotente</div>
+          <div class="side b"><b>Roadmap</b>decide en qué momento del flujo lo dispara</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout info" style="margin-top:22px;">
+      <span class="tag">Mismo formato que con Banco</span>
+      <p>Para cada gris, la salida esperada es una frase de una línea que diga quién hace qué — no una discusión abierta. Ejemplo ya resuelto arriba: "Mercado expone un endpoint atómico de consumo; Roadmap decide cuándo llamarlo". Repetir ese formato con Roadmap antes de escribir código de ninguno de los dos lados.</p>
+    </div>
+  </section>
+
+  <footer>
+    Basado en <i>mercado-kickoff.md</i>, <i>diagramas-mercado.md</i>, <i>TUP_PIV_BE_PROPUESTA_ARQ.pdf</i> (Temas 08, 09 y 10, láminas 5 y 7), <i>Spike-M00-Reserva-Compra.html</i> y la discusión de equipo sobre vidas, insignias y consumo de ítems. Documento de trabajo para la sesión de integración con los equipos de Banco y Roadmap, no especificación cerrada.
+  </footer>
+
+</div>
+</body>
+</html>

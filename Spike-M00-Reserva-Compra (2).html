@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Spike M-00 — Reserva de compra</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#f5f6fa; --panel:#ffffff; --ink:#1b2333; --ink-soft:#4d5872;
+    --border:#e1e4ec; --accent:#2454ff; --accent-soft:#eaf0ff;
+    --green:#127a4f; --green-soft:#e6f6ee;
+    --amber:#a2650a; --amber-soft:#fff2df;
+    --red:#b0203a; --red-soft:#fdeaee;
+    --mono-bg:#101423; --mono-ink:#dfe6ff;
+    --radius:12px;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1320; --panel:#171c2c; --ink:#eef1fb; --ink-soft:#aab2cc;
+      --border:#2a3149; --accent:#7c9bff; --accent-soft:#1c2748;
+      --green:#5fd3a0; --green-soft:#12261f;
+      --amber:#f0b35c; --amber-soft:#2c2413;
+      --red:#ff7c92; --red-soft:#301620;
+      --mono-bg:#0a0d18; --mono-ink:#c9d3ff;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 24px 100px;}
+  header.hero{
+    background:linear-gradient(135deg,#101a3d,#1d3fae 55%,#2454ff);
+    color:#fff;padding:48px 24px 36px;margin-bottom:8px;
+  }
+  header.hero .wrap{padding:0;max-width:1000px;margin:0 auto;}
+  .kicker{
+    display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+    background:rgba(255,255,255,.14);padding:5px 12px;border-radius:999px;margin-bottom:16px;
+  }
+  h1{font-size:1.95rem;margin:0 0 10px;line-height:1.2;}
+  .hero p{max-width:700px;color:#dbe3ff;font-size:1rem;margin:0;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:24px;margin-top:22px;font-size:.85rem;color:#c6d1ff;}
+  .meta-row b{color:#fff;display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;}
+  .status-chip{
+    display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);
+    padding:7px 14px;border-radius:999px;font-size:.85rem;font-weight:600;margin-top:18px;
+  }
+  .status-chip .dot{width:9px;height:9px;border-radius:50%;background:#ffcf5c;}
+
+  section{margin:42px 0;}
+  h2{font-size:1.35rem;margin:0 0 6px;display:flex;align-items:center;gap:10px;}
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+    background:var(--accent);color:#fff;border-radius:8px;font-size:.9rem;font-weight:700;flex:none;
+  }
+  .lede{color:var(--ink-soft);max-width:740px;margin:0 0 20px;font-size:.95rem;}
+
+  .summary-list{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 26px;}
+  .summary-list ol{margin:0;padding-left:20px;}
+  .summary-list li{margin-bottom:10px;font-size:.94rem;}
+  .summary-list li:last-child{margin-bottom:0;}
+
+  .item{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;
+    padding:18px 22px;margin:14px 0;position:relative;padding-left:26px;
+  }
+  .item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:12px 0 0 12px;}
+  .item.resolved::before{background:var(--green);}
+  .item.open::before{background:var(--amber);}
+  .item-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px;}
+  .item-title{font-weight:700;font-size:1rem;margin:0;}
+  .tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 10px;border-radius:999px;}
+  .tag.resolved{background:var(--green-soft);color:var(--green);}
+  .tag.open{background:var(--amber-soft);color:var(--amber);}
+  .item p{margin:.4em 0;font-size:.92rem;color:var(--ink);}
+  .item .why{color:var(--ink-soft);font-size:.87rem;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);}
+  .item .why b{color:var(--ink);}
+
+  .gherkin{
+    background:var(--mono-bg);color:var(--mono-ink);border-radius:10px;padding:16px 18px;
+    font-family:"SFMono-Regular",Consolas,monospace;font-size:.82rem;overflow-x:auto;margin:14px 0;
+    white-space:pre-wrap;
+  }
+  .gherkin .kw{color:#ffb454;font-weight:700;}
+  .gherkin .sc{color:#7fd0ff;font-weight:700;}
+  .gherkin .pend{color:#ff9d9d;}
+
+  table{width:100%;border-collapse:collapse;background:var(--panel);border-radius:12px;overflow:hidden;border:1px solid var(--border);font-size:.86rem;margin-top:10px;}
+  thead th{background:var(--accent);color:#fff;text-align:left;padding:11px 14px;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;}
+  tbody td{padding:11px 14px;border-top:1px solid var(--border);vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--bg);}
+  .st{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap;}
+  .st.resolved{background:var(--green-soft);color:var(--green);}
+  .st.open{background:var(--amber-soft);color:var(--amber);}
+
+  .backlink{
+    display:inline-block;margin-top:6px;font-size:.85rem;color:var(--accent);text-decoration:none;font-weight:600;
+  }
+  .backlink:hover{text-decoration:underline;}
+
+  footer{color:var(--ink-soft);font-size:.8rem;text-align:center;margin-top:60px;padding-top:20px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">Épica M-00 · Tema 09 Mercado</span>
+    <h1>Spike — Reserva y confirmación de la compra directa</h1>
+    <p>Bitácora de la sesión de diseño del equipo sobre cómo Mercado reserva monedas contra el Banco al comprar un ítem del catálogo, sin caer en "descontar y después entregar". Registra lo que quedó decidido, la justificación técnica de cada decisión y lo que sigue abierto.</p>
+    <span class="status-chip"><span class="dot"></span>Bloqueante de M-02 levantado — con puntos abiertos pendientes</span>
+    <div class="meta-row">
+      <div><b>Épicas relacionadas</b>M-00 (spike) · M-02 (compra directa)</div>
+      <div><b>Fecha</b>1 de septiembre de 2026</div>
+      <div><b>Participantes</b>Equipo Mercado</div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <a class="backlink" href="Epicas-Mercado-Sprint-Planning.html">← Volver al backlog de épicas de Mercado</a>
+
+  <section>
+    <h2><span class="num">1</span>Por qué se hizo este spike</h2>
+    <p class="lede">La arquitectura de plataforma prohíbe el patrón "descuento y después entrego" para cualquier operación económica (Sección 4.5 de la propuesta de arquitectura): toda compra debe reservar contra el Banco y confirmar recién si la operación se completa. Cómo se implementa eso en la práctica no estaba definido, y bloqueaba la estimación de la Épica M-02 (Compra directa con reserva contra el Banco).</p>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>Resumen del flujo acordado</h2>
+    <div class="summary-list">
+      <ol>
+        <li>El alumno dispara la compra: la petición responde de inmediato con estado <b>"compra en proceso"</b> (diseño asíncrono, no bloqueante).</li>
+        <li>Mercado valida, en orden: disponibilidad del ítem → pertenencia del alumno al curso-cohorte → saldo suficiente → que las monedas sean del curso correcto (RF-INT-04) → si el ítem es una vida, que el alumno no esté ya en el máximo de vidas vigentes (consulta a Tema 10, PAR-12: máximo 3). Si algo falla acá, se rechaza <b>antes</b> de tocar el saldo.</li>
+        <li>Si todo lo anterior es válido, Mercado reserva y confirma contra el Banco <b>en el mismo request sincrónico</b> entre servicios.</li>
+        <li>El Banco es responsable de que esa operación sea atómica frente a pedidos simultáneos (evita doble gasto); una reserva que queda huérfana por caída del proceso expira sola por timeout.</li>
+        <li>Si la confirmación del Banco sale bien pero falla la acreditación del ítem en el inventario de Mercado, el sistema reintenta automáticamente.</li>
+        <li>Agotados los reintentos, se ejecuta una compensación: reembolso explícito contra el Banco (no un rollback ACID, porque el descuento ya había quedado confirmado).</li>
+        <li>El resultado final —éxito o fallo con reembolso— se avisa al alumno de forma asíncrona. El profesor puede ver el caso; el alumno ve el error si la compra no se pudo completar.</li>
+        <li>Este mecanismo es exclusivo de la compra directa. Las subastas (Épica M-06) van a tener su propio diseño, no reutilizan este flujo.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>Decisiones resueltas</h2>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Alcance temporal de la reserva</span><span class="tag resolved">Resuelta</span></div>
+      <p>La reserva y la confirmación contra el Banco ocurren dentro del mismo request sincrónico. No hay una ventana de tiempo abierta esperando una acción posterior del alumno.</p>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Timeout vs. concurrencia — no son el mismo problema</span><span class="tag resolved">Resuelta</span></div>
+      <p>El timeout de la reserva resuelve el caso de una reserva que queda huérfana porque el proceso se cayó a mitad de camino. <b>No resuelve</b> que dos pedidos lleguen al mismo tiempo y ambos pasen la validación de saldo antes de que ninguno lo haya actualizado.</p>
+      <div class="why"><b>Por qué se separan:</b> evitar el doble gasto requiere que el Banco haga la resta de forma atómica (ej. actualización condicional sobre el saldo, o lock optimista) — es una responsabilidad del Banco como dueño del ledger, independiente de cuánto dure la reserva. El "cómo" concreto de esa atomicidad queda para el diseño técnico del equipo de Banco, fuera del alcance de este spike.</div>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Orden de validaciones</span><span class="tag resolved">Resuelta</span></div>
+      <p>1) Disponibilidad del ítem → 2) validación de curso-cohorte → 3) saldo suficiente de monedas → 4) que las monedas pertenezcan al curso correcto. Todo esto se chequea <b>antes</b> de reservar contra el Banco, para no bloquear saldo de un alumno por algo que de entrada no se puede completar.</p>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Límite de compra de vidas</span><span class="tag resolved">Resuelta</span></div>
+      <p>El tope ya existe y no lo define Mercado: <b>PAR-12</b> fija un máximo de 3 vidas vigentes por alumno y por curso (arranca con 3). Antes de reservar una compra de vida, Mercado consulta al Tema 10 (Roadmap y Progreso) si el alumno ya está en el máximo — si lo está, se rechaza la compra en el paso de validación previa, sin reservar moneda.</p>
+      <div class="why"><b>Por qué no es un límite propio de Mercado:</b> el contador de vidas vigentes es responsabilidad exclusiva del Tema 10 (regla de dueño único de cada entidad). Mercado no mantiene su propia copia de ese contador ni decide el tope — solo lo consulta antes de vender.</div>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Reintentos y compensación (no rollback clásico)</span><span class="tag resolved">Resuelta</span></div>
+      <p>Si falla la acreditación del ítem después de que el Banco ya confirmó el descuento, el sistema reintenta automáticamente un número de veces a definir. Agotados los reintentos, se compensa con un reembolso.</p>
+      <div class="why"><b>Por qué no es un "rollback":</b> el descuento en el Banco ya quedó confirmado y es durable — no hay nada que deshacer en el sentido ACID. Lo que hace falta es que el Banco exponga una operación explícita y auditable de reembolso/reversión, distinta del flujo normal de reserva/confirmación.</div>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Experiencia del alumno: diseño asíncrono</span><span class="tag resolved">Resuelta</span></div>
+      <p>La respuesta inmediata es "compra en proceso", no una espera bloqueante mientras corren los reintentos. El resultado final se comunica después.</p>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Visibilidad del resultado</span><span class="tag resolved">Resuelta</span></div>
+      <p>El profesor debe poder ver el caso (consistente con el patrón de incidentes que ya usa la plataforma en chat e IA). El alumno debe poder ver el error si la compra finalmente no se pudo completar.</p>
+    </div>
+
+    <div class="item resolved">
+      <div class="item-head"><span class="item-title">Alcance del mecanismo</span><span class="tag resolved">Resuelta</span></div>
+      <p>Este diseño cubre únicamente la compra directa (M-02). Las subastas (M-06, Fase 2) se van a diseñar aparte, sin asumir que reutilizan este mismo mecanismo de reserva.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>Puntos abiertos</h2>
+    <p class="lede">Quedan explícitamente sin cerrar. No bloquean seguir avanzando con el resto de M-02, pero hay que resolverlos antes de dar por terminada la historia de compra.</p>
+
+    <div class="item open">
+      <div class="item-head"><span class="item-title">Stock / límite de compras de equipamiento</span><span class="tag open">Abierto</span></div>
+      <p><b>No tiene base en el PRD.</b> A diferencia de las vidas (tope resuelto vía PAR-12, ver Sección 3), el PRD no define escasez ni stock para el equipamiento con efecto mecánico — solo dice que se consume al usarse (RF-REC-05, uso único tras la compra). Si el equipo agrega stock o un tope de compras para equipamiento, es una <b>extensión de alcance propia</b>, no la interpretación de un requerimiento existente — conviene documentarlo así.</p>
+      <p>Falta además definir si "cantidad" significa <b>escasez global</b> del ítem en el curso (ej. "quedan 5 unidades para toda la cohorte") o un <b>tope por alumno</b> de cuántas unidades puede tener en su inventario a la vez — son dos mecanismos independientes; se puede optar por ninguno, uno o ambos. Si se decide agregar stock, también queda pendiente: cómo se decrementa de forma atómica, y si se repone junto con el reembolso al compensar una compra fallida.</p>
+    </div>
+
+    <div class="item open">
+      <div class="item-head"><span class="item-title">Canal de notificación del resultado asíncrono</span><span class="tag open">Abierto</span></div>
+      <p>No se confirmó si el aviso final ("compra confirmada" / "compra falló, se reembolsó") viaja por el mismo canal de notificaciones in-app que ya gobierna el Tema 11, o si Mercado necesita definir algo propio. Recomendado: reusar el contrato existente antes de inventar uno nuevo, pero falta la confirmación.</p>
+    </div>
+
+    <div class="item open">
+      <div class="item-head"><span class="item-title">Parámetros de reintentos y timeout</span><span class="tag open">Abierto</span></div>
+      <p>Cantidad de reintentos, tiempo de espera entre cada uno, y duración exacta del timeout de reserva en el Banco: ninguno de estos valores está definido todavía. Podrían terminar siendo parámetros de configuración compartida, a coordinar con el equipo dueño de PAR-01 a PAR-24.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>Flujo en Gherkin (lo resuelto hasta ahora)</h2>
+    <p class="lede">Cubre los escenarios ya definidos. Deliberadamente <b>no incluye</b> un escenario de stock agotado, porque ese mecanismo sigue abierto (ver Sección 4).</p>
+
+    <div class="gherkin"><span class="sc"># Escenario 1: compra exitosa</span>
+<span class="kw">Dado que</span> el alumno pertenece al curso y el ítem está disponible en su catálogo
+<span class="kw">Y</span> el alumno tiene saldo suficiente en monedas de ese mismo curso
+<span class="kw">Cuando</span> el alumno confirma la compra
+<span class="kw">Entonces</span> el sistema responde de inmediato "compra en proceso"
+<span class="kw">Y</span> reserva y confirma el descuento contra el Banco en la misma operación
+<span class="kw">Y</span> acredita el ítem al inventario del alumno
+<span class="kw">Y</span> notifica al alumno el resultado final de forma asíncrona
+
+<span class="sc"># Escenario 2: rechazo por validación previa</span>
+<span class="kw">Dado que</span> el alumno no cumple alguna condición previa (no pertenece al curso,
+  no tiene saldo suficiente, o sus monedas son de otro curso)
+<span class="kw">Cuando</span> intenta comprar el ítem
+<span class="kw">Entonces</span> la operación se rechaza <span class="pend">antes de reservar nada contra el Banco</span>
+<span class="kw">Y</span> el alumno ve el motivo del rechazo
+
+<span class="sc"># Escenario 2b: compra de vida en el máximo de vidas vigentes</span>
+<span class="kw">Dado que</span> el alumno ya tiene 3 vidas vigentes en el curso (PAR-12)
+<span class="kw">Cuando</span> intenta comprar una vida adicional
+<span class="kw">Entonces</span> la operación se rechaza antes de reservar moneda
+<span class="kw">Y</span> el alumno ve que ya está en el máximo de vidas permitido
+
+<span class="sc"># Escenario 3: reserva huérfana por caída del proceso</span>
+<span class="kw">Dado que</span> el Banco reservó las monedas dentro de una compra en curso
+<span class="kw">Cuando</span> el proceso de Mercado se interrumpe antes de confirmar o cancelar
+<span class="kw">Entonces</span> la reserva expira sola al vencer el timeout del lado del Banco
+<span class="kw">Y</span> las monedas vuelven a estar disponibles para el alumno
+
+<span class="sc"># Escenario 4: falla la acreditación del ítem tras confirmar el descuento</span>
+<span class="kw">Dado que</span> el Banco ya confirmó el descuento de monedas
+<span class="kw">Cuando</span> la acreditación del ítem en el inventario de Mercado falla
+<span class="kw">Entonces</span> el sistema reintenta automáticamente [N] veces <span class="pend">(N a definir)</span>
+<span class="kw">Y</span> si todos los reintentos fallan, se ejecuta el reembolso contra el Banco
+<span class="kw">Y</span> el caso queda visible para el profesor
+<span class="kw">Y</span> el alumno ve el error de la compra</div>
+  </section>
+
+  <section>
+    <h2><span class="num">6</span>Bitácora de decisión — resumen rápido</h2>
+    <table>
+      <thead>
+        <tr><th style="width:34%">Tema</th><th style="width:12%">Estado</th><th>Decisión / nota</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Reserva + confirmación</td><td><span class="st resolved">Resuelto</span></td><td>Mismo request sincrónico contra el Banco</td></tr>
+        <tr><td>Reservas huérfanas</td><td><span class="st resolved">Resuelto</span></td><td>Expiran solas por timeout (valor exacto: abierto)</td></tr>
+        <tr><td>Doble gasto por concurrencia</td><td><span class="st resolved">Resuelto</span></td><td>Responsabilidad del Banco: operación atómica sobre el saldo, distinta del timeout</td></tr>
+        <tr><td>Orden de validaciones</td><td><span class="st resolved">Resuelto</span></td><td>Disponibilidad → curso → saldo → moneda del curso correcto, antes de reservar</td></tr>
+        <tr><td>Fallo tras confirmación</td><td><span class="st resolved">Resuelto</span></td><td>Reintentos automáticos → reembolso (compensación, no rollback ACID)</td></tr>
+        <tr><td>Experiencia del alumno</td><td><span class="st resolved">Resuelto</span></td><td>Asíncrona: "compra en proceso" + aviso posterior</td></tr>
+        <tr><td>Visibilidad de errores</td><td><span class="st resolved">Resuelto</span></td><td>Profesor ve el caso; alumno ve el error</td></tr>
+        <tr><td>Subastas vs. compra directa</td><td><span class="st resolved">Resuelto</span></td><td>Diseños separados</td></tr>
+        <tr><td>Límite de vidas por alumno</td><td><span class="st resolved">Resuelto</span></td><td>Máximo 3 vigentes, arranca con 3 (PAR-12) — lo administra Tema 10, Mercado solo consulta</td></tr>
+        <tr><td>Stock / límite de compras de equipamiento</td><td><span class="st open">Abierto</span></td><td>Sin base en el PRD — extensión de alcance propia; falta definir escasez global vs. tope por alumno</td></tr>
+        <tr><td>Canal de notificación asíncrona</td><td><span class="st open">Abierto</span></td><td>¿Mismo canal del Tema 11, o propio de Mercado? — sin confirmar</td></tr>
+        <tr><td>Parámetros de reintentos/timeout</td><td><span class="st open">Abierto</span></td><td>Cantidad, backoff y duración sin definir</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    Bitácora de la sesión de diseño del spike M-00 (Tema 09 · Mercado). Documento de trabajo, no especificación cerrada — actualizar cuando se resuelvan los puntos abiertos.
+  </footer>
+
+</div>
+</body>
+</html>
