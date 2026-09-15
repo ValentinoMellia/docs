@@ -24,6 +24,10 @@ docs/
 │   ├── Catalogos/                           # Catálogo de consumibles y balance pedagógico
 │   └── Arquitectura-General/                # Flujos globales y mapa de integración de microservicios
 │
+├── Workflow/                                # Guía de Git Workflow, política de ramas y convención de commits
+│   ├── README.md                            # Documento normativo y reglas de Pull Request
+│   └── diagrama-git-workflow.png            # Diagrama visual de ciclo de vida de ramas
+│
 └── [Documentos Iniciales]                   # Kickoff, spikes y presentaciones previas
 ```
 
@@ -74,3 +78,11 @@ Directorio: [`Mercado/Catalogos/`](./Mercado/Catalogos/)
 Directorio: [`Mercado/Arquitectura-General/`](./Mercado/Arquitectura-General/)
 * [**Diagrama de Flujo Inter-Microservicios (HTML)**](./Mercado/Arquitectura-General/diagrama-flujo-microservicios.html): Mapa general de microservicios y posición de entrada de Mercado.
 * [**Flujos de Integración de Mercado (HTML)**](./Mercado/Arquitectura-General/flujos-integracion-mercado.html): Dashboard integral de integración de Mercado con el ecosistema Aula Quest.
+
+---
+
+## 🛠️ 4. Metodología de Desarrollo y Workflow de Git
+
+Directorio: [`Workflow/`](./Workflow/)
+* [**Guía Oficial de Git Workflow & Commits**](./Workflow/README.md): Especificación de ramas (`main`, `develop`, `feature/*`, `bugfix/*`, `release/*`, `hotfix/*`), política obligatoria de Pull Requests hacia `main` y convención semántica de commits.
+* [**Diagrama Visual de Git Workflow**](./Workflow/diagrama-git-workflow.png): Esquema ilustrativo del ciclo de vida y ramificación del proyecto.
