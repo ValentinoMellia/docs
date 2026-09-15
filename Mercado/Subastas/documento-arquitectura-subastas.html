@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocolo de Arquitectura y Flujo Transaccional de Subastas — G11 Mercado & Banco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'neutral',
+    themeVariables: {
+      primaryColor: '#e0f2fe',
+      primaryTextColor: '#0f172a',
+      primaryBorderColor: '#0284c7',
+      lineColor: '#0369a1',
+      secondaryColor: '#f1f5f9',
+      tertiaryColor: '#ffffff'
+    }
+  });
+</script>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --surface-3: #e2e8f0;
+    --ink: #0f172a;
+    --ink-soft: #475569;
+    --ink-faint: #64748b;
+    --line: #cbd5e1;
+    --accent: #0284c7;
+    --accent-ink: #0369a1;
+    --accent-soft: #e0f2fe;
+    --ok: #16a34a;
+    --ok-soft: #dcfce7;
+    --warn: #d97706;
+    --warn-soft: #fef3c7;
+    --bad: #dc2626;
+    --bad-soft: #fee2e2;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+  }
+
+  [data-theme="dark"] {
+    --bg: #0b1120;
+    --surface: #111827;
+    --surface-2: #1e293b;
+    --surface-3: #334155;
+    --ink: #f8fafc;
+    --ink-soft: #cbd5e1;
+    --ink-faint: #94a3b8;
+    --line: #2d3748;
+    --accent: #38bdf8;
+    --accent-ink: #bae6fd;
+    --accent-soft: #0c4a6e;
+    --ok: #4ade80;
+    --ok-soft: #14532d;
+    --warn: #fbbf24;
+    --warn-soft: #78350f;
+    --bad: #f87171;
+    --bad-soft: #7f1d1d;
+    --code-bg: #030712;
+    --code-ink: #f3f4f6;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.65;
+    font-size: 15.5px;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Newsreader', Georgia, serif;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  code, .mono, pre {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Navigation Bar */
+  .top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .nav-brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .nav-brand::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .nav-links {
+    display: flex;
+    gap: 16px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 13.5px;
+    overflow-x: auto;
+  }
+  .nav-links a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .nav-links a:hover {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .theme-toggle {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Page Layout */
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+
+  /* Hero Header */
+  .hero {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 32px;
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  h1.title {
+    font-size: clamp(32px, 5vw, 44px);
+    margin: 12px 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 19px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.accent { background: var(--accent-soft); color: var(--accent-ink); }
+  .badge.warn { background: var(--warn-soft); color: var(--warn); }
+
+  /* Sections */
+  section {
+    margin-top: 56px;
+    scroll-margin-top: 80px;
+  }
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .sec-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  section h2 {
+    font-size: 26px;
+    margin: 0;
+  }
+  .lede {
+    font-size: 16.5px;
+    color: var(--ink-soft);
+    margin-bottom: 24px;
+    max-width: 80ch;
+  }
+
+  /* Cards Grid */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 24px 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .card.highlight {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+  }
+  .card .card-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .card h3 {
+    margin: 0 0 12px;
+    font-size: 20px;
+  }
+  .card p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+    flex: 1;
+  }
+  .card ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13.8px;
+    color: var(--ink-soft);
+  }
+  .card ul li { margin-bottom: 6px; }
+
+  /* Tables */
+  .table-container {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin: 24px 0;
+    background: var(--surface);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+  }
+  th, td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    background: var(--surface-2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+
+  /* Notes & Callouts */
+  .note {
+    background: var(--surface-2);
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+    font-size: 14.8px;
+  }
+  .note.warn {
+    background: var(--warn-soft);
+    border-left-color: var(--warn);
+    color: var(--ink);
+  }
+  .note.bad {
+    background: var(--bad-soft);
+    border-left-color: var(--bad);
+    color: var(--ink);
+  }
+  .note.ok {
+    background: var(--ok-soft);
+    border-left-color: var(--ok);
+    color: var(--ink);
+  }
+
+  /* Code & Details */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    padding: 18px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 16px 0;
+    border: 1px solid var(--line);
+  }
+  details {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin: 14px 0;
+    padding: 12px 16px;
+    box-shadow: var(--shadow);
+  }
+  details[open] {
+    padding-bottom: 18px;
+  }
+  summary {
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+  }
+  summary:hover {
+    color: var(--accent);
+  }
+
+  /* Archify Preview Frame */
+  .archify-frame-container {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    margin: 28px 0;
+  }
+  .archify-header {
+    background: var(--surface-2);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .archify-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .archify-actions a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    font-weight: 600;
+  }
+  iframe.archify-iframe {
+    width: 100%;
+    height: 720px;
+    border: none;
+    display: block;
+  }
+
+  /* Steps List */
+  ol.steps {
+    list-style: none;
+    counter-reset: step-counter;
+    margin: 24px 0;
+    padding: 0;
+  }
+  ol.steps > li {
+    counter-increment: step-counter;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  ol.steps > li::before {
+    content: counter(step-counter);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #ffffff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  /* Diagram container */
+  .mermaid-box {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+    margin-top: 80px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="top-nav">
+  <div class="nav-brand">Aula Quest · G11 Mercado</div>
+  <ul class="nav-links">
+    <li><a href="#contexto">00. Contexto</a></li>
+    <li><a href="#opciones">01. 3 Opciones</a></li>
+    <li><a href="#resiliencia">02. Fallos & Resiliencia</a></li>
+    <li><a href="#canales-idempotencia">03. Idempotencia</a></li>
+    <li><a href="#contratos">04. Contratos JSON</a></li>
+    <li><a href="#flujo-pasos">05. Paso a Paso</a></li>
+    <li><a href="#diagrama-archify">06. Archify Viewer</a></li>
+  </ul>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓 Tema</button>
+</nav>
+
+<div class="page">
+
+  <!-- Hero Header -->
+  <header class="hero">
+    <div class="eyebrow">Documento Oficial de Arquitectura e Integración Transaccional</div>
+    <h1 class="title">Diseño de Subastas con Reserva Contable (HOLD)</h1>
+    <p class="subtitle">Análisis técnico de integración entre Mercado (Tema 09) y Banco (Tema 08) con Apache Kafka y SSE</p>
+    <div class="badges">
+      <span class="badge ok">✓ Analista Senior (15 años IT)</span>
+      <span class="badge accent">Fase 3: Épica E-07</span>
+      <span class="badge ok">Idempotencia Total</span>
+      <span class="badge warn">Hold de Larga Duración</span>
+      <span class="badge accent">Archify Showcase Validado</span>
+    </div>
+  </header>
+
+  <!-- Section 00: Contexto -->
+  <section id="contexto">
+    <div class="sec-head">
+      <span class="sec-num">00</span>
+      <h2>Contexto Operativo y Visión del Analista Senior</h2>
+    </div>
+    <p class="lede">
+      En sistemas distribuidos, una subasta es cualitativamente distinta de una compra directa. La compra directa es una transacción transitoria de segundos (ACID acotada); la subasta es una <strong>transacción comercial de larga duración (long-running distributed saga)</strong> que se prolonga durante días y culmina en un cuello de botella de concurrencia extrema: <strong>~120 sesiones simultáneas compitiendo contra el reloj en el último minuto</strong>.
+    </p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-tag">El Rol del Banco (Tema 08)</div>
+        <h3>Custodio del Saldo y Ledger</h3>
+        <p>Banco administra el balance contable de monedas de cada alumno por cohorte. Ya cuenta con la infraestructura de <code>BalanceHold</code> (reserva preventiva antes del débito definitivo).</p>
+        <ul>
+          <li>Saldo real vs. Saldo disponible.</li>
+          <li>Riesgo: El scheduler de Banco libera holds a los 5 minutos en compra directa; en subastas debe durar días.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">El Rol de Mercado (Tema 09)</div>
+        <h3>Dueño de la Subasta e Inventario</h3>
+        <p>Mercado define las fechas de apertura y cierre, valida la matriculación, evalúa las posturas, determina al ganador y acredita el ítem en <code>student_inventory</code>.</p>
+        <ul>
+          <li>Mantiene el ranking de ofertas.</li>
+          <li>Emite el comando de cobro definitivo al ganador y liberaciones a perdedores.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Infraestructura Transversal</div>
+        <h3>Gateway, Kafka y Notificaciones</h3>
+        <p>El cliente interactúa vía HTTP REST a través del API Gateway (Tema 01). Los microservicios coordinan hechos consumados y comandos vía Apache Kafka y avisan en tiempo real vía SSE.</p>
+        <ul>
+          <li>Móvil habilitado exclusivamente para subastas (RF-NFR-06).</li>
+          <li>Notificaciones (Tema 11) alerta posturas superadas.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 01: Las 3 Opciones -->
+  <section id="opciones">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>Las 3 Opciones de Arquitectura para Subastas</h2>
+    </div>
+    <p class="lede">
+      Considerando que Banco ya implementa un mecanismo de <code>HOLD</code>, se evalúan 3 alternativas de ingeniería para orquestar la retención de monedas de los participantes:
+    </p>
+
+    <div class="grid-3">
+      <!-- Opción 1 -->
+      <div class="card">
+        <div class="card-tag">Opción 1 · Escrow Total</div>
+        <h3>Hold Persistente por Alumno</h3>
+        <p>Cada alumno que puja congela el 100% de su oferta en Banco. Si incrementa su puja, se emite <code>HOLD_INCREASE_REQUESTED</code> para bloquear la diferencia.</p>
+        <ul>
+          <li><strong>Garantía:</strong> 100% de solvencia garantizada al cierre.</li>
+          <li><strong>Problema:</strong> "Circulante atrapado". Si 10 alumnos pujan 1,000 monedas, hay 10,000 monedas bloqueadas durante días que no pueden usarse en el catálogo.</li>
+          <li><strong>Cierre:</strong> Complejidad $O(N)$ (1 cobro y $N-1$ liberaciones masivas en el segundo final).</li>
+        </ul>
+      </div>
+
+      <!-- Opción 2 -->
+      <div class="card highlight">
+        <div class="card-tag">Opción 2 · Recomendación Senior</div>
+        <h3>Hold Exclusivo al Líder (Floating Hold)</h3>
+        <p>Banco solo mantiene <strong>UN hold activo en todo momento</strong>: el de la mejor postura actual. Al ser superada una puja, se reserva al nuevo líder y se libera inmediatamente al perdedor.</p>
+        <ul>
+          <li><strong>Garantía:</strong> 100% garantizada (el ganador siempre está retenido).</li>
+          <li><strong>Ventaja Máxima:</strong> El alumno superado recupera su dinero en segundos para contraofertar o comprar.</li>
+          <li><strong>Cierre $O(1)$:</strong> En el martillazo solo se confirma 1 hold. Cero tormenta de liberaciones.</li>
+        </ul>
+      </div>
+
+      <!-- Opción 3 -->
+      <div class="card">
+        <div class="card-tag">Opción 3 · Fianza / Colateral</div>
+        <h3>Depósito de Fianza + Liquidación</h3>
+        <p>Los alumnos inmovilizan un depósito de fianza fijo (ej: 100 monedas o 20% base) para entrar a la sala. Las pujas son virtuales. Al cierre se cobra el total al ganador.</p>
+        <ul>
+          <li><strong>Garantía:</strong> Condicionada. Si el ganador vació su cuenta durante los días de la subasta, se cae en "Default".</li>
+          <li><strong>Problema:</strong> Requiere penalizar con confiscación de fianza y diseñar adjudicación en cascada hacia el 2° postor.</li>
+          <li><strong>Fricción:</strong> Genera frustración pedagógica.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tabla Comparativa -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Criterio Técnico</th>
+            <th>Opción 1: Escrow Total</th>
+            <th>Opción 2: Hold Flotante al Líder</th>
+            <th>Opción 3: Fianza + Liquidación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Garantía de Cobro al Cierre</strong></td>
+            <td><span class="badge ok">100% Asegurado</span></td>
+            <td><span class="badge ok">100% Asegurado</span></td>
+            <td><span class="badge warn">Riesgo de Default / Impago</span></td>
+          </tr>
+          <tr>
+            <td><strong>Liquidez de Monedas (UX Alumno)</strong></td>
+            <td><span class="badge bad">Mala (Monedas atrapadas días)</span></td>
+            <td><span class="badge ok">Excelente (Devolución inmediata)</span></td>
+            <td><span class="badge ok">Buena (Solo fianza retenida)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Carga en Base de Datos de Banco</strong></td>
+            <td>Alta ($N$ holds calientes activos)</td>
+            <td><span class="badge ok">Mínima (1 hold por subasta)</span></td>
+            <td>Media (Holds estáticos de fianza)</td>
+          </tr>
+          <tr>
+            <td><strong>Complejidad en el Cierre ($T=0$)</strong></td>
+            <td>$O(N)$ (Tormenta de liberaciones)</td>
+            <td><span class="badge ok">$O(1)$ (1 sola confirmación)</span></td>
+            <td>Compleja (Cascada ante insolvencia)</td>
+          </tr>
+          <tr>
+            <td><strong>Alineación con Épica E-07</strong></td>
+            <td>Directa (Es el modelo base de E-07)</td>
+            <td><span class="badge ok">Evolución recomendada</span></td>
+            <td>Divergente con los Criterios E-07</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note ok">
+      <strong>Dictamen del Analista Senior:</strong> La <strong>Opción 2 (Hold Flotante al Líder)</strong> es la arquitectura más madura y escalable para producción. No obstante, para mantener 100% de compatibilidad con las especificaciones ya redactadas por el equipo de Banco en <code>flujo-subasta (1).html</code> (que ya contempla <code>HOLD_INCREASE_REQUESTED</code>), implementaremos la <strong>Opción 1 como base mínima de lanzamiento (MVP)</strong>, aislando la lógica en el motor de Mercado para poder activar la Opción 2 mediante Feature Flag sin requerir cambios en Banco.
+    </div>
+  </section>
+
+  <!-- Section 02: Fallos y Resiliencia -->
+  <section id="resiliencia">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>Matriz de Fallos, Errores Letales y Soluciones de Resiliencia</h2>
+    </div>
+    <p class="lede">
+      En un sistema distribuido, las caídas de red, reinicios de contenedores y desincronizaciones de reloj no son excepciones: son certezas estadísticas. Esta es la matriz de mitigación:
+    </p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-tag">Error Letal 1</div>
+        <h3>Desincronización de TTL & Anti-Sniping</h3>
+        <p>Si la subasta se prorroga 2 minutos por una puja de último momento (Anti-sniping), el <code>HoldExpirationScheduler</code> de Banco no se entera y libera el hold por expiración antes del cierre.</p>
+        <p><strong>Solución:</strong> El <code>ttlSeconds</code> enviado a Banco siempre lleva un <strong>Grace Period de +30 minutos</strong>. La subasta expira por decisión explícita de Mercado, no por el reloj de Banco.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Error Letal 2</div>
+        <h3>Doble Martillo por Pods Concurrentes</h3>
+        <p>Si Mercado corre en 2 pods en clúster, ambos pueden disparar el cron de cierre a las 23:59:59 simultáneamente, adjudicando dos veces o duplicando débitos.</p>
+        <p><strong>Solución:</strong> Bloqueo optimista <code>@Version</code> en <code>market_auction</code> + tarea distribuida coordinada con <strong>ShedLock</strong>.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Error Letal 3</div>
+        <h3>Vidas Subastadas vs. Tope de Tema 10</h3>
+        <p>Si el ítem subastado es una "Vida" y el alumno que gana ya alcanzó el tope máximo permitido por Roadmap (Tema 10) al momento de adjudicar, la acreditación revienta.</p>
+        <p><strong>Solución:</strong> Regla de negocio preventiva en Backoffice: <strong>Las vidas no son subastables</strong>. Solo se subastan cosméticos o equipables sin tope.</p>
+      </div>
+    </div>
+
+    <!-- Tabla de Microservicios -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Microservicio</th>
+            <th>Fallo Concreto</th>
+            <th>Impacto</th>
+            <th>Solución y Compensación Arquitectónica</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Banco (Tema 08)</strong></td>
+            <td>Caído o timeout durante una puja inicial</td>
+            <td>No se puede congelar el saldo del alumno</td>
+            <td><strong>Rechazo Seguro:</strong> Mercado aborta la puja y responde al alumno por SSE: <em>"Servicio bancario no disponible. No se debitaron monedas."</em> Cero inconsistencia contable.</td>
+          </tr>
+          <tr>
+            <td><strong>Banco (Tema 08)</strong></td>
+            <td>Caído en el momento exacto del cierre</td>
+            <td>El ganador fue elegido pero no se puede debitar en el ledger</td>
+            <td><strong>Estado CLOSING_PENDING_SETTLEMENT:</strong> La subasta entra en pausa transicional. El evento se guarda en el <strong>Transactional Outbox</strong> de Mercado y reintenta con Exponential Backoff hasta que Banco reviva.</td>
+          </tr>
+          <tr>
+            <td><strong>Mercado (Tema 09)</strong></td>
+            <td>Crash del contenedor a mitad del cierre</td>
+            <td>Se determinó ganador pero no se enviaron las liberaciones a los perdedores</td>
+            <td><strong>AuctionRecoveryService:</strong> Al reiniciar cualquier instancia de Mercado, un reconciliador busca subastas vencidas en <code>CLOSING_IN_PROGRESS</code> y reanuda el despacho de forma idempotente.</td>
+          </tr>
+          <tr>
+            <td><strong>Apache Kafka</strong></td>
+            <td>Caída del clúster o partición de red</td>
+            <td>No se pueden despachar comandos ni eventos</td>
+            <td><strong>Transactional Outbox Pattern:</strong> Los eventos se persisten en PostgreSQL en la tabla <code>market_outbox</code> dentro de la misma transacción local. Un relay los despacha en cuanto Kafka reconecta.</td>
+          </tr>
+          <tr>
+            <td><strong>Inventario (Tema 09)</strong></td>
+            <td>Fallo de BD al acreditar el ítem tras cobro</td>
+            <td>Banco cobró las monedas pero el ítem no se guardó</td>
+            <td><strong>Saga Compensatoria:</strong> Mercado emite <code>COMPENSATION_REFUND_REQUESTED</code>. Banco anula el asiento contable y reintegra el 100% de las monedas al ganador. La subasta queda como <code>FAILED_COMPENSATED</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Máquina de Estados Mermaid -->
+    <div class="mermaid-box">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:var(--accent); margin-bottom:12px;">
+        MÁQUINA DE ESTADOS RESILIENTE DE LA SUBASTA (market_auction)
+      </div>
+      <div class="mermaid">
+stateDiagram-v2
+    [*] --> DRAFT : Creación por Profesor
+    DRAFT --> SCHEDULED : Programación de ventana
+    SCHEDULED --> OPEN : Llegada de start_datetime
+    
+    state OPEN {
+        [*] --> SIN_PUJAS
+        SIN_PUJAS --> CON_PUJAS : Primera puja válida (HOLD_CREATED)
+        CON_PUJAS --> CON_PUJAS : Puja supera al líder (HOLD_INCREASED)
+    }
+    
+    OPEN --> CLOSING_IN_PROGRESS : Fin de ventana (Lock Optimista @Version)
+    OPEN --> CANCELLED : Profesor cancela (Liberación masiva inmediata)
+
+    state CLOSING_IN_PROGRESS {
+        [*] --> EVALUANDO_GANADOR
+        EVALUANDO_GANADOR --> CONFIRMANDO_LEDGER : Hay postor válido
+        EVALUANDO_GANADOR --> DESIERTA : Sin ofertas
+        CONFIRMANDO_LEDGER --> ACREDITANDO_ITEM : HOLD_CONFIRMED recibido
+        ACREDITANDO_ITEM --> LIBERANDO_PERDEDORES : Ítem persistido en inventario
+    }
+
+    LIBERANDO_PERDEDORES --> CLOSED : Liquidación completa finalizada
+    DESIERTA --> CLOSED : Subasta auditada sin postores
+    
+    CLOSING_IN_PROGRESS --> CLOSING_PENDING_SETTLEMENT : Banco no responde al cierre
+    CLOSING_PENDING_SETTLEMENT --> CLOSING_IN_PROGRESS : Reintento exitoso Outbox
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 03: Canales e Idempotencia -->
+  <section id="canales-idempotencia">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>Canales de Comunicación y Estrategia de Idempotencia</h2>
+    </div>
+    <p class="lede">
+      Para tolerar reintentos en redes móviles y duplicaciones de red en Kafka, se aplica una separación estricta de canales y una doctrina de idempotencia en 3 capas:
+    </p>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-tag">Canal 1 · HTTP REST Sincrónico</div>
+        <h3>Entrada Inbound vía Gateway</h3>
+        <p>El cliente (Web o Móvil) emite <code>POST /api/v1/market/auctions/{id}/bids</code> con el header <code>X-Idempotency-Key</code>. Mercado responde <code>202 Accepted</code> de inmediato con el <code>bidId</code> y la URL del canal SSE.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Canal 2 · Streaming SSE</div>
+        <h3>Feedback Push Unidireccional</h3>
+        <p>El cliente mantiene abierto un socket Server-Sent Events (SSE). Mercado le envía los cambios de estado en tiempo real (<code>BID_ACCEPTED</code>, <code>OUTBID</code>, <code>CLOSED</code>) sin bloquear la conexión HTTP inicial.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-tag">Canal 3 · Apache Kafka</div>
+        <h3>Coreografía Asincrónica</h3>
+        <p>Toda la coordinación con Banco (Tema 08) y Notificaciones (Tema 11) viaja por Kafka con <strong>particionamiento por auctionId</strong>, garantizando procesamiento FIFO estricto.</p>
+      </div>
+    </div>
+
+    <h3>La Doctrina de Idempotencia en 3 Capas</h3>
+    <ol class="steps">
+      <li>
+        <div>
+          <strong>Capa 1: Clave Determinística Única (commandId):</strong>
+          <p>Mercado deriva la clave como: <code>commandId = SHA-256(auctionId + studentId + sequenceNumber)</code>. Si el alumno hace doble clic o reintenta por reconexión 4G, la clave es idéntica.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Capa 2: Tabla de Deduplicación en Banco (processed_commands):</strong>
+          <p>Banco valida si el <code>commandId</code> ya fue ejecutado. Si existe en su base de datos, <strong>omite la mutación contable</strong> y responde de inmediato con el resultado previo sin duplicar reservas ni cobros.</p>
+        </div>
+      </li>
+      <li>
+        <div>
+          <strong>Capa 3: Bloqueo Optimista en Mercado (@Version):</strong>
+          <p>Impide colisiones concurrentes al transicionar la subasta hacia <code>CLOSING_IN_PROGRESS</code>. Si dos hilos intentan cerrar la misma subasta, solo uno persiste; el segundo es rechazado de forma segura.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- Section 04: Contratos de Eventos -->
+  <section id="contratos">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>Contratos Formales de Eventos y Comandos JSON</h2>
+    </div>
+    <p class="lede">
+      Todos los mensajes cumplen con la envoltura canónica de 5 campos obligatorios del ecosistema de Aula Quest: <code>eventId</code>, <code>eventType</code>, <code>timestamp</code>, <code>producer</code> y <code>payload</code>.
+    </p>
+
+    <!-- Contrato 1 -->
+    <details open>
+      <summary><code>HOLD_CREATE_REQUESTED</code> — Mercado solicita reserva contable inicial (bank.holds.commands)</summary>
+      <pre>{
+  "eventId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+  "eventType": "HOLD_CREATE_REQUESTED",
+  "timestamp": "2026-09-12T18:00:00.120Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+    "commandId": "cmd-auct-8821-usr-104-seq-1",
+    "auctionId": "auct-8821",
+    "studentId": "usr-104",
+    "accountId": "acc-usr-104-prog4",
+    "amount": 1200.00,
+    "currency": "GOLD_COIN",
+    "orderType": "AUCTION_BID",
+    "ttlSeconds": 86400,
+    "graceBufferSeconds": 1800
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 2 -->
+    <details>
+      <summary><code>HOLD_CREATED</code> — Banco confirma fondos bloqueados en Ledger (bank.holds.events)</summary>
+      <pre>{
+  "eventId": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+  "eventType": "HOLD_CREATED",
+  "timestamp": "2026-09-12T18:00:00.350Z",
+  "producer": "tema-08-banco",
+  "payload": {
+    "commandId": "cmd-auct-8821-usr-104-seq-1",
+    "holdId": "hld-99401",
+    "auctionId": "auct-8821",
+    "studentId": "usr-104",
+    "amount": 1200.00,
+    "status": "PENDING",
+    "expiresAt": "2026-09-13T18:30:00.000Z"
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 3 -->
+    <details>
+      <summary><code>HOLD_INCREASE_REQUESTED</code> — Mercado solicita incremento de puja existente (bank.holds.commands)</summary>
+      <pre>{
+  "eventId": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
+  "eventType": "HOLD_INCREASE_REQUESTED",
+  "timestamp": "2026-09-12T19:15:22.010Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+    "commandId": "cmd-auct-8821-usr-104-seq-2",
+    "holdId": "hld-99401",
+    "auctionId": "auct-8821",
+    "studentId": "usr-104",
+    "currentAmount": 1200.00,
+    "newTotalAmount": 1500.00,
+    "incrementalAmount": 300.00
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 4 -->
+    <details>
+      <summary><code>HOLD_CONFIRM_REQUESTED</code> — Mercado ordena cobro definitivo al ganador (bank.holds.commands)</summary>
+      <pre>{
+  "eventId": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
+  "eventType": "HOLD_CONFIRM_REQUESTED",
+  "timestamp": "2026-09-13T18:00:01.050Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+    "commandId": "cmd-auct-8821-settle-winner",
+    "holdId": "hld-99401",
+    "auctionId": "auct-8821",
+    "winnerStudentId": "usr-104",
+    "confirmedAmount": 1500.00,
+    "description": "LIQUIDACION_SUBASTA_ITEM_SWORD_OF_VALOR"
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 5 -->
+    <details>
+      <summary><code>HOLD_CONFIRMED</code> — Banco confirma asiento contable en Ledger (bank.holds.events)</summary>
+      <pre>{
+  "eventId": "f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9a0b1c",
+  "eventType": "HOLD_CONFIRMED",
+  "timestamp": "2026-09-13T18:00:01.320Z",
+  "producer": "tema-08-banco",
+  "payload": {
+    "commandId": "cmd-auct-8821-settle-winner",
+    "holdId": "hld-99401",
+    "auctionId": "auct-8821",
+    "studentId": "usr-104",
+    "debitedAmount": 1500.00,
+    "ledgerEntryId": "ledg-tx-774102",
+    "status": "COMMITTED"
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 6 -->
+    <details>
+      <summary><code>HOLD_RELEASE_REQUESTED</code> — Mercado solicita devolución a perdedor (bank.holds.commands)</summary>
+      <pre>{
+  "eventId": "07b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d",
+  "eventType": "HOLD_RELEASE_REQUESTED",
+  "timestamp": "2026-09-13T18:00:02.100Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+    "commandId": "cmd-auct-8821-release-usr-209",
+    "holdId": "hld-99388",
+    "auctionId": "auct-8821",
+    "studentId": "usr-209",
+    "releaseReason": "AUCTION_REFUND"
+  }
+}</pre>
+    </details>
+
+    <!-- Contrato 7 -->
+    <details>
+      <summary><code>OFERTA_SUPERADA</code> — Alerta push a participante sobrepasado (notificaciones.alertas)</summary>
+      <pre>{
+  "eventId": "3ae1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a",
+  "eventType": "OFERTA_SUPERADA",
+  "timestamp": "2026-09-12T19:15:23.000Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+    "auctionId": "auct-8821",
+    "outbidStudentId": "usr-209",
+    "previousBid": 1400.00,
+    "newHighestBid": 1500.00,
+    "timeRemainingSeconds": 82800,
+    "ctaUrl": "/market/auctions/auct-8821"
+  }
+}</pre>
+    </details>
+  </section>
+
+  <!-- Section 05: Flujo Paso a Paso -->
+  <section id="flujo-pasos">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>Flujo Transaccional Extremo a Extremo Paso a Paso</h2>
+    </div>
+    <p class="lede">
+      Diagrama de secuencia en tiempo real que documenta la interacción completa entre Frontend, Gateway, Mercado, Kafka, Banco, Inventario y Notificaciones:
+    </p>
+
+    <!-- Sequence Diagram Mermaid -->
+    <div class="mermaid-box">
+      <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Alumno as Alumno (Web/Móvil)
+    participant GW as API Gateway (Tema 01)
+    participant Mercado as Mercado Core (Tema 09)
+    participant Kafka as Apache Kafka Bus
+    participant Banco as Banco Ledger (Tema 08)
+    participant Inv as Inventario (Tema 09)
+    participant Notif as Notificaciones (Tema 11)
+
+    %% Fase 1
+    rect rgb(240, 249, 255)
+    Note over Alumno,Banco: Fase 1: Entrada de Oferta y Reserva de Monedas (HOLD)
+    Alumno->>GW: POST /api/v1/market/auctions/{id}/bids (Idempotency-Key)
+    GW->>Mercado: Inyecta X-User-Id, X-Roles verificados
+    Mercado-->>Alumno: 202 Accepted { bidId, status: "PROCESSING", sseUrl }
+    Mercado->>Kafka: HOLD_CREATE_REQUESTED -> bank.holds.commands
+    Banco->>Kafka: Consume comando y valida saldo contable
+    Banco->>Banco: Crea BalanceHold en PENDING (holdId)
+    Banco->>Kafka: HOLD_CREATED -> bank.holds.events
+    Kafka->>Mercado: Consume HOLD_CREATED y valida la oferta
+    Mercado-->>Alumno: SSE: { step: 1, status: "BID_CONFIRMED", amount: 1200 }
+    end
+
+    %% Fase 2
+    rect rgb(245, 243, 255)
+    Note over Alumno,Notif: Fase 2: Mejora de Oferta e Incremento de Hold
+    Alumno->>Mercado: PUT /api/v1/market/auctions/{id}/bids (Monto: 1500)
+    Mercado->>Kafka: HOLD_INCREASE_REQUESTED (holdId, newTotal: 1500)
+    Banco->>Banco: Verifica saldo para diferencia (+300) y ajusta hold
+    Banco->>Kafka: HOLD_INCREASED -> bank.holds.events
+    Mercado->>Notif: Emite OFERTA_SUPERADA a alumnos en la sala
+    Notif-->>Alumno: Push / SSE: "¡Tu oferta fue superada por 1500 monedas!"
+    end
+
+    %% Fase 3 y 4
+    rect rgb(236, 253, 245)
+    Note over Mercado,Inv: Fase 3 y 4: Cierre, Adjudicación, Liquidación y Devoluciones
+    Note over Mercado: Fin de ventana: Lock optimista @Version y evalúa ganador
+    Mercado->>Kafka: HOLD_CONFIRM_REQUESTED (holdId ganador)
+    Banco->>Banco: Debita saldo real definitivo en Ledger (destruye hold)
+    Banco->>Kafka: HOLD_CONFIRMED -> bank.holds.events (ledgerEntryId)
+    Kafka->>Mercado: Consume confirmación y transiciona a CLOSED
+    Mercado->>Inv: Inserta ítem en student_inventory (state: AVAILABLE)
+    Mercado->>Kafka: HOLD_RELEASE_REQUESTED x N perdedores (AUCTION_REFUND)
+    Banco->>Banco: Desbloquea monedas y restituye available_balance
+    Banco->>Kafka: HOLD_RELEASED x N en bank.holds.events
+    Mercado->>Notif: Emite SUBASTA_ADJUDICADA a todos los participantes
+    Notif-->>Alumno: Push: "¡Has ganado la subasta de la Espada de Valor!"
+    end
+      </div>
+    </div>
+
+    <h3>Bitácora Detallada de Ejecución</h3>
+    <ol class="steps">
+      <li><strong>El Alumno oferta desde el Frontend:</strong> Envía el formulario con <code>Idempotency-Key</code>. Gateway valida JWT y pasa la petición a Mercado.</li>
+      <li><strong>Mercado responde 202 Accepted:</strong> Para no bloquear la red móvil del alumno, responde de inmediato y entrega la URL del stream SSE.</li>
+      <li><strong>Comando de Reserva en Kafka:</strong> Mercado publica <code>HOLD_CREATE_REQUESTED</code> en el tópico <code>bank.holds.commands</code> particionado por <code>auctionId</code>.</li>
+      <li><strong>Banco bloquea fondos:</strong> Banco verifica existencia previa en <code>processed_commands</code>. Toma lock pesimista sobre la cuenta, retiene las monedas en <code>BalanceHold(PENDING)</code> y emite <code>HOLD_CREATED</code>.</li>
+      <li><strong>Mercado valida la postura:</strong> Al consumir <code>HOLD_CREATED</code>, actualiza <code>market_auction_bid</code> a <code>CONFIRMED</code> y notifica al alumno por SSE.</li>
+      <li><strong>Incremento de Oferta:</strong> Si el mismo alumno mejora su postura, Mercado despacha <code>HOLD_INCREASE_REQUESTED</code>. Banco bloquea la diferencia incremental sin crear un hold nuevo.</li>
+      <li><strong>Cierre de la Subasta (El Martillazo):</strong> El programador de tareas de Mercado ejecuta el cierre usando bloqueo optimista (<code>@Version</code>), garantizando ejecución única.</li>
+      <li><strong>Liquidación del Ganador:</strong> Mercado envía <code>HOLD_CONFIRM_REQUESTED</code>. Banco asienta el débito contable en el Ledger y responde con <code>HOLD_CONFIRMED</code>. Mercado persiste el ítem en <code>student_inventory</code>.</li>
+      <li><strong>Liberación de Perdedores:</strong> Mercado envía en lote los comandos <code>HOLD_RELEASE_REQUESTED</code> con motivo <code>AUCTION_REFUND</code>. Banco restituye intactas las monedas al saldo disponible de cada perdedor.</li>
+    </ol>
+  </section>
+
+  <!-- Section 06: Archify Viewer -->
+  <section id="diagrama-archify">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>Diagrama de Secuencia Interactivo (Archify Showcase)</h2>
+    </div>
+    <p class="lede">
+      A continuación se presenta el visualizador interactivo generado y validado con <strong>Archify</strong> (9 de 9 checks aprobados, 0 errores, 0 warnings, perfil Showcase). Permite alternar vistas guiadas, enfocar participantes y explorar las tarjetas de arquitectura:
+    </p>
+
+    <div class="archify-frame-container">
+      <div class="archify-header">
+        <div class="archify-title">
+          <span>⚡</span> Archify Interactive Sequence Viewer · Flujo de Subastas e Integración con Banco
+        </div>
+        <div class="archify-actions">
+          <a href="flujo-subasta-archify.html" target="_blank">↗ Abrir en pestaña completa</a>
+        </div>
+      </div>
+      <iframe class="archify-iframe" src="flujo-subasta-archify.html" title="Diagrama Archify Subastas"></iframe>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div><strong>Grupo 11 · Tema 09 — Mercado</strong> · Documentación Técnica Oficial de Subastas</div>
+    <div>Diseñado por Analista de Sistemas Senior · Aula Quest 2026</div>
+  </footer>
+
+</div>
+
+<script>
+  function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '☀️ Claro' : '🌓 Oscuro';
+  }
+
+  // Load persisted theme
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️ Claro' : '🌓 Oscuro';
+</script>
+</body>
+</html>

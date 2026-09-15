@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flujos de Integración, Diagramas y Contratos Kafka — Mercado (Tema 09) · Aula Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ========================================================================= */
+    /* VARIABLES DE COLOR Y SISTEMA DE DISEÑO LIMPIO                            */
+    /* ========================================================================= */
+    :root, [data-theme="dark"] {
+      --bg-base: #0B0F19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1F2937;
+      --bg-subtle: #1E293B;
+      --border: #334155;
+      --border-strong: #475569;
+      
+      --accent-purple: #8B5CF6;
+      --accent-cyan: #00E5FF;
+      --accent-pink: #FF2E93;
+      --accent-gold: #FFD60A;
+      --accent-green: #10B981;
+      --accent-red: #EF4444;
+      
+      --ink-primary: #F8FAFC;
+      --ink-secondary: #CBD5E1;
+      --ink-muted: #94A3B8;
+      --ink-dim: #64748B;
+      
+      --code-bg: #030712;
+      --code-border: #1F2937;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 30px rgba(0,0,0,0.5);
+    }
+
+    [data-theme="light"] {
+      --bg-base: #F8FAFC;
+      --bg-surface: #FFFFFF;
+      --bg-surface-elevated: #F1F5F9;
+      --bg-subtle: #E2E8F0;
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      
+      --accent-purple: #7C3AED;
+      --accent-cyan: #0284C7;
+      --accent-pink: #DB2777;
+      --accent-gold: #D97706;
+      --accent-green: #059669;
+      --accent-red: #DC2626;
+      
+      --ink-primary: #0F172A;
+      --ink-secondary: #334155;
+      --ink-muted: #64748B;
+      --ink-dim: #94A3B8;
+      
+      --code-bg: #F8FAFC;
+      --code-border: #E2E8F0;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 30px rgba(0,0,0,0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--ink-secondary);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      font-size: 15px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      width: 100%;
+    }
+
+    /* Header */
+    .app-header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      gap: 16px;
+    }
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-badge {
+      background: var(--accent-cyan);
+      color: #0B0F19;
+      font-weight: 800;
+      font-size: 0.72rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+    }
+    .brand-text span {
+      font-size: 0.80rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .link-bocetos {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-purple);
+      color: #FFFFFF;
+      text-decoration: none;
+      font-size: 0.80rem;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .link-bocetos:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .btn-theme {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--ink-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .btn-theme:hover {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Sub-nav tabs */
+    .nav-tabs {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+    }
+    .tabs-wrapper {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .tab-item {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--ink-muted);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .tab-item:hover {
+      color: var(--ink-primary);
+      background: var(--bg-subtle);
+    }
+    .tab-item.active {
+      background: var(--bg-subtle);
+      color: var(--accent-cyan);
+      border-color: var(--border);
+      font-weight: 800;
+    }
+    .tab-item.active.tab-purple { color: var(--accent-purple); }
+    .tab-item.active.tab-gold { color: var(--accent-gold); }
+    .tab-item.active.tab-pink { color: var(--accent-pink); }
+    .tab-item.active.tab-green { color: var(--accent-green); }
+
+    /* Main view area */
+    main {
+      padding: 24px 0 60px;
+      flex: 1;
+    }
+    .flow-panel-view {
+      display: none;
+      animation: fadeIn 0.2s ease-out forwards;
+    }
+    .flow-panel-view.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Kafka Architecture Doctrine Box */
+    .kafka-doctrine-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.10) 0%, rgba(0, 229, 255, 0.08) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .kafka-doctrine-icon {
+      color: var(--accent-green);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .kafka-doctrine-text h3 {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 4px;
+    }
+    .kafka-doctrine-text p {
+      font-size: 0.85rem;
+      color: var(--ink-secondary);
+      line-height: 1.5;
+    }
+    .kafka-doctrine-text code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.80rem;
+      background: var(--bg-surface-elevated);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-cyan);
+    }
+
+    /* Hero section for each group */
+    .hero-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent-cyan);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .hero-card.purple { border-left-color: var(--accent-purple); }
+    .hero-card.gold { border-left-color: var(--accent-gold); }
+    .hero-card.pink { border-left-color: var(--accent-pink); }
+    .hero-card.green { border-left-color: var(--accent-green); }
+
+    .hero-card h2 {
+      font-size: 1.30rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .hero-card p {
+      font-size: 0.90rem;
+      color: var(--ink-secondary);
+      max-width: 980px;
+    }
+
+    /* ========================================================================= */
+    /* DIAGRAMAS INTERACTIVOS Y SWIMLANES                                       */
+    /* ========================================================================= */
+    .diagram-interactive-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+    .diagram-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .diagram-header h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .diagram-header span.tip {
+      font-size: 0.78rem;
+      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Swimlanes bar */
+    .swimlanes-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .swimlane-pill {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ink-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .swimlane-pill.our-service {
+      background: rgba(139, 92, 246, 0.12);
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+    }
+    .swimlane-pill.broker {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+    .swimlane-pill.target-service {
+      background: rgba(0, 229, 255, 0.12);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Interactive Step Nodes Grid */
+    .interactive-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .interactive-step-node {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .interactive-step-node:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    }
+    .interactive-step-node.node-error {
+      border-left: 4px solid var(--accent-red);
+    }
+    .interactive-step-node.node-comp {
+      border-left: 4px solid var(--accent-gold);
+    }
+    .step-node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .step-node-badge {
+      font-size: 0.70rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .step-node-badge.sync {
+      background: rgba(2, 132, 199, 0.15);
+      color: var(--accent-cyan);
+    }
+    .step-node-badge.async {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+    }
+    .step-node-badge.sse {
+      background: rgba(255, 46, 147, 0.15);
+      color: var(--accent-pink);
+    }
+    .step-node-badge.err {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-red);
+    }
+    .step-node-badge.comp {
+      background: rgba(255, 214, 10, 0.15);
+      color: var(--accent-gold);
+    }
+    .step-node-route {
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+    }
+    .step-node-title {
+      font-size: 0.90rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .step-node-desc {
+      font-size: 0.80rem;
+      color: var(--ink-muted);
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+    .step-node-action {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    /* Section Subheaders */
+    .section-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin: 28px 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Code Blocks and Formatted JSON */
+    .json-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .json-header {
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .json-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge-sync {
+      background: rgba(2, 132, 199, 0.15);
+      color: var(--accent-cyan);
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .badge-async {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .badge-topic {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--accent-purple);
+      font-size: 0.70rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn-copy {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--ink-secondary);
+      font-family: inherit;
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .btn-copy:hover {
+      color: var(--accent-cyan);
+      border-color: var(--accent-cyan);
+    }
+
+    .code-container {
+      background: var(--code-bg);
+      padding: 16px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: #CBD5E1;
+      white-space: pre;
+    }
+    [data-theme="light"] .code-container {
+      color: #1E293B;
+    }
+
+    /* JSON Syntax Coloring */
+    .json-key { color: #38BDF8; font-weight: 600; }
+    [data-theme="light"] .json-key { color: #0284C7; }
+    .json-str { color: #34D399; }
+    [data-theme="light"] .json-str { color: #059669; }
+    .json-num { color: #FBBF24; }
+    [data-theme="light"] .json-num { color: #D97706; }
+    .json-bool { color: #F472B6; font-weight: 600; }
+    [data-theme="light"] .json-bool { color: #DB2777; }
+    .json-null { color: #94A3B8; font-style: italic; }
+
+    /* Tables */
+    .table-responsive {
+      overflow-x: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      text-align: left;
+    }
+    .data-table th {
+      background: var(--bg-subtle);
+      color: var(--ink-primary);
+      padding: 10px 14px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 0.70rem;
+      letter-spacing: 0.05em;
+    }
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+    .data-table code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      background: var(--bg-subtle);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--accent-cyan);
+    }
+
+    /* Grid 2 Columns */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 900px) {
+      .grid-2col { grid-template-columns: 1fr; }
+    }
+
+    /* ========================================================================= */
+    /* MODAL DE INSPECCIÓN DE PASO DETALLADO (DRILL-DOWN)                       */
+    /* ========================================================================= */
+    .step-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(7, 5, 20, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .step-modal-overlay.open {
+      display: flex;
+    }
+    .step-modal-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 860px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.6);
+      animation: modalZoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalZoomIn {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .step-modal-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface-elevated);
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+    }
+    .step-modal-header-info h3 {
+      font-size: 1.10rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-modal-header-info span {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+    .step-modal-close {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--ink-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .step-modal-close:hover {
+      color: var(--ink-primary);
+      border-color: var(--accent-red);
+    }
+    .step-modal-body {
+      padding: 22px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .step-meta-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+    }
+    .step-meta-item span.lbl {
+      display: block;
+      font-size: 0.70rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-bottom: 2px;
+    }
+    .step-meta-item span.val {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .step-detail-section {
+      margin-bottom: 22px;
+    }
+    .step-detail-section h4 {
+      font-size: 0.90rem;
+      font-weight: 800;
+      color: var(--ink-primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-detail-section p, .step-detail-section ul {
+      font-size: 0.85rem;
+      color: var(--ink-secondary);
+      line-height: 1.6;
+    }
+    .step-detail-section ul {
+      padding-left: 20px;
+      margin-top: 6px;
+    }
+    .step-detail-section li {
+      margin-bottom: 5px;
+    }
+    .step-db-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(139, 92, 246, 0.12);
+      color: var(--accent-purple);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .step-error-box {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.82rem;
+      color: var(--ink-secondary);
+      line-height: 1.5;
+    }
+    .step-modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-surface-elevated);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+    }
+    .step-nav-btn {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--ink-primary);
+      font-family: inherit;
+      font-size: 0.80rem;
+      font-weight: 700;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .step-nav-btn:hover:not(:disabled) {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+    .step-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: 16px 0;
+      font-size: 0.80rem;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand-title">
+        <span class="brand-badge">Tema 09</span>
+        <div class="brand-text">
+          <h1>Mercado & Inventario · Flujos de Integración y Contratos Kafka</h1>
+          <span>Trabajo Práctico Integrador — Programación IV · TUP UTN FRC</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a href="../Bocetos/tienda-mercado.html" class="link-bocetos" title="Ver la suite interactiva de Mercado e Inventario">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l2-5h14l2 5v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><line x1="9" y1="19" x2="9" y2="13"/><line x1="15" y1="19" x2="15" y2="13"/></svg>
+          <span>Abrir Maqueta Interactiva</span>
+        </a>
+
+        <button class="btn-theme" onclick="toggleTheme()" title="Cambiar Tema (Oscuro / Claro)">
+          <svg id="themeIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <div class="container tabs-wrapper">
+      <button class="tab-item active" onclick="switchTab('BANCO', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg>
+        <span>Banco (Tema 08)</span>
+      </button>
+
+      <button class="tab-item tab-purple" onclick="switchTab('DESAFIOS', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/></svg>
+        <span>Motor Desafíos (Tema 03)</span>
+      </button>
+
+      <button class="tab-item" onclick="switchTab('USUARIOS', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>
+        <span>Identidad / Usuarios (Tema 01)</span>
+      </button>
+
+      <button class="tab-item tab-gold" onclick="switchTab('CURSOS', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"/></svg>
+        <span>Cursos / Cohortes (Tema 02)</span>
+      </button>
+
+      <button class="tab-item tab-pink" onclick="switchTab('BACKOFFICE', this)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+        <span>Backoffice (Tema 12)</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Viewport -->
+  <main class="container">
+
+    <!-- Kafka Central Banner -->
+    <div class="kafka-doctrine-banner">
+      <div class="kafka-doctrine-icon">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </div>
+      <div class="kafka-doctrine-text">
+        <h3>Doctrina Oficial de Apache Kafka: Bus de Eventos & Hechos Consumados</h3>
+        <p>
+          En Kafka no se envían comandos imperativos ni se espera respuesta inmediata (lo sincrónico va por <strong>API Gateway</strong>). Un microservicio emite un <strong>hecho consumado</strong> que ya ocurrió en su dominio. Todos los eventos en Kafka deben utilizar obligatoriamente la envoltura estándar: <code>eventId</code> (UUID), <code>eventType</code> (String), <code>timestamp</code> (ISO 8601 UTC), <code>producer</code> (String) y <code>payload</code> (Object). Múltiples servicios consumen en paralelo mediante distintos <code>groupId</code> sin interferir entre sí.
+        </p>
+      </div>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: BANCO (TEMA 08)                                              -->
+    <!-- =================================================================== -->
+    <section class="flow-panel-view active" id="viewBANCO">
+      <div class="hero-card">
+        <h2>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="7" y2="16"/><line x1="17" y1="8" x2="17" y2="16"/></svg>
+          <span>Integración con Banco (Tema 08): Coreografía Asíncrona con SSE y Reserva Hold</span>
+        </h2>
+        <p>
+          El alumno compra en la Tienda de Mercado. Para no bloquear el hilo HTTP ni provocar inconsistencias de dinero, se utiliza una <strong>Coreografía de Hechos Consumados</strong>: el frontend abre un streaming SSE, Mercado publica <code>ORDEN_COMPRA_SOLICITADA</code>, Banco reserva el saldo y emite <code>FONDOS_RESERVADOS</code>, Mercado entrega el ítem y emite <code>ITEM_ACREDITADO</code>, y Banco asienta el débito contable definitivo emitiendo <code>DEBITO_FINAL_CONFIRMADO</code>.
+        </p>
+      </div>
+
+      <!-- DIAGRAMA INTERACTIVO DE COMUNICACIÓN -->
+      <div class="diagram-interactive-card">
+        <div class="diagram-header">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Diagrama Interactivo de Comunicación: Mercado (Tema 09) ↔ Banco (Tema 08)</span>
+          </h3>
+          <span class="tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Haz clic en cualquier paso para ver qué se hace en detalle
+          </span>
+        </div>
+
+        <!-- Carriles Arquitectónicos (Swimlanes) -->
+        <div class="swimlanes-bar">
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Origen</span>
+            <span>Cliente Web / Alumno</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Borde Red</span>
+            <span>API Gateway (01)</span>
+          </div>
+          <div class="swimlane-pill our-service">
+            <span style="font-size:0.68rem; font-weight:800;">NUESTRO SERVICIO</span>
+            <span>Mercado & Inventario (09)</span>
+          </div>
+          <div class="swimlane-pill broker">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Bus de Eventos</span>
+            <span>mercado.ordenes / banco.reservas</span>
+          </div>
+          <div class="swimlane-pill target-service">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Servicio Financiero</span>
+            <span>Banco & Fondos (08)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Consumo Paralelo</span>
+            <span>Notificaciones (11)</span>
+          </div>
+        </div>
+
+        <!-- Nodos Interactivos de Pasos -->
+        <div class="interactive-steps-grid">
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_1')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 1 · Sincrónico</span>
+                <span class="step-node-route">Cliente → Mercado</span>
+              </div>
+              <div class="step-node-title">Inicio de Orden & Apertura SSE</div>
+              <div class="step-node-desc">POST /api/v1/market/orders aceptado (202 Accepted). Mercado crea la orden en estado PENDING y abre canal SSE.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_2')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 2 · Asincrónico</span>
+                <span class="step-node-route">Mercado → Kafka</span>
+              </div>
+              <div class="step-node-title">Emisión: ORDEN_COMPRA_SOLICITADA</div>
+              <div class="step-node-desc">Mercado publica el hecho consumado en mercado.ordenes con orderId, studentId, courseId y amount.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_3')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 3 · Asincrónico</span>
+                <span class="step-node-route">Banco → Kafka</span>
+              </div>
+              <div class="step-node-title">Reserva: FONDOS_RESERVADOS</div>
+              <div class="step-node-desc">Banco bloquea el saldo por 5 minutos y emite FONDOS_RESERVADOS con holdId en banco.reservas.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_4')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 4 · Local & Evento</span>
+                <span class="step-node-route">Mercado → Kafka</span>
+              </div>
+              <div class="step-node-title">Acreditación: ITEM_ACREDITADO</div>
+              <div class="step-node-desc">Mercado consume reserva, graba en student_inventory como AVAILABLE y emite ITEM_ACREDITADO.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_5')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 5 · Asincrónico</span>
+                <span class="step-node-route">Banco → Kafka</span>
+              </div>
+              <div class="step-node-title">Débito: DEBITO_FINAL_CONFIRMADO</div>
+              <div class="step-node-desc">Banco consume entrega, asienta el débito contable irreversible en su ledger y emite DEBITO_FINAL_CONFIRMADO.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BANCO_6')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sse">Paso 6 · SSE Final</span>
+                <span class="step-node-route">Mercado → Cliente</span>
+              </div>
+              <div class="step-node-title">Cierre de Orden & Notificación</div>
+              <div class="step-node-desc">Mercado pasa orden a CONFIRMED, cierra canal SSE con PURCHASE_COMPLETED y Tema 11 notifica in-app.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node node-error" onclick="openStepDetailModal('BANCO_FAIL')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge err">Ruta F-02 · Excepción</span>
+                <span class="step-node-route">Banco → Mercado</span>
+              </div>
+              <div class="step-node-title">Rechazo: FONDOS_INSUFICIENTES</div>
+              <div class="step-node-desc">Banco emite FONDOS_INSUFICIENTES. Mercado cancela la orden y notifica error 4002 por SSE sin entregar ítem.</div>
+            </div>
+            <div class="step-node-action" style="color:var(--accent-red);">
+              <span>Ver excepción</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node node-comp" onclick="openStepDetailModal('BANCO_COMP')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge comp">Ruta F-03 · Compensación</span>
+                <span class="step-node-route">Mercado → Banco</span>
+              </div>
+              <div class="step-node-title">Rollback: COMPRA_FALLIDA_COMPENSACION</div>
+              <div class="step-node-desc">Si falla la entrega local en Mercado, se emite evento de compensación y Banco libera los fondos reservados.</div>
+            </div>
+            <div class="step-node-action" style="color:var(--accent-gold);">
+              <span>Ver compensación</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formatted JSON Payloads Section -->
+      <div class="section-title">Contratos de Mensajería Kafka Formateados (Envoltura Estándar Obligatoria)</div>
+
+      <div class="grid-2col">
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>1. Hecho Consumado: Orden de Compra Solicitada</span>
+              <span class="badge-topic">mercado.ordenes</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonHoldReq', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonHoldReq">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"e81d4fae-7dec-11d0-a765-00a0c91e6bf6"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"ORDEN_COMPRA_SOLICITADA"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T16:00:01Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-09-mercado"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"orderId"</span>: <span class="json-str">"purchase-7f9a2b1c"</span>,
+    <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+    <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+    <span class="json-key">"amount"</span>: <span class="json-num">500</span>,
+    <span class="json-key">"currency"</span>: <span class="json-str">"GOLD_COIN"</span>,
+    <span class="json-key">"ttlMinutes"</span>: <span class="json-num">5</span>,
+    <span class="json-key">"reason"</span>: <span class="json-str">"ITEM_PURCHASE_DIRECT"</span>,
+    <span class="json-key">"itemCode"</span>: <span class="json-str">"SHIELD_T2"</span>
+  }
+}</pre>
+        </div>
+
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>2. Hecho Consumado: Fondos Reservados por Banco</span>
+              <span class="badge-topic">banco.reservas</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonHoldResp', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonHoldResp">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"f47ac10b-58cc-4372-a567-0e02b2c3d479"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"FONDOS_RESERVADOS"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T16:00:02Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-08-banco"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"holdId"</span>: <span class="json-str">"hld-99201"</span>,
+    <span class="json-key">"orderId"</span>: <span class="json-str">"purchase-7f9a2b1c"</span>,
+    <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+    <span class="json-key">"amount"</span>: <span class="json-num">500</span>,
+    <span class="json-key">"currency"</span>: <span class="json-str">"GOLD_COIN"</span>,
+    <span class="json-key">"status"</span>: <span class="json-str">"RESERVADO"</span>,
+    <span class="json-key">"expiresAt"</span>: <span class="json-str">"2026-09-09T16:05:01Z"</span>
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>3. Hecho Consumado: Ítem Acreditado en Inventario</span>
+              <span class="badge-topic">mercado.ordenes</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonConfirmReq', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonConfirmReq">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"d290f1ee-6c54-4b01-90e6-d701748f0851"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"ITEM_ACREDITADO"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T16:00:03Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-09-mercado"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"orderId"</span>: <span class="json-str">"purchase-7f9a2b1c"</span>,
+    <span class="json-key">"holdId"</span>: <span class="json-str">"hld-99201"</span>,
+    <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+    <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+    <span class="json-key">"inventoryItemId"</span>: <span class="json-str">"inv-item-8801"</span>,
+    <span class="json-key">"itemCode"</span>: <span class="json-str">"SHIELD_T2"</span>,
+    <span class="json-key">"charges"</span>: <span class="json-num">2</span>,
+    <span class="json-key">"state"</span>: <span class="json-str">"AVAILABLE"</span>
+  }
+}</pre>
+        </div>
+
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>4. Hecho Consumado: Débito Final Confirmado</span>
+              <span class="badge-topic">banco.reservas</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonReleaseReq', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonReleaseReq">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"b73523f6-8097-4b76-a734-77e8cf7df32a"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"DEBITO_FINAL_CONFIRMADO"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T16:00:04Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-08-banco"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"holdId"</span>: <span class="json-str">"hld-99201"</span>,
+    <span class="json-key">"orderId"</span>: <span class="json-str">"purchase-7f9a2b1c"</span>,
+    <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+    <span class="json-key">"debitedAmount"</span>: <span class="json-num">500</span>,
+    <span class="json-key">"transactionId"</span>: <span class="json-str">"tx-ledger-88392"</span>,
+    <span class="json-key">"status"</span>: <span class="json-str">"CONFIRMADO"</span>
+  }
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: MOTOR DE DESAFÍOS (TEMA 03)                                  -->
+    <!-- =================================================================== -->
+    <section class="flow-panel-view" id="viewDESAFIOS">
+      <div class="hero-card purple">
+        <h2>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8 12 2"/></svg>
+          <span>Integración con Motor de Desafíos (Tema 03): Snapshot Sincrónico & Hecho Consumado en Kafka</span>
+        </h2>
+        <p>
+          Al abrir un ejercicio en el IDE web, Desafíos consulta sincrónicamente a Mercado por Gateway para obtener las directivas ejecutables (<code>actionParams</code>) y pintar el HUD. Al finalizar los tests, Desafíos publica el hecho consumado en <code>desafios.resultados</code>. Múltiples servicios consumen en paralelo con sus propios <code>groupId</code> (Mercado para cargas, Ranking para XP y Notificaciones para alertas).
+        </p>
+      </div>
+
+      <!-- DIAGRAMA INTERACTIVO DE COMUNICACIÓN -->
+      <div class="diagram-interactive-card">
+        <div class="diagram-header">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-purple)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Diagrama Interactivo de Comunicación: Mercado (Tema 09) ↔ Motor Desafíos (Tema 03) & Runner (05)</span>
+          </h3>
+          <span class="tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Haz clic en cualquier paso para ver qué se hace en detalle
+          </span>
+        </div>
+
+        <div class="swimlanes-bar">
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Estudiante</span>
+            <span>IDE Web / Front</span>
+          </div>
+          <div class="swimlane-pill target-service">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Evaluador</span>
+            <span>Motor Desafíos (03)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Borde Red</span>
+            <span>API Gateway (01)</span>
+          </div>
+          <div class="swimlane-pill our-service">
+            <span style="font-size:0.68rem; font-weight:800;">NUESTRO SERVICIO</span>
+            <span>Mercado & Inventario (09)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Sandbox</span>
+            <span>Runner (05)</span>
+          </div>
+          <div class="swimlane-pill broker">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Bus de Eventos</span>
+            <span>desafios.resultados</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Consumo Paralelo</span>
+            <span>Ranking (10) / Notif (11)</span>
+          </div>
+        </div>
+
+        <!-- Nodos Interactivos de Pasos -->
+        <div class="interactive-steps-grid">
+          <div class="interactive-step-node" onclick="openStepDetailModal('DESAFIO_1')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 1 · Sincrónico</span>
+                <span class="step-node-route">Desafíos → Mercado</span>
+              </div>
+              <div class="step-node-title">Solicitud de Snapshot de Ítems Activos</div>
+              <div class="step-node-desc">GET /api/v1/market/inventory/students/{studentId}/active-items?courseId={courseId} vía Gateway para pintar el HUD del IDE.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('DESAFIO_2')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 2 · Sincrónico</span>
+                <span class="step-node-route">Mercado → Desafíos</span>
+              </div>
+              <div class="step-node-title">Respuesta: Directivas de Acción & Verbos</div>
+              <div class="step-node-desc">Mercado retorna 200 OK con lista de ítems equipados, verbos (ABSORB_FAILURE, COIN_MULTIPLIER) y actionParams ejecutables.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('DESAFIO_3')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 3 · Sandbox</span>
+                <span class="step-node-route">Desafíos → Runner</span>
+              </div>
+              <div class="step-node-title">Ejecución de Pruebas Unitarias</div>
+              <div class="step-node-desc">El Runner (Tema 05) ejecuta la solución del estudiante en contenedor aislado y recopila assert errors o éxito del 100%.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('DESAFIO_4')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 4 · Asincrónico</span>
+                <span class="step-node-route">Desafíos → Kafka</span>
+              </div>
+              <div class="step-node-title">Emisión: DESAFIO_RESUELTO</div>
+              <div class="step-node-desc">Desafíos publica el hecho consumado en desafios.resultados con attemptId, studentId, courseId y outcome (APPROVED o FAILED).</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('DESAFIO_5')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 5 · Multiconsumo</span>
+                <span class="step-node-route">Kafka → Mercado / Ranking</span>
+              </div>
+              <div class="step-node-title">Consumo & Descuento de Cargas</div>
+              <div class="step-node-desc">Mercado descuenta 1 carga del escudo o buff. Si llega a 0, pasa a CONSUMED y libera el slot. Ranking y Notificaciones consumen a la par.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON Cards for Desafios -->
+      <div class="section-title">Contrato Sincrónico (HTTP REST): Snapshot Directivo hacia Desafíos</div>
+
+      <div class="json-card">
+        <div class="json-header">
+          <span class="json-title">
+            <span>GET /api/v1/market/inventory/students/{studentId}/active-items?courseId={courseId}</span>
+            <span class="badge-sync">HTTP 200 OK</span>
+          </span>
+          <button class="btn-copy" onclick="copyCode('jsonDesafiosSnapshot', this)">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copiar</span>
+          </button>
+        </div>
+        <pre class="code-container" id="jsonDesafiosSnapshot">{
+  <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+  <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+  <span class="json-key">"snapshotTimestamp"</span>: <span class="json-str">"2026-09-09T16:15:00Z"</span>,
+  <span class="json-key">"totalEquipped"</span>: <span class="json-num">2</span>,
+  <span class="json-key">"activeItems"</span>: [
+    {
+      <span class="json-key">"inventoryItemId"</span>: <span class="json-str">"inv-item-8801"</span>,
+      <span class="json-key">"itemCode"</span>: <span class="json-str">"SHIELD_T2"</span>,
+      <span class="json-key">"name"</span>: <span class="json-str">"Escudo Reforzado"</span>,
+      <span class="json-key">"family"</span>: <span class="json-str">"SHIELD"</span>,
+      <span class="json-key">"tier"</span>: <span class="json-num">2</span>,
+      <span class="json-key">"verb"</span>: <span class="json-str">"ABSORB_FAILURE"</span>,
+      <span class="json-key">"chargesLeft"</span>: <span class="json-num">2</span>,
+      <span class="json-key">"initialCharges"</span>: <span class="json-num">2</span>,
+      <span class="json-key">"triggerCondition"</span>: <span class="json-str">"ON_FAILED_TEST_ATTEMPT"</span>,
+      <span class="json-key">"actionParams"</span>: {
+        <span class="json-key">"preventLifeLoss"</span>: <span class="json-bool">true</span>,
+        <span class="json-key">"preventStreakLoss"</span>: <span class="json-bool">false</span>,
+        <span class="json-key">"consumeChargesPerEvent"</span>: <span class="json-num">1</span>,
+        <span class="json-key">"studentMessage"</span>: <span class="json-str">"Tu Escudo Reforzado absorbió el fallo técnico. No has perdido vidas."</span>
+      }
+    },
+    {
+      <span class="json-key">"inventoryItemId"</span>: <span class="json-str">"inv-item-9942"</span>,
+      <span class="json-key">"itemCode"</span>: <span class="json-str">"XP_BOOST_T1"</span>,
+      <span class="json-key">"name"</span>: <span class="json-str">"Tónico de Concentración"</span>,
+      <span class="json-key">"family"</span>: <span class="json-str">"XP"</span>,
+      <span class="json-key">"tier"</span>: <span class="json-num">1</span>,
+      <span class="json-key">"verb"</span>: <span class="json-str">"XP_MULTIPLIER"</span>,
+      <span class="json-key">"chargesLeft"</span>: <span class="json-num">1</span>,
+      <span class="json-key">"initialCharges"</span>: <span class="json-num">1</span>,
+      <span class="json-key">"triggerCondition"</span>: <span class="json-str">"ON_APPROVED_ATTEMPT"</span>,
+      <span class="json-key">"actionParams"</span>: {
+        <span class="json-key">"multiplierFactor"</span>: <span class="json-num">1.25</span>,
+        <span class="json-key">"appliesTo"</span>: <span class="json-str">"BASE_XP"</span>,
+        <span class="json-key">"consumeChargesPerEvent"</span>: <span class="json-num">0</span>,
+        <span class="json-key">"expiresAt"</span>: <span class="json-str">"2026-09-09T17:15:00Z"</span>,
+        <span class="json-key">"studentMessage"</span>: <span class="json-str">"Bono de concentración activo: +25% de XP adicional otorgado."</span>
+      }
+    }
+  ]
+}</pre>
+      </div>
+
+      <div class="section-title">Hecho Consumado en Kafka: DESAFIO_RESUELTO (Envoltura Estándar)</div>
+
+      <div class="json-card">
+        <div class="json-header">
+          <span class="json-title">
+            <span>Evento: DESAFIO_RESUELTO</span>
+            <span class="badge-topic">desafios.resultados</span>
+          </span>
+          <button class="btn-copy" onclick="copyCode('jsonAttemptEval', this)">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copiar</span>
+          </button>
+        </div>
+        <pre class="code-container" id="jsonAttemptEval">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"3fa85f64-5717-4562-b3fc-2c963f66afa6"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"DESAFIO_RESUELTO"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T16:16:30Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-03-desafios"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"attemptId"</span>: <span class="json-str">"att-49219"</span>,
+    <span class="json-key">"studentId"</span>: <span class="json-str">"usr-4821"</span>,
+    <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+    <span class="json-key">"challengeId"</span>: <span class="json-str">"ch-async-await-01"</span>,
+    <span class="json-key">"outcome"</span>: <span class="json-str">"FAILED"</span>,
+    <span class="json-key">"testsPassed"</span>: <span class="json-num">4</span>,
+    <span class="json-key">"testsTotal"</span>: <span class="json-num">5</span>,
+    <span class="json-key">"shieldProtected"</span>: <span class="json-bool">true</span>,
+    <span class="json-key">"errorMessage"</span>: <span class="json-str">"AssertionError: Expected 200 OK but received 500"</span>
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: IDENTIDAD Y USUARIOS (TEMA 01)                               -->
+    <!-- =================================================================== -->
+    <section class="flow-panel-view" id="viewUSUARIOS">
+      <div class="hero-card green">
+        <h2>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>
+          <span>Integración con Identidad & API Gateway (Tema 01): Seguridad Perimetral & Header Injection</span>
+        </h2>
+        <p>
+          Mercado aplica el principio de <strong>Confianza Cero Perimetral</strong>. No procesa usuarios ni contraseñas. El API Gateway valida la firma criptográfica del JWT en el borde de la red e inyecta las cabeceras normalizadas de confianza (<code>X-User-Id</code>, <code>X-Roles</code>, <code>X-User-Email</code>) hacia la red privada de microservicios.
+        </p>
+      </div>
+
+      <!-- DIAGRAMA INTERACTIVO DE COMUNICACIÓN -->
+      <div class="diagram-interactive-card">
+        <div class="diagram-header">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-green)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Diagrama Interactivo de Comunicación: Mercado (Tema 09) ↔ Gateway & Auth (Tema 01)</span>
+          </h3>
+          <span class="tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Haz clic en cualquier paso para ver qué se hace en detalle
+          </span>
+        </div>
+
+        <div class="swimlanes-bar">
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Cliente</span>
+            <span>App Web / SPA</span>
+          </div>
+          <div class="swimlane-pill target-service">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Perímetro Seguro</span>
+            <span>API Gateway (01)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Red Privada</span>
+            <span>Header Injection</span>
+          </div>
+          <div class="swimlane-pill our-service">
+            <span style="font-size:0.68rem; font-weight:800;">NUESTRO SERVICIO</span>
+            <span>Mercado & Inventario (09)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Persistencia</span>
+            <span>PostgreSQL (Mercado)</span>
+          </div>
+        </div>
+
+        <div class="interactive-steps-grid">
+          <div class="interactive-step-node" onclick="openStepDetailModal('USUARIOS_1')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 1 · HTTP Request</span>
+                <span class="step-node-route">Cliente → Gateway</span>
+              </div>
+              <div class="step-node-title">Llamada con Token Bearer JWT</div>
+              <div class="step-node-desc">El navegador envía la petición HTTP con cabecera Authorization: Bearer eyJhbGciOiJSUzI1Ni... hacia el Gateway.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('USUARIOS_2')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 2 · Criptografía</span>
+                <span class="step-node-route">Gateway (Borde)</span>
+              </div>
+              <div class="step-node-title">Validación Criptográfica Perimetral</div>
+              <div class="step-node-desc">Gateway valida la firma RS256 y la vigencia temporal. Si el token expiró o es apócrifo, rechaza de inmediato con 401.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('USUARIOS_3')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 3 · Inyección</span>
+                <span class="step-node-route">Gateway → Mercado</span>
+              </div>
+              <div class="step-node-title">Inyección de Cabeceras de Confianza</div>
+              <div class="step-node-desc">Gateway despoja el Bearer e inyecta X-User-Id, X-Roles y X-User-Email hacia la red interna de Mercado.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('USUARIOS_4')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 4 · RBAC Local</span>
+                <span class="step-node-route">Mercado (Local)</span>
+              </div>
+              <div class="step-node-title">Control de Acceso & Ejecución</div>
+              <div class="step-node-desc">Mercado valida que el rol permita la acción (ROLE_STUDENT vs ROLE_PROFESSOR), asocia al alumno y ejecuta la lógica de negocio.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Especificación Técnica de Cabeceras Inyectadas por API Gateway</div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Cabecera HTTP</th>
+              <th>Tipo de Dato</th>
+              <th>Ejemplo de Valor</th>
+              <th>Propósito en Mercado (Tema 09)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>X-User-Id</code></td>
+              <td>String (UUID)</td>
+              <td><code>usr-4821</code></td>
+              <td>Identificador del alumno para asociar órdenes de compra, inventario y slots equipados.</td>
+            </tr>
+            <tr>
+              <td><code>X-Roles</code></td>
+              <td>String (CSV)</td>
+              <td><code>ROLE_STUDENT</code></td>
+              <td>Autorización de operaciones (solo docentes pueden alterar cupos o subastas).</td>
+            </tr>
+            <tr>
+              <td><code>X-User-Email</code></td>
+              <td>String (Email)</td>
+              <td><code>alumno@frc.utn.edu.ar</code></td>
+              <td>Traza de auditoría inmutable en órdenes de compra y conciliaciones con Banco.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: CURSOS / COHORTES (TEMA 02)                                  -->
+    <!-- =================================================================== -->
+    <section class="flow-panel-view" id="viewCURSOS">
+      <div class="hero-card gold">
+        <h2>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 3 6 3 6 3s6 0 6-3v-5"/></svg>
+          <span>Integración con Cursos (Tema 02): Partición de Inventario y Eventos de Ciclo de Vida</span>
+        </h2>
+        <p>
+          El inventario de cada alumno es <strong>estrictamente específico por curso</strong>: la clave primaria compuesta es <code>(student_id, course_id)</code>. Cuando un curso concluye, Cursos emite <code>CURSO_ARCHIVADO</code> en <code>cursos.ciclo-vida</code>. Mercado congela los inventarios del curso impidiendo nuevas compras o equipamientos.
+        </p>
+      </div>
+
+      <!-- DIAGRAMA INTERACTIVO DE COMUNICACIÓN -->
+      <div class="diagram-interactive-card">
+        <div class="diagram-header">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-gold)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Diagrama Interactivo de Comunicación: Mercado (Tema 09) ↔ Cursos (Tema 02)</span>
+          </h3>
+          <span class="tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Haz clic en cualquier paso para ver qué se hace en detalle
+          </span>
+        </div>
+
+        <div class="swimlanes-bar">
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Estudiante</span>
+            <span>Cohorte Activa</span>
+          </div>
+          <div class="swimlane-pill our-service">
+            <span style="font-size:0.68rem; font-weight:800;">NUESTRO SERVICIO</span>
+            <span>Mercado & Inventario (09)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Borde Red</span>
+            <span>API Gateway (01)</span>
+          </div>
+          <div class="swimlane-pill target-service">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Académico</span>
+            <span>Cursos & Cohortes (02)</span>
+          </div>
+          <div class="swimlane-pill broker">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Bus de Eventos</span>
+            <span>cursos.ciclo-vida</span>
+          </div>
+        </div>
+
+        <div class="interactive-steps-grid">
+          <div class="interactive-step-node" onclick="openStepDetailModal('CURSOS_1')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 1 · Partición</span>
+                <span class="step-node-route">Mercado (Local)</span>
+              </div>
+              <div class="step-node-title">Aislamiento de Inventario por Cohorte</div>
+              <div class="step-node-desc">Todo inventario vive particionado por (student_id, course_id). Los ítems adquiridos en un curso no aplican a ningún otro.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('CURSOS_2')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 2 · Sincrónico</span>
+                <span class="step-node-route">Mercado → Cursos</span>
+              </div>
+              <div class="step-node-title">Validación de Matriculación & Estado</div>
+              <div class="step-node-desc">Al comprar o equipar, Mercado verifica vía REST GET si el alumno está inscripto y si el curso se encuentra en estado ACTIVE.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('CURSOS_3')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 3 · Asincrónico</span>
+                <span class="step-node-route">Cursos → Kafka</span>
+              </div>
+              <div class="step-node-title">Emisión: CURSO_ARCHIVADO</div>
+              <div class="step-node-desc">Al finalizar el semestre lectivo, Cursos emite CURSO_ARCHIVADO en el tópico cursos.ciclo-vida con la cohorte afectada.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('CURSOS_4')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 4 · Consumo</span>
+                <span class="step-node-route">Kafka → Mercado</span>
+              </div>
+              <div class="step-node-title">Congelamiento de Inventarios</div>
+              <div class="step-node-desc">Mercado consume el evento y pasa los inventarios de ese curso a solo lectura (ARCHIVED), cerrando la tienda de esa cohorte.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Hecho Consumado de Ciclo de Vida: CURSO_ARCHIVADO</div>
+
+      <div class="json-card">
+        <div class="json-header">
+          <span class="json-title">
+            <span>Evento: CURSO_ARCHIVADO</span>
+            <span class="badge-topic">cursos.ciclo-vida</span>
+          </span>
+          <button class="btn-copy" onclick="copyCode('jsonCursoArchivado', this)">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copiar</span>
+          </button>
+        </div>
+        <pre class="code-container" id="jsonCursoArchivado">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"b8a91c34-7123-4567-89ab-cdef01234567"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"CURSO_ARCHIVADO"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-07-15T23:59:59Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-02-cursos"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+    <span class="json-key">"cohortCode"</span>: <span class="json-str">"2K04"</span>,
+    <span class="json-key">"academicPeriod"</span>: <span class="json-str">"2026-1C"</span>,
+    <span class="json-key">"reason"</span>: <span class="json-str">"SEMESTER_COMPLETED"</span>,
+    <span class="json-key">"archivedAt"</span>: <span class="json-str">"2026-07-15T23:59:59Z"</span>
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: BACKOFFICE (TEMA 12)                                         -->
+    <!-- =================================================================== -->
+    <section class="flow-panel-view" id="viewBACKOFFICE">
+      <div class="hero-card pink">
+        <h2>
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/></svg>
+          <span>Integración con Backoffice (Tema 12): Tópico backoffice.parametros & Hot-Reload de Configuración</span>
+        </h2>
+        <p>
+          Backoffice administra las variables globales de balance económico: <strong>PAR-06</strong> (precio de vidas extras = 300) y <strong>PAR-07</strong> (matriz de precios por Tier: 200, 500, 1.000, 2.000, 4.000). Cuando se editan, Backoffice publica el hecho en <code>backoffice.parametros</code>. En contraparte, Mercado le expone a Backoffice endpoints de analítica de ventas para pintar los tableros docentes.
+        </p>
+      </div>
+
+      <!-- DIAGRAMA INTERACTIVO DE COMUNICACIÓN -->
+      <div class="diagram-interactive-card">
+        <div class="diagram-header">
+          <h3>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-pink)" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Diagrama Interactivo de Comunicación: Mercado (Tema 09) ↔ Backoffice (Tema 12)</span>
+          </h3>
+          <span class="tip">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Haz clic en cualquier paso para ver qué se hace en detalle
+          </span>
+        </div>
+
+        <div class="swimlanes-bar">
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Docente / Admin</span>
+            <span>Panel Web Backoffice</span>
+          </div>
+          <div class="swimlane-pill target-service">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Administración</span>
+            <span>Backoffice Core (12)</span>
+          </div>
+          <div class="swimlane-pill broker">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Bus de Eventos</span>
+            <span>backoffice.parametros</span>
+          </div>
+          <div class="swimlane-pill our-service">
+            <span style="font-size:0.68rem; font-weight:800;">NUESTRO SERVICIO</span>
+            <span>Mercado & Inventario (09)</span>
+          </div>
+          <div class="swimlane-pill">
+            <span style="font-size:0.68rem; color:var(--ink-dim);">Cache / Memoria</span>
+            <span>Hot Reload (Spring Boot)</span>
+          </div>
+        </div>
+
+        <div class="interactive-steps-grid">
+          <div class="interactive-step-node" onclick="openStepDetailModal('BACKOFFICE_1')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 1 · Arranque</span>
+                <span class="step-node-route">Mercado (Local)</span>
+              </div>
+              <div class="step-node-title">Carga Inicial de Precios & Tiers</div>
+              <div class="step-node-desc">Al arrancar el pod de Mercado (@PostConstruct), se leen variables de entorno y base de datos con precios base por Tier.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BACKOFFICE_2')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge sync">Paso 2 · Edición Web</span>
+                <span class="step-node-route">Admin → Backoffice</span>
+              </div>
+              <div class="step-node-title">Ajuste de Precios en Panel Web</div>
+              <div class="step-node-desc">Un docente actualiza el precio del Tier 3 o habilita una promoción desde el panel de control administrativo.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BACKOFFICE_3')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 3 · Asincrónico</span>
+                <span class="step-node-route">Backoffice → Kafka</span>
+              </div>
+              <div class="step-node-title">Emisión: PARAMETRO_ACTUALIZADO</div>
+              <div class="step-node-desc">Backoffice emite el hecho consumado en backoffice.parametros con parameterKey, categoría y nueva matriz de precios.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+
+          <div class="interactive-step-node" onclick="openStepDetailModal('BACKOFFICE_4')">
+            <div>
+              <div class="step-node-header">
+                <span class="step-node-badge async">Paso 4 · Hot Reload</span>
+                <span class="step-node-route">Kafka → Mercado</span>
+              </div>
+              <div class="step-node-title">Recarga Dinámica en Memoria</div>
+              <div class="step-node-desc">Mercado consume el evento y actualiza su ConcurrentHashMap en memoria sin reiniciar el contenedor ni perder sesiones.</div>
+            </div>
+            <div class="step-node-action">
+              <span>Ver qué se hace</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2col">
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>Hecho Consumado: PARAMETRO_ACTUALIZADO (PAR-07)</span>
+              <span class="badge-topic">backoffice.parametros</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonParamUpdated', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonParamUpdated">{
+  <span class="json-key">"eventId"</span>: <span class="json-str">"a8f34bc1-9124-4f9e-a89c-5c8e419b8823"</span>,
+  <span class="json-key">"eventType"</span>: <span class="json-str">"PARAMETRO_ACTUALIZADO"</span>,
+  <span class="json-key">"timestamp"</span>: <span class="json-str">"2026-09-09T17:00:00Z"</span>,
+  <span class="json-key">"producer"</span>: <span class="json-str">"tema-12-backoffice"</span>,
+  <span class="json-key">"payload"</span>: {
+    <span class="json-key">"parameterKey"</span>: <span class="json-str">"PAR-07"</span>,
+    <span class="json-key">"category"</span>: <span class="json-str">"TIER_PRICES"</span>,
+    <span class="json-key">"values"</span>: {
+      <span class="json-key">"TIER_1"</span>: <span class="json-num">200</span>,
+      <span class="json-key">"TIER_2"</span>: <span class="json-num">500</span>,
+      <span class="json-key">"TIER_3"</span>: <span class="json-num">1000</span>,
+      <span class="json-key">"TIER_4"</span>: <span class="json-num">2000</span>,
+      <span class="json-key">"TIER_5"</span>: <span class="json-num">4000</span>
+    },
+    <span class="json-key">"updatedBy"</span>: <span class="json-str">"admin-system"</span>,
+    <span class="json-key">"effectiveDate"</span>: <span class="json-str">"2026-09-09T17:00:00Z"</span>
+  }
+}</pre>
+        </div>
+
+        <div class="json-card">
+          <div class="json-header">
+            <span class="json-title">
+              <span>Sincrónico (REST): GET /api/v1/market/admin/metrics</span>
+              <span class="badge-sync">HTTP 200 OK</span>
+            </span>
+            <button class="btn-copy" onclick="copyCode('jsonAnalytics', this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar</span>
+            </button>
+          </div>
+          <pre class="code-container" id="jsonAnalytics">{
+  <span class="json-key">"courseId"</span>: <span class="json-str">"CURSO_PROG4_2026"</span>,
+  <span class="json-key">"reportGeneratedAt"</span>: <span class="json-str">"2026-09-09T17:15:00Z"</span>,
+  <span class="json-key">"freshnessMinutes"</span>: <span class="json-num">15</span>,
+  <span class="json-key">"metrics"</span>: {
+    <span class="json-key">"totalTransactions"</span>: <span class="json-num">142</span>,
+    <span class="json-key">"totalGoldCoinsSpent"</span>: <span class="json-num">84500</span>,
+    <span class="json-key">"topSellingItems"</span>: [
+      {
+        <span class="json-key">"itemCode"</span>: <span class="json-str">"SHIELD_T2"</span>,
+        <span class="json-key">"name"</span>: <span class="json-str">"Escudo Reforzado"</span>,
+        <span class="json-key">"quantitySold"</span>: <span class="json-num">58</span>,
+        <span class="json-key">"totalRevenue"</span>: <span class="json-num">29000</span>
+      },
+      {
+        <span class="json-key">"itemCode"</span>: <span class="json-str">"XP_BOOST_T1"</span>,
+        <span class="json-key">"name"</span>: <span class="json-str">"Tónico de Concentración"</span>,
+        <span class="json-key">"quantitySold"</span>: <span class="json-num">44</span>,
+        <span class="json-key">"totalRevenue"</span>: <span class="json-num">8800</span>
+      }
+    ],
+    <span class="json-key">"activeEquippedShields"</span>: <span class="json-num">38</span>,
+    <span class="json-key">"activeEquippedBuffs"</span>: <span class="json-num">22</span>
+  }
+}</pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL DE INSPECCIÓN DE PASO DETALLADO (DRILL-DOWN)                     -->
+  <!-- ======================================================================= -->
+  <div class="step-modal-overlay" id="stepDetailModal" onclick="handleModalOverlayClick(event)">
+    <div class="step-modal-box" onclick="event.stopPropagation()">
+      <div class="step-modal-header">
+        <div class="step-modal-header-info">
+          <h3 id="modalStepTitle">Paso 1: Nombre del Paso</h3>
+          <span id="modalStepSubtitle">Flujo de Integración · Categoría</span>
+        </div>
+        <button class="step-modal-close" onclick="closeStepDetailModal()" title="Cerrar ventana">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="step-modal-body">
+        <!-- Fila de Metadatos del Paso -->
+        <div class="step-meta-row">
+          <div class="step-meta-item">
+            <span class="lbl">Microservicio Emisor</span>
+            <span class="val" id="modalMetaSender">Mercado (09)</span>
+          </div>
+          <div class="step-meta-item">
+            <span class="lbl">Microservicio Receptor</span>
+            <span class="val" id="modalMetaReceiver">Banco (08)</span>
+          </div>
+          <div class="step-meta-item">
+            <span class="lbl">Canal / Tópico / Endpoint</span>
+            <span class="val" id="modalMetaChannel">mercado.ordenes</span>
+          </div>
+          <div class="step-meta-item">
+            <span class="lbl">Tipo de Comunicación</span>
+            <span class="val" id="modalMetaType">Asincrónica (Kafka)</span>
+          </div>
+        </div>
+
+        <!-- Sección: ¿Qué es lo que se hace? -->
+        <div class="step-detail-section">
+          <h4>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            <span>¿Qué es lo que se hace exactamente en este paso?</span>
+          </h4>
+          <div id="modalStepDescription">
+            <!-- Rellenado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Sección: Efecto en Base de Datos Local -->
+        <div class="step-detail-section">
+          <h4>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-purple)" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Impacto en Base de Datos Local (PostgreSQL de Mercado)</span>
+          </h4>
+          <div id="modalStepDbEffects">
+            <!-- Rellenado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Sección: Contrato JSON / Cabeceras -->
+        <div class="step-detail-section">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h4 style="margin-bottom:0;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-green)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <span>Contrato JSON Estándar / Payload Técnico</span>
+            </h4>
+            <button class="btn-copy" onclick="copyModalStepJson(this)">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar Contrato</span>
+            </button>
+          </div>
+          <pre class="code-container" id="modalStepJsonCode"></pre>
+        </div>
+
+        <!-- Sección: Manejo de Errores y Casos Borde -->
+        <div class="step-detail-section" id="modalStepErrorSection">
+          <h4>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--accent-red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Manejo de Errores, Fallas y Compensación</span>
+          </h4>
+          <div class="step-error-box" id="modalStepErrorText">
+            <!-- Rellenado dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <div class="step-modal-footer">
+        <button class="step-nav-btn" id="btnPrevStep" onclick="navigateStep(-1)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span>Paso Anterior</span>
+        </button>
+
+        <span style="font-size:0.78rem; font-weight:700; color:var(--ink-muted);" id="modalStepCounter">Paso 1 de 6</span>
+
+        <div style="display:flex; gap:8px;">
+          <button class="step-nav-btn" id="btnNextStep" onclick="navigateStep(1)">
+            <span>Paso Siguiente</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="step-nav-btn" onclick="closeStepDetailModal()">
+            <span>Cerrar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      Aula Quest · Tema 09: Mercado & Inventario · Documentación y Diagramas de Integración Oficiales · UTN FRC 2026
+    </div>
+  </footer>
+
+  <script>
+    /* ========================================================================= */
+    /* DICCIONARIO DE DATOS DETALLADO DE TODOS LOS PASOS DE TODOS LOS FLUJOS    */
+    /* ========================================================================= */
+    const FLOW_STEPS_DATA = {
+      // -----------------------------------------------------------------------
+      // FLUJO 1: BANCO (TEMA 08)
+      // -----------------------------------------------------------------------
+      'BANCO_1': {
+        flowKey: 'BANCO',
+        stepNum: 1,
+        totalSteps: 8,
+        title: 'Inicio de Orden de Compra & Apertura de SSE',
+        subtitle: 'Interacción Cliente → API Gateway (01) → Mercado (09)',
+        sender: 'Cliente Web / Alumno',
+        receiver: 'Mercado (Tema 09) vía Gateway',
+        channel: 'POST /api/v1/market/orders',
+        type: 'HTTP REST Sincrónico + Streaming SSE',
+        description: `
+          <p>El estudiante pulsa el botón "Comprar" en el catálogo de Mercado. El frontend despacha una petición HTTP POST para iniciar la adquisición sin bloquear el hilo del navegador:</p>
+          <ul>
+            <li><strong>Validación Perimetral:</strong> El API Gateway comprueba el token JWT del estudiante e inyecta las cabeceras de confianza <code>X-User-Id: usr-4821</code> y <code>X-Roles: ROLE_STUDENT</code>.</li>
+            <li><strong>Validaciones Previas en Mercado:</strong>
+              <ul>
+                <li>Se comprueba que el ítem solicitado exista en el catálogo canónico (ej. <code>SHIELD_T2</code>).</li>
+                <li>Se valida la cohorte activa (ej. <code>CURSO_PROG4_2026</code>) y que el alumno no esté bloqueado.</li>
+                <li>En caso de ser Poción de Vida (<code>LIFE_POTION</code>), se valida no superar el tope reglamentario de 3 vidas (PAR-12).</li>
+              </ul>
+            </li>
+            <li><strong>Respuesta Inmediata:</strong> Mercado responde con código <code>HTTP 202 Accepted</code> entregando el <code>orderId</code> generado. Acto seguido, el frontend se conecta al endpoint <code>GET /api/v1/market/orders/{orderId}/events</code> estableciendo el canal SSE (Server-Sent Events) para recibir notificaciones reactivas.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Se realiza una inserción en la tabla de órdenes de Mercado:</p>
+          <div class="step-db-badge">INSERT INTO market_orders (order_id, student_id, course_id, item_code, amount, status, created_at) VALUES ('purchase-7f9a2b1c', 'usr-4821', 'CURSO_PROG4_2026', 'SHIELD_T2', 500, 'PENDING_RESERVATION', NOW());</div>
+        `,
+        jsonPayload: {
+          requestUrl: "POST /api/v1/market/orders",
+          headers: {
+            "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "Content-Type": "application/json"
+          },
+          requestBody: {
+            "courseId": "CURSO_PROG4_2026",
+            "itemCode": "SHIELD_T2"
+          },
+          responseStatus: "202 Accepted",
+          responseBody: {
+            "orderId": "purchase-7f9a2b1c",
+            "status": "PENDING_RESERVATION",
+            "sseStreamUrl": "/api/v1/market/orders/purchase-7f9a2b1c/events",
+            "message": "Orden recibida. Proceso asincrónico de reserva iniciado."
+          }
+        },
+        errorHandling: `
+          Si el ítem no existe en el catálogo, se responde de forma síncrona <code>404 Not Found</code>. Si el alumno ya posee 3 vidas y solicita la Poción, se rechaza inmediatamente con <code>400 Bad Request { error: 'MAX_LIVES_REACHED' }</code> sin abrir orden ni emitir eventos a Kafka.
+        `
+      },
+
+      'BANCO_2': {
+        flowKey: 'BANCO',
+        stepNum: 2,
+        totalSteps: 8,
+        title: 'Emisión: ORDEN_COMPRA_SOLICITADA a Kafka',
+        subtitle: 'Mercado (Tema 09) → Bus Central Kafka (mercado.ordenes)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Bus Kafka (Tópico: mercado.ordenes)',
+        channel: 'mercado.ordenes',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Una vez registrada la orden preliminar, Mercado emite al bus de eventos el <strong>hecho consumado</strong> de que la orden fue solicitada formalmente en el sistema:</p>
+          <ul>
+            <li><strong>Desacoplamiento Absoluto:</strong> Mercado no le ordena a Banco "bloquea dinero" de forma imperativa. En su lugar, notifica al ecosistema un hecho: <em>"La orden purchase-7f9a2b1c ha sido solicitada para el alumno usr-4821 por 500 monedas con motivo ITEM_PURCHASE_DIRECT"</em>.</li>
+            <li><strong>TTL de Garantía:</strong> Se incluye un tiempo de vida estricto de <code>ttlMinutes: 5</code> para evitar bloqueos perpetuos si ocurriese una caída catastrófica de red.</li>
+            <li><strong>Formato Estándar:</strong> Se utiliza la envoltura obligatoria de 5 campos (<code>eventId</code>, <code>eventType</code>, <code>timestamp</code>, <code>producer</code>, <code>payload</code>).</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Se actualiza el registro local de la orden y se registra la traza de auditoría:</p>
+          <div class="step-db-badge">UPDATE market_orders SET status = 'HOLD_REQUESTED', updated_at = NOW() WHERE order_id = 'purchase-7f9a2b1c';</div>
+        `,
+        jsonPayload: {
+          "eventId": "e81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+          "eventType": "ORDEN_COMPRA_SOLICITADA",
+          "timestamp": "2026-09-09T16:00:01Z",
+          "producer": "tema-09-mercado",
+          "payload": {
+            "orderId": "purchase-7f9a2b1c",
+            "studentId": "usr-4821",
+            "courseId": "CURSO_PROG4_2026",
+            "amount": 500,
+            "currency": "GOLD_COIN",
+            "ttlMinutes": 5,
+            "reason": "ITEM_PURCHASE_DIRECT",
+            "itemCode": "SHIELD_T2"
+          }
+        },
+        errorHandling: `
+          Si el clúster Kafka está temporalmente inaccesible, el productor de Spring Boot reintenta con backoff exponencial. Si supera el umbral máximo de reintentos, la orden se marca localmente como FAILED y se cierra la conexión SSE enviando un evento de error de comunicación.
+        `
+      },
+
+      'BANCO_3': {
+        flowKey: 'BANCO',
+        stepNum: 3,
+        totalSteps: 8,
+        title: 'Reserva de Saldo: FONDOS_RESERVADOS',
+        subtitle: 'Banco (Tema 08) → Bus Central Kafka (banco.reservas)',
+        sender: 'Banco & Cuentas (Tema 08)',
+        receiver: 'Bus Kafka (Tópico: banco.reservas)',
+        channel: 'banco.reservas',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>El microservicio de Banco (Tema 08), suscrito al tópico <code>mercado.ordenes</code> con su <code>groupId = "banco-group"</code>, recibe el evento y procesa la reserva:</p>
+          <ul>
+            <li><strong>Verificación de Liquidez:</strong> Banco comprueba en su balance contable si el alumno <code>usr-4821</code> dispone de saldo no comprometido suficiente (<code>saldo_disponible >= 500</code>).</li>
+            <li><strong>Apartado de Fondos (Hold):</strong> Banco aparta temporalmente las 500 monedas creando un <code>holdId: hld-99201</code>. Estas monedas quedan retenidas para que el estudiante no pueda gastarlas en otra operación simultánea, pero <strong>aún no son debitadas definitivamente</strong>.</li>
+            <li><strong>Emisión del Hecho:</strong> Banco publica en <code>banco.reservas</code> el hecho consumado <code>FONDOS_RESERVADOS</code> con fecha límite de vencimiento (<code>expiresAt</code>).</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>En la base de datos de Banco (Tema 08) se crea un registro de retención:</p>
+          <div class="step-db-badge">INSERT INTO bank_holds (hold_id, order_id, student_id, amount, status, expires_at) VALUES ('hld-99201', 'purchase-7f9a2b1c', 'usr-4821', 500, 'RESERVADO', NOW() + INTERVAL '5 MINUTE');</div>
+        `,
+        jsonPayload: {
+          "eventId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+          "eventType": "FONDOS_RESERVADOS",
+          "timestamp": "2026-09-09T16:00:02Z",
+          "producer": "tema-08-banco",
+          "payload": {
+            "holdId": "hld-99201",
+            "orderId": "purchase-7f9a2b1c",
+            "studentId": "usr-4821",
+            "amount": 500,
+            "currency": "GOLD_COIN",
+            "status": "RESERVADO",
+            "expiresAt": "2026-09-09T16:05:01Z"
+          }
+        },
+        errorHandling: `
+          Si el estudiante no tiene suficientes monedas, Banco no emite FONDOS_RESERVADOS; en su lugar emite FONDOS_INSUFICIENTES (Ver Ruta de Excepción F-02).
+        `
+      },
+
+      'BANCO_4': {
+        flowKey: 'BANCO',
+        stepNum: 4,
+        totalSteps: 8,
+        title: 'Acreditación en Mochila: ITEM_ACREDITADO',
+        subtitle: 'Mercado (Tema 09) → Persistencia Local & Kafka (mercado.ordenes)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Bus Kafka (mercado.ordenes) & Cliente SSE',
+        channel: 'mercado.ordenes',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Mercado consume el evento <code>FONDOS_RESERVADOS</code> y procede a entregar el ítem de manera segura:</p>
+          <ul>
+            <li><strong>Verificación de Orden:</strong> Mercado busca la orden <code>purchase-7f9a2b1c</code> en su base de datos y valida que esté en estado <code>HOLD_REQUESTED</code>.</li>
+            <li><strong>Creación de Ítem en Mochila:</strong> Inserta una nueva fila en <code>student_inventory</code> particionada por <code>(studentId, courseId)</code>. Se le asignan las cargas iniciales completas (ej: 2 cargas para Escudo Reforzado T2) y el estado <code>AVAILABLE</code>.</li>
+            <li><strong>Emisión de Evento:</strong> Mercado emite al bus el hecho consumado <code>ITEM_ACREDITADO</code> con el <code>inventoryItemId</code> recién creado.</li>
+            <li><strong>Actualización por SSE:</strong> El hilo de Mercado envía un paquete SSE al frontend informando que el ítem ya está en la mochila del estudiante.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Transacción local ACID en la base de datos de Mercado:</p>
+          <div class="step-db-badge">INSERT INTO student_inventory (inventory_item_id, student_id, course_id, item_code, charges, state, created_at) VALUES ('inv-item-8801', 'usr-4821', 'CURSO_PROG4_2026', 'SHIELD_T2', 2, 'AVAILABLE', NOW());</div>
+          <div class="step-db-badge" style="margin-top:4px;">UPDATE market_orders SET hold_id = 'hld-99201', status = 'ITEM_DELIVERED' WHERE order_id = 'purchase-7f9a2b1c';</div>
+        `,
+        jsonPayload: {
+          "eventId": "d290f1ee-6c54-4b01-90e6-d701748f0851",
+          "eventType": "ITEM_ACREDITADO",
+          "timestamp": "2026-09-09T16:00:03Z",
+          "producer": "tema-09-mercado",
+          "payload": {
+            "orderId": "purchase-7f9a2b1c",
+            "holdId": "hld-99201",
+            "studentId": "usr-4821",
+            "courseId": "CURSO_PROG4_2026",
+            "inventoryItemId": "inv-item-8801",
+            "itemCode": "SHIELD_T2",
+            "charges": 2,
+            "state": "AVAILABLE"
+          }
+        },
+        errorHandling: `
+          Si la base de datos de Mercado sufre un error de disco o deadlock y no puede guardar el ítem, se dispara inmediatamente la transacción de compensación (Ver Paso COMP).
+        `
+      },
+
+      'BANCO_5': {
+        flowKey: 'BANCO',
+        stepNum: 5,
+        totalSteps: 8,
+        title: 'Débito Contable Final: DEBITO_FINAL_CONFIRMADO',
+        subtitle: 'Banco (Tema 08) → Bus Central Kafka (banco.reservas)',
+        sender: 'Banco & Cuentas (Tema 08)',
+        receiver: 'Bus Kafka (Tópico: banco.reservas)',
+        channel: 'banco.reservas',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Banco consume <code>ITEM_ACREDITADO</code> desde <code>mercado.ordenes</code>, lo cual certifica que la contraparte cumplió con la entrega del producto:</p>
+          <ul>
+            <li><strong>Asentamiento Irreversible:</strong> Banco transforma la retención temporal (<code>holdId</code>) en un débito contable definitivo en su libro mayor contable (<em>double-entry ledger</em>).</li>
+            <li><strong>Descuento Real de Monedas:</strong> El saldo de la cuenta del alumno disminuye formalmente en 500 monedas y se incrementa la cuenta de recaudación del sistema.</li>
+            <li><strong>Emisión de Confirmación:</strong> Banco publica el hecho consumado <code>DEBITO_FINAL_CONFIRMADO</code> conteniendo el <code>transactionId</code> bancario.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>En el libro mayor (ledger) de Banco (Tema 08):</p>
+          <div class="step-db-badge">UPDATE bank_holds SET status = 'CONFIRMED' WHERE hold_id = 'hld-99201';</div>
+          <div class="step-db-badge" style="margin-top:4px;">INSERT INTO bank_transactions (tx_id, student_id, amount, tx_type, created_at) VALUES ('tx-ledger-88392', 'usr-4821', -500, 'DEBIT_MARKET_PURCHASE', NOW());</div>
+        `,
+        jsonPayload: {
+          "eventId": "b73523f6-8097-4b76-a734-77e8cf7df32a",
+          "eventType": "DEBITO_FINAL_CONFIRMADO",
+          "timestamp": "2026-09-09T16:00:04Z",
+          "producer": "tema-08-banco",
+          "payload": {
+            "holdId": "hld-99201",
+            "orderId": "purchase-7f9a2b1c",
+            "studentId": "usr-4821",
+            "debitedAmount": 500,
+            "transactionId": "tx-ledger-88392",
+            "status": "CONFIRMADO"
+          }
+        },
+        errorHandling: `
+          Este paso es idempotente. Si Banco recibe duplicados de ITEM_ACREDITADO (por reenvío en red), verifica que el holdId ya fue confirmado y no vuelve a debitar dinero.
+        `
+      },
+
+      'BANCO_6': {
+        flowKey: 'BANCO',
+        stepNum: 6,
+        totalSteps: 8,
+        title: 'Cierre de Transacción & Notificación SSE Final',
+        subtitle: 'Mercado (Tema 09) → Cliente Web & Notificaciones (11)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Cliente Web (SSE) & Notificaciones (Tema 11)',
+        channel: 'HTTP SSE + sistema.notificaciones',
+        type: 'Streaming SSE & Alerta In-App',
+        description: `
+          <p>Con el débito confirmado por Banco, la Saga concluye exitosamente:</p>
+          <ul>
+            <li><strong>Cierre de Orden:</strong> Mercado cambia el estado de la venta de <code>PROCESSING</code> a <code>CONFIRMED</code>.</li>
+            <li><strong>Notificación al Cliente por SSE:</strong> Se despacha por el streaming SSE el evento terminal <code>ORDER_COMPLETED</code>, el modal de compra muestra el check verde de éxito y se cierra suavemente.</li>
+            <li><strong>Consumo Concurrente por Notificaciones (Tema 11):</strong> Tema 11, escuchando los tópicos de Kafka con su <code>groupId = "notificaciones-group"</code>, despacha una alerta in-app al estudiante felicitándolo por su adquisición.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Cierre de ciclo en la base de datos de Mercado:</p>
+          <div class="step-db-badge">UPDATE market_orders SET status = 'CONFIRMED', completed_at = NOW() WHERE order_id = 'purchase-7f9a2b1c';</div>
+          <div class="step-db-badge" style="margin-top:4px;">INSERT INTO market_audit_log (event_type, order_id, student_id, action, result) VALUES ('ORDER_COMPLETED', 'purchase-7f9a2b1c', 'usr-4821', 'PURCHASE_DIRECT', 'SUCCESS');</div>
+        `,
+        jsonPayload: {
+          "sseEventType": "ORDER_COMPLETED",
+          "timestamp": "2026-09-09T16:00:05Z",
+          "orderId": "purchase-7f9a2b1c",
+          "status": "CONFIRMED",
+          "purchasedItem": {
+            "itemCode": "SHIELD_T2",
+            "name": "Escudo Reforzado",
+            "charges": 2,
+            "inventoryItemId": "inv-item-8801"
+          },
+          "toastMessage": "¡Escudo Reforzado acreditado con éxito en tu mochila!"
+        },
+        errorHandling: `
+          Si el cliente se desconectó antes de recibir el SSE, no hay inconsistencia: el ítem ya está guardado en PostgreSQL y Banco ya debitó las monedas. Al recargar la página, el ítem aparecerá normalmente en su mochila.
+        `
+      },
+
+      'BANCO_FAIL': {
+        flowKey: 'BANCO',
+        stepNum: 7,
+        totalSteps: 8,
+        title: 'Ruta de Excepción: Saldo Insuficiente en Banco',
+        subtitle: 'Banco (Tema 08) → Bus Central Kafka (banco.reservas)',
+        sender: 'Banco & Cuentas (Tema 08)',
+        receiver: 'Mercado (Tema 09) & Cliente Web',
+        channel: 'banco.reservas',
+        type: 'Asincrónica (Rechazo de Fondos)',
+        description: `
+          <p>Ocurre cuando el estudiante no dispone de las 500 monedas necesarias en su balance contable:</p>
+          <ul>
+            <li>Banco verifica el saldo disponible y detecta insuficiencia de fondos.</li>
+            <li>Banco publica en <code>banco.reservas</code> el evento <code>FONDOS_INSUFICIENTES</code> indicando el déficit.</li>
+            <li>Mercado consume el rechazo, cancela la orden marcándola como <code>REJECTED_INSUFFICIENT_FUNDS</code> y no genera ningún ítem en el inventario.</li>
+            <li>Mercado notifica al frontend vía SSE con código de error de negocio <code>4002</code>, y la UI muestra el toast: <em>"Monedas insuficientes en el Banco."</em>.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <div class="step-db-badge">UPDATE market_orders SET status = 'REJECTED_INSUFFICIENT_FUNDS', updated_at = NOW() WHERE order_id = 'purchase-7f9a2b1c';</div>
+        `,
+        jsonPayload: {
+          "eventId": "c92019ea-1122-4433-8899-aabbccddeeff",
+          "eventType": "FONDOS_INSUFICIENTES",
+          "timestamp": "2026-09-09T16:00:02Z",
+          "producer": "tema-08-banco",
+          "payload": {
+            "orderId": "purchase-7f9a2b1c",
+            "studentId": "usr-4821",
+            "requiredAmount": 500,
+            "currentBalance": 120,
+            "reason": "INSUFFICIENT_GOLD_COINS"
+          }
+        },
+        errorHandling: `
+          No se produce ninguna retención de dinero ni entrega de ítems. El estado de la orden queda cancelado de forma limpia y transparente para el alumno.
+        `
+      },
+
+      'BANCO_COMP': {
+        flowKey: 'BANCO',
+        stepNum: 8,
+        totalSteps: 8,
+        title: 'Ruta de Compensación: COMPRA_FALLIDA_COMPENSACION',
+        subtitle: 'Mercado (Tema 09) → Bus Central Kafka (mercado.ordenes)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Banco (Tema 08)',
+        channel: 'mercado.ordenes & banco.reservas',
+        type: 'Rollback Transaccional (Saga Compensation)',
+        description: `
+          <p>Se activa si ocurrió una falla técnica en Mercado tras la reserva de fondos (ej: caída de la base de datos local al insertar el ítem o timeout de entrega):</p>
+          <ul>
+            <li>Para no perjudicar al estudiante, Mercado ejecuta su lógica de compensación: emite el hecho <code>COMPRA_FALLIDA_COMPENSACION</code> conteniendo el <code>holdId</code>.</li>
+            <li>Banco consume el evento de compensación, anula la retención de monedas y publica <code>RESERVA_LIBERADA</code>.</li>
+            <li>Las monedas retenidas regresan íntegramente al saldo disponible del estudiante sin ningún débito.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <div class="step-db-badge">UPDATE market_orders SET status = 'COMPENSATED_FAILED_DELIVERY', updated_at = NOW() WHERE order_id = 'purchase-7f9a2b1c';</div>
+        `,
+        jsonPayload: {
+          "eventId": "ee223344-5566-7788-9900-aabbccddeeff",
+          "eventType": "COMPRA_FALLIDA_COMPENSACION",
+          "timestamp": "2026-09-09T16:01:00Z",
+          "producer": "tema-09-mercado",
+          "payload": {
+            "orderId": "purchase-7f9a2b1c",
+            "holdId": "hld-99201",
+            "studentId": "usr-4821",
+            "amountToRelease": 500,
+            "reason": "LOCAL_DATABASE_WRITE_FAILURE"
+          }
+        },
+        errorHandling: `
+          Garantiza la consistencia eventual estricta del dinero y los ítems, cumpliendo con las pautas del patrón Saga Coreografiado.
+        `
+      },
+
+      // -----------------------------------------------------------------------
+      // FLUJO 2: MOTOR DE DESAFÍOS (TEMA 03) & RUNNER (TEMA 05)
+      // -----------------------------------------------------------------------
+      'DESAFIO_1': {
+        flowKey: 'DESAFIOS',
+        stepNum: 1,
+        totalSteps: 5,
+        title: 'Solicitud Sincrónica de Snapshot de Ítems Activos',
+        subtitle: 'Motor Desafíos (Tema 03) → API Gateway → Mercado (Tema 09)',
+        sender: 'Motor de Desafíos (Tema 03)',
+        receiver: 'Mercado (Tema 09) vía Gateway',
+        channel: 'GET /api/v1/market/inventory/students/{studentId}/active-items?courseId={courseId}',
+        type: 'HTTP REST Sincrónico (Directiva Inmediata)',
+        description: `
+          <p>Cuando el estudiante entra al entorno de resolución de un ejercicio en el IDE web, el Motor de Desafíos necesita conocer <strong>de manera inmediata</strong> qué beneficios tiene equipados:</p>
+          <ul>
+            <li><strong>Por qué es Sincrónico:</strong> El frontend del editor necesita pintar en tiempo real el HUD de buffos (ej: indicador de escudo protector, multiplicador de XP x1.25) antes de que el alumno ejecute el primer test.</li>
+            <li><strong>Parámetros de Consulta:</strong> Desafíos envía el <code>studentId</code> y el <code>courseId</code> para aislar estrictamente los ítems del curso en cuestión.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Consulta de solo lectura en la base de datos de Mercado:</p>
+          <div class="step-db-badge">SELECT * FROM student_inventory WHERE student_id = 'usr-4821' AND course_id = 'CURSO_PROG4_2026' AND state = 'EQUIPPED';</div>
+        `,
+        jsonPayload: {
+          requestMethod: "GET",
+          requestPath: "/api/v1/market/inventory/students/usr-4821/active-items?courseId=CURSO_PROG4_2026",
+          headers: {
+            "X-Caller-Service": "tema-03-desafios",
+            "Accept": "application/json"
+          }
+        },
+        errorHandling: `
+          Si Mercado no responde en 800ms, Desafíos asume por defecto que no hay escudos equipados y permite continuar el intento sin bloquear el IDE del alumno.
+        `
+      },
+
+      'DESAFIO_2': {
+        flowKey: 'DESAFIOS',
+        stepNum: 2,
+        totalSteps: 5,
+        title: 'Respuesta con Directivas de Acción (actionParams) y Verbos',
+        subtitle: 'Mercado (Tema 09) → Motor Desafíos (Tema 03)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Motor de Desafíos (Tema 03)',
+        channel: 'HTTP 200 OK Response Payload',
+        type: 'HTTP REST Sincrónico',
+        description: `
+          <p>Mercado evalúa los ítems equipados y entrega a Desafíos las directivas de acción concretas (<code>actionParams</code>) listas para aplicar en el motor de ejecución:</p>
+          <ul>
+            <li><strong>Verbos Semánticos:</strong> <code>ABSORB_FAILURE</code> (para escudos que absorben fallos de tests) o <code>XP_MULTIPLIER</code> / <code>COIN_MULTIPLIER</code> (para multiplicadores de ganancia).</li>
+            <li><strong>Parámetros Ejecutables:</strong> Incluye banderas como <code>preventLifeLoss: true</code>, el número de cargas restantes y el mensaje amigable a mostrar al alumno si se dispara el efecto.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>No altera la base de datos; genera un snapshot temporal en memoria.</p>
+        `,
+        jsonPayload: {
+          "studentId": "usr-4821",
+          "courseId": "CURSO_PROG4_2026",
+          "snapshotTimestamp": "2026-09-09T16:15:00Z",
+          "totalEquipped": 2,
+          "activeItems": [
+            {
+              "inventoryItemId": "inv-item-8801",
+              "itemCode": "SHIELD_T2",
+              "name": "Escudo Reforzado",
+              "family": "SHIELD",
+              "tier": 2,
+              "verb": "ABSORB_FAILURE",
+              "chargesLeft": 2,
+              "triggerCondition": "ON_FAILED_TEST_ATTEMPT",
+              "actionParams": {
+                "preventLifeLoss": true,
+                "consumeChargesPerEvent": 1,
+                "studentMessage": "Tu Escudo Reforzado absorbió el fallo técnico. No has perdido vidas."
+              }
+            }
+          ]
+        },
+        errorHandling: `
+          Si el inventario del alumno está vacío, se retorna HTTP 200 OK con <code>totalEquipped: 0</code> y array vacío <code>activeItems: []</code>.
+        `
+      },
+
+      'DESAFIO_3': {
+        flowKey: 'DESAFIOS',
+        stepNum: 3,
+        totalSteps: 5,
+        title: 'Ejecución de Pruebas Unitarias en Sandbox por Runner',
+        subtitle: 'Motor Desafíos (Tema 03) ↔ Runner (Tema 05)',
+        sender: 'Motor de Desafíos (Tema 03)',
+        receiver: 'Runner Sandbox (Tema 05)',
+        channel: 'Llamada de Orquestación Docker Sandbox',
+        type: 'Ejecución Aislada de Código',
+        description: `
+          <p>El estudiante pulsa "Ejecutar Tests":</p>
+          <ul>
+            <li>El código se envía al Runner (Tema 05) que lo compila y ejecuta dentro de un contenedor Docker efímero y seguro (sandbox).</li>
+            <li>Se calculan las aserciones: tests totales, tests superados, errores de sintaxis y tiempos de ejecución.</li>
+            <li>El Runner devuelve el reporte bruto de ejecución al Motor de Desafíos.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Registro de ejecución en la base de datos de intentos de Desafíos (Tema 03).</p>
+        `,
+        jsonPayload: {
+          "attemptId": "att-49219",
+          "studentId": "usr-4821",
+          "runnerStatus": "COMPLETED",
+          "testsTotal": 5,
+          "testsPassed": 4,
+          "exitCode": 1,
+          "executionTimeMs": 340
+        },
+        errorHandling: `
+          Si el código del alumno entra en bucle infinito o excede la memoria máxima, el sandbox lo termina por timeout y lo reporta como fallo de ejecución.
+        `
+      },
+
+      'DESAFIO_4': {
+        flowKey: 'DESAFIOS',
+        stepNum: 4,
+        totalSteps: 5,
+        title: 'Emisión: DESAFIO_RESUELTO en Kafka',
+        subtitle: 'Motor Desafíos (Tema 03) → Bus Central Kafka (desafios.resultados)',
+        sender: 'Motor de Desafíos (Tema 03)',
+        receiver: 'Bus Kafka (Tópico: desafios.resultados)',
+        channel: 'desafios.resultados',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Desafíos consolida el resultado del intento aplicando las directivas que recibió en el Paso 2:</p>
+          <ul>
+            <li><strong>Evaluación de Resultado:</strong> Como falló 1 test de 5, el resultado técnico es <code>FAILED</code>. Sin embargo, al detectar que el alumno tenía un escudo con <code>preventLifeLoss: true</code>, marca <code>shieldProtected: true</code> en el evento.</li>
+            <li><strong>Publicación en Kafka:</strong> Publica el hecho consumado en el tópico central <code>desafios.resultados</code> con la envoltura obligatoria de 5 campos.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Se asienta el intento de resolución en Desafíos (Tema 03):</p>
+          <div class="step-db-badge">INSERT INTO challenge_attempts (attempt_id, student_id, outcome, shield_used) VALUES ('att-49219', 'usr-4821', 'FAILED', true);</div>
+        `,
+        jsonPayload: {
+          "eventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          "eventType": "DESAFIO_RESUELTO",
+          "timestamp": "2026-09-09T16:16:30Z",
+          "producer": "tema-03-desafios",
+          "payload": {
+            "attemptId": "att-49219",
+            "studentId": "usr-4821",
+            "courseId": "CURSO_PROG4_2026",
+            "challengeId": "ch-async-await-01",
+            "outcome": "FAILED",
+            "testsPassed": 4,
+            "testsTotal": 5,
+            "shieldProtected": true,
+            "errorMessage": "AssertionError: Expected 200 OK but received 500"
+          }
+        },
+        errorHandling: `
+          Desafíos emite el hecho consumado independientemente de quién esté escuchando, garantizando el desacoplamiento entre la evaluación técnica y la gamificación.
+        `
+      },
+
+      'DESAFIO_5': {
+        flowKey: 'DESAFIOS',
+        stepNum: 5,
+        totalSteps: 5,
+        title: 'Consumo Paralelo: Descuento de Cargas & Ranking',
+        subtitle: 'Kafka → Mercado (Tema 09), Ranking (Tema 10) y Notificaciones (Tema 11)',
+        sender: 'Bus Kafka (Tópico: desafios.resultados)',
+        receiver: 'Mercado (09), Ranking (10), Notificaciones (11)',
+        channel: 'desafios.resultados',
+        type: 'Consumo Concurrente con Distintos groupIds',
+        description: `
+          <p>Múltiples servicios consumen el mismo evento en paralelo sin interferir entre sí:</p>
+          <ul>
+            <li><strong>Acción en Mercado (Tema 09, groupId = "mercado-group"):</strong>
+              <ul>
+                <li>Detecta que el intento falló y el alumno estaba protegido.</li>
+                <li>Descuenta 1 carga del escudo en <code>student_inventory</code> (de 2 a 1).</li>
+                <li>Registra en auditoría que el escudo absorbió el fallo y preservó las vidas del estudiante.</li>
+                <li>Si las cargas llegan a 0, cambia el estado del ítem a <code>CONSUMED</code> y libera el slot de equipamiento.</li>
+              </ul>
+            </li>
+            <li><strong>Acción en Ranking (Tema 10, groupId = "ranking-group"):</strong> Actualiza las estadísticas de intentos.</li>
+            <li><strong>Acción en Notificaciones (Tema 11, groupId = "notificaciones-group"):</strong> Envía toast: <em>"Tu Escudo Reforzado absorbió el fallo. Vidas intactas: 2/3"</em>.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Actualización atómica en la base de datos de Mercado:</p>
+          <div class="step-db-badge">UPDATE student_inventory SET charges = charges - 1, updated_at = NOW() WHERE inventory_item_id = 'inv-item-8801';</div>
+          <div class="step-db-badge" style="margin-top:4px;">INSERT INTO market_audit_log (item_name, verb, context, result) VALUES ('Escudo Reforzado', 'ABSORB_FAILURE', 'Desafío att-49219', 'Absorbió fallo (Queda 1 carga)');</div>
+        `,
+        jsonPayload: {
+          "consumerGroup": "mercado-group",
+          "processedEventId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          "actionTaken": "CHARGE_DEDUCTED",
+          "itemCode": "SHIELD_T2",
+          "remainingCharges": 1,
+          "inventoryState": "EQUIPPED",
+          "studentLivesPreserved": 2
+        },
+        errorHandling: `
+          Idempotencia mediante attemptId: si el mensaje se reentrega, Mercado verifica que el intento att-49219 ya fue procesado en market_audit_log y no vuelve a descontar cargas duplicadas.
+        `
+      },
+
+      // -----------------------------------------------------------------------
+      // FLUJO 3: USUARIOS & IDENTIDAD (TEMA 01)
+      // -----------------------------------------------------------------------
+      'USUARIOS_1': {
+        flowKey: 'USUARIOS',
+        stepNum: 1,
+        totalSteps: 4,
+        title: 'Petición HTTP con Token Criptográfico (Bearer JWT)',
+        subtitle: 'Cliente Web / Navegador → API Gateway (Tema 01)',
+        sender: 'Cliente Web / Alumno',
+        receiver: 'API Gateway (Tema 01)',
+        channel: 'HTTP Header Authorization: Bearer <jwt>',
+        type: 'HTTP REST Seguro',
+        description: `
+          <p>El usuario realiza cualquier petición hacia el backend (ej: comprar un ítem o ver su inventario):</p>
+          <ul>
+            <li>El cliente web incluye en la cabecera estándar <code>Authorization</code> el token JWT firmado previamente por el servicio de identidad.</li>
+            <li>La petición impacta en el API Gateway público, único punto de entrada expuesto a Internet.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Ninguno; petición en tránsito perimetral.</p>
+        `,
+        jsonPayload: {
+          "header": "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "claims": {
+            "sub": "usr-4821",
+            "email": "estudiante@frc.utn.edu.ar",
+            "roles": ["ROLE_STUDENT"],
+            "fullName": "Tomás Giménez",
+            "iat": 1757433600,
+            "exp": 1757462400
+          }
+        },
+        errorHandling: `
+          Si no se envía cabecera Authorization, el Gateway rechaza inmediatamente con 401 Unauthorized sin reenviar la petición a los microservicios internos.
+        `
+      },
+
+      'USUARIOS_2': {
+        flowKey: 'USUARIOS',
+        stepNum: 2,
+        totalSteps: 4,
+        title: 'Validación Criptográfica Perimetral en API Gateway',
+        subtitle: 'API Gateway (Tema 01) [Perímetro Zero-Trust]',
+        sender: 'API Gateway (Tema 01)',
+        receiver: 'API Gateway (Validación Local)',
+        channel: 'Verificación Criptográfica de Clave Pública RS256',
+        type: 'Validación de Firma y Expiración',
+        description: `
+          <p>El API Gateway ejecuta la verificación perimetral estricta:</p>
+          <ul>
+            <li>Valida la firma matemática del JWT contra la clave pública del servicio de Identidad.</li>
+            <li>Comprueba que la fecha de expiración sea válida (<code>exp > now</code>).</li>
+            <li>Extrae los datos de identidad (subject, roles, email) y descarta el token opaco.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Ninguno; operación criptográfica pura en memoria del Gateway.</p>
+        `,
+        jsonPayload: {
+          "gatewayCheck": {
+            "signatureValid": true,
+            "expired": false,
+            "extractedUser": "usr-4821",
+            "roles": ["ROLE_STUDENT"]
+          }
+        },
+        errorHandling: `
+          Si la firma no coincide o el token expiró, el Gateway retorna HTTP 401 Unauthorized { error: 'INVALID_OR_EXPIRED_TOKEN' } protegiendo a todos los microservicios internos.
+        `
+      },
+
+      'USUARIOS_3': {
+        flowKey: 'USUARIOS',
+        stepNum: 3,
+        totalSteps: 4,
+        title: 'Inyección de Cabeceras de Confianza Aguas Abajo',
+        subtitle: 'API Gateway (Tema 01) → Red Privada → Mercado (Tema 09)',
+        sender: 'API Gateway (Tema 01)',
+        receiver: 'Mercado & Inventario (Tema 09)',
+        channel: 'HTTP Request Interno con Cabeceras Normalizadas',
+        type: 'Header Injection',
+        description: `
+          <p>El Gateway reescribe la petición hacia la red privada de microservicios:</p>
+          <ul>
+            <li>Remueve el token Bearer original (evita consumo innecesario de ancho de banda).</li>
+            <li>Inyecta las cabeceras HTTP de confianza: <code>X-User-Id: usr-4821</code>, <code>X-Roles: ROLE_STUDENT</code> y <code>X-User-Email: estudiante@frc.utn.edu.ar</code>.</li>
+            <li>Reenvía la llamada a la IP interna de Mercado en el clúster Docker/Kubernetes.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Ninguno; transferencia de paquetes HTTP por red interna.</p>
+        `,
+        jsonPayload: {
+          "injectedHeaders": {
+            "X-User-Id": "usr-4821",
+            "X-Roles": "ROLE_STUDENT",
+            "X-User-Email": "estudiante@frc.utn.edu.ar",
+            "X-Forwarded-For": "192.168.1.104"
+          }
+        },
+        errorHandling: `
+          Los microservicios internos rechazan peticiones que provengan de fuera de la red privada o que carezcan de la cabecera X-User-Id.
+        `
+      },
+
+      'USUARIOS_4': {
+        flowKey: 'USUARIOS',
+        stepNum: 4,
+        totalSteps: 4,
+        title: 'Control de Acceso RBAC y Ejecución Local en Mercado',
+        subtitle: 'Mercado & Inventario (Tema 09) [Lógica de Dominio]',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Controlador / Casos de Uso de Mercado',
+        channel: 'Spring Security Filter & HandlerInterceptor',
+        type: 'Autorización y Procesamiento de Negocio',
+        description: `
+          <p>El filtro de seguridad de Mercado (Spring Boot) extrae las cabeceras:</p>
+          <ul>
+            <li>Construye el contexto de seguridad autenticado (<code>SecurityContextHolder</code>) con <code>usr-4821</code>.</li>
+            <li><strong>Verificación de Roles (RBAC):</strong> Si la operación es comprar o equipar, valida <code>ROLE_STUDENT</code>. Si un alumno intentara modificar el catálogo docente, el filtro arroja <code>HTTP 403 Forbidden</code>.</li>
+            <li>Ejecuta el caso de uso asociando la transacción al ID de usuario inyectado.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Cualquier inserción o consulta usa el userId garantizado:</p>
+          <div class="step-db-badge">SELECT * FROM student_inventory WHERE student_id = 'usr-4821';</div>
+        `,
+        jsonPayload: {
+          "securityContext": {
+            "principal": "usr-4821",
+            "authorities": ["ROLE_STUDENT"],
+            "authenticated": true,
+            "accessGranted": true
+          }
+        },
+        errorHandling: `
+          Si las cabeceras están ausentes o vacías, Mercado aborta la solicitud con 401 Unauthorized sin procesar ninguna transacción.
+        `
+      },
+
+      // -----------------------------------------------------------------------
+      // FLUJO 4: CURSOS / COHORTES (TEMA 02)
+      // -----------------------------------------------------------------------
+      'CURSOS_1': {
+        flowKey: 'CURSOS',
+        stepNum: 1,
+        totalSteps: 4,
+        title: 'Aislamiento Estricto de Inventario y Catálogo por Cohorte',
+        subtitle: 'Mercado & Inventario (Tema 09) [Lógica de Dominio]',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Base de Datos PostgreSQL (Mercado)',
+        channel: 'Partición Física y Lógica por Clave Compuesta',
+        type: 'Regla de Negocio & Persistencia',
+        description: `
+          <p>El inventario no es global a nivel alumno, sino estrictamente delimitado por cada curso:</p>
+          <ul>
+            <li><strong>Clave Compuesta:</strong> Cada registro de inventario, orden de compra y slot equipado pertenece a la tupla <code>(student_id, course_id)</code>.</li>
+            <li><strong>Independencia Académica:</strong> Un escudo comprado en "Programación 4" no se comparte ni afecta a "Base de Datos 2".</li>
+            <li>El catálogo y las subastas docentes también se segmentan según la cohorte activa.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Definición de tabla en PostgreSQL de Mercado:</p>
+          <div class="step-db-badge">CREATE TABLE student_inventory (inventory_item_id VARCHAR(64) PRIMARY KEY, student_id VARCHAR(64) NOT NULL, course_id VARCHAR(64) NOT NULL, item_code VARCHAR(32) NOT NULL, state VARCHAR(16) NOT NULL, charges INT DEFAULT 1, CONSTRAINT uq_student_course_slot UNIQUE (student_id, course_id, inventory_item_id));</div>
+        `,
+        jsonPayload: {
+          "partitionKey": {
+            "studentId": "usr-4821",
+            "courseId": "CURSO_PROG4_2026"
+          },
+          "scope": "COHORT_ISOLATED"
+        },
+        errorHandling: `
+          Si una petición no especifica courseId en los parámetros o cabeceras, Mercado rechaza la operación con 400 Bad Request { error: 'COURSE_ID_REQUIRED' }.
+        `
+      },
+
+      'CURSOS_2': {
+        flowKey: 'CURSOS',
+        stepNum: 2,
+        totalSteps: 4,
+        title: 'Validación Sincrónica de Matriculación & Estado',
+        subtitle: 'Mercado (Tema 09) → API Gateway → Cursos (Tema 02)',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Microservicio Cursos (Tema 02)',
+        channel: 'GET /api/v1/courses/{courseId}/students/{studentId}/status',
+        type: 'HTTP REST Sincrónico',
+        description: `
+          <p>Al acceder a la tienda o al confirmar compras, Mercado valida la membresía del alumno:</p>
+          <ul>
+            <li>Mercado consulta al servicio de Cursos si el estudiante está formalmente inscripto en la cohorte.</li>
+            <li>Comprueba que el estado del curso sea <code>ACTIVE</code> (no pausado ni concluido).</li>
+            <li>Si el alumno no pertenece al curso o la cursada está congelada, se bloquea la transacción.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Ninguno; consulta sincrónica de validación.</p>
+        `,
+        jsonPayload: {
+          "request": "GET /api/v1/courses/CURSO_PROG4_2026/students/usr-4821/status",
+          "response": {
+            "courseId": "CURSO_PROG4_2026",
+            "studentId": "usr-4821",
+            "enrolled": true,
+            "courseStatus": "ACTIVE",
+            "role": "STUDENT"
+          }
+        },
+        errorHandling: `
+          Si Cursos responde que el alumno no está matriculado, Mercado retorna 403 Forbidden { error: 'NOT_ENROLLED_IN_COURSE' }.
+        `
+      },
+
+      'CURSOS_3': {
+        flowKey: 'CURSOS',
+        stepNum: 3,
+        totalSteps: 4,
+        title: 'Emisión: CURSO_ARCHIVADO en Kafka',
+        subtitle: 'Cursos (Tema 02) → Bus Central Kafka (cursos.ciclo-vida)',
+        sender: 'Microservicio Cursos (Tema 02)',
+        receiver: 'Bus Kafka (Tópico: cursos.ciclo-vida)',
+        channel: 'cursos.ciclo-vida',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Al completarse el ciclo académico y cerrarse las actas lectivas:</p>
+          <ul>
+            <li>El docente o administrador archiva el curso en el microservicio Cursos (Tema 02).</li>
+            <li>Cursos publica el hecho consumado <code>CURSO_ARCHIVADO</code> en el tópico <code>cursos.ciclo-vida</code>.</li>
+            <li>El evento contiene el <code>courseId</code>, el código de cohorte y el período académico.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Cierre lectivo en la base de datos de Cursos (Tema 02).</p>
+        `,
+        jsonPayload: {
+          "eventId": "b8a91c34-7123-4567-89ab-cdef01234567",
+          "eventType": "CURSO_ARCHIVADO",
+          "timestamp": "2026-07-15T23:59:59Z",
+          "producer": "tema-02-cursos",
+          "payload": {
+            "courseId": "CURSO_PROG4_2026",
+            "cohortCode": "2K04",
+            "academicPeriod": "2026-1C",
+            "reason": "SEMESTER_COMPLETED",
+            "archivedAt": "2026-07-15T23:59:59Z"
+          }
+        },
+        errorHandling: `
+          La emisión por Kafka garantiza que todos los microservicios satélites (Mercado, Desafíos, Foros) congelen sus operaciones sin acoplamiento punto a punto.
+        `
+      },
+
+      'CURSOS_4': {
+        flowKey: 'CURSOS',
+        stepNum: 4,
+        totalSteps: 4,
+        title: 'Congelamiento de Inventarios & Cierre de Mercado',
+        subtitle: 'Kafka (cursos.ciclo-vida) → Mercado & Inventario (Tema 09)',
+        sender: 'Bus Kafka (cursos.ciclo-vida)',
+        receiver: 'Mercado & Inventario (Tema 09)',
+        channel: 'Kafka Listener (groupId = "mercado-group")',
+        type: 'Procesamiento Asincrónico de Ciclo de Vida',
+        description: `
+          <p>Mercado consume <code>CURSO_ARCHIVADO</code> y sella el estado de la cohorte:</p>
+          <ul>
+            <li>Marca el inventario de todos los estudiantes de ese <code>courseId</code> como <code>READ_ONLY</code>.</li>
+            <li>Deshabilita la compra de ítems en la tienda y cancela cualquier subasta activa para ese curso.</li>
+            <li>Garantiza la inmutabilidad histórica: los estudiantes pueden ver qué ítems usaron, pero no pueden comprar ni equipar ítems en un curso ya terminado.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Actualización masiva de congelamiento en Mercado:</p>
+          <div class="step-db-badge">UPDATE student_inventory SET state = 'ARCHIVED' WHERE course_id = 'CURSO_PROG4_2026' AND state = 'AVAILABLE';</div>
+          <div class="step-db-badge" style="margin-top:4px;">UPDATE market_courses_state SET is_active = false, archived_at = NOW() WHERE course_id = 'CURSO_PROG4_2026';</div>
+        `,
+        jsonPayload: {
+          "consumerAction": "COHORT_INVENTORIES_FROZEN",
+          "courseId": "CURSO_PROG4_2026",
+          "recordsArchived": 842,
+          "marketStatus": "CLOSED_READ_ONLY"
+        },
+        errorHandling: `
+          Operación idempotente: si el evento se reentrega, Mercado verifica que el curso ya se encuentra archivado y descarta el procesamiento repetido.
+        `
+      },
+
+      // -----------------------------------------------------------------------
+      // FLUJO 5: BACKOFFICE & PARÁMETROS (TEMA 12)
+      // -----------------------------------------------------------------------
+      'BACKOFFICE_1': {
+        flowKey: 'BACKOFFICE',
+        stepNum: 1,
+        totalSteps: 4,
+        title: 'Carga Inicial de Precios por Tier y Parámetros en Arranque',
+        subtitle: 'Mercado (Tema 09) [@PostConstruct / DB Fallback]',
+        sender: 'Mercado & Inventario (Tema 09)',
+        receiver: 'Memoria Local (ConcurrentHashMap / Redis Cache)',
+        channel: 'Inicialización de Contenedor Spring Boot',
+        type: 'Arranque de Microservicio',
+        description: `
+          <p>Al iniciar el contenedor Docker de Mercado:</p>
+          <ul>
+            <li>Carga las variables de entorno y tablas de configuración por defecto:
+              <ul>
+                <li><strong>PAR-06:</strong> Precio base de vidas extra (300 monedas).</li>
+                <li><strong>PAR-07:</strong> Matriz de precios por Tier (Tier 1: 200, Tier 2: 500, Tier 3: 1.000, Tier 4: 2.000, Tier 5: 4.000).</li>
+                <li><strong>PAR-12:</strong> Límite de vidas máximas por estudiante (3 vidas).</li>
+              </ul>
+            </li>
+            <li>Almacena estos valores en una estructura en memoria de alta velocidad (<code>ConcurrentHashMap</code>) para atender compras con latencia sub-milisegundo.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <div class="step-db-badge">SELECT param_key, param_value FROM market_parameters;</div>
+        `,
+        jsonPayload: {
+          "loadedParameters": {
+            "PAR-06": { "name": "LIFE_POTION_PRICE", "value": 300 },
+            "PAR-07": { "name": "TIER_PRICES", "T1": 200, "T2": 500, "T3": 1000, "T4": 2000, "T5": 4000 },
+            "PAR-12": { "name": "MAX_LIVES_LIMIT", "value": 3 }
+          },
+          "status": "CACHE_INITIALIZED"
+        },
+        errorHandling: `
+          Si no hay conexión inicial a la base de datos de parámetros, se aplican los valores estáticos definidos por especificación (application.yml).
+        `
+      },
+
+      'BACKOFFICE_2': {
+        flowKey: 'BACKOFFICE',
+        stepNum: 2,
+        totalSteps: 4,
+        title: 'Ajuste de Parámetros Económicos en Panel Web',
+        subtitle: 'Administrador / Docente → Panel Web Backoffice (Tema 12)',
+        sender: 'Administrador / Docente',
+        receiver: 'Microservicio Backoffice (Tema 12)',
+        channel: 'UI Web Administrativa / REST API Privada',
+        type: 'Gestión de Configuración Global',
+        description: `
+          <p>Un administrador de la plataforma o docente responsable decide modificar la economía:</p>
+          <ul>
+            <li>Ingresa al panel web de Backoffice (Tema 12).</li>
+            <li>Modifica, por ejemplo, el precio de los ítems de Tier 3 aumentando de 1.000 a 1.200 monedas, o habilita una semana de bonificación especial.</li>
+            <li>Backoffice persiste la nueva regla en su base de datos de administración.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Actualización en la base de datos de Backoffice (Tema 12).</p>
+        `,
+        jsonPayload: {
+          "adminAction": "UPDATE_PARAMETER",
+          "targetParameter": "PAR-07",
+          "category": "TIER_PRICES",
+          "newValues": {
+            "TIER_3": 1200
+          },
+          "updatedBy": "admin-system"
+        },
+        errorHandling: `
+          Backoffice valida que los precios sean positivos y coherentes con la escala de Tiers antes de aceptar el cambio.
+        `
+      },
+
+      'BACKOFFICE_3': {
+        flowKey: 'BACKOFFICE',
+        stepNum: 3,
+        totalSteps: 4,
+        title: 'Emisión: PARAMETRO_ACTUALIZADO en Kafka',
+        subtitle: 'Backoffice (Tema 12) → Bus Central Kafka (backoffice.parametros)',
+        sender: 'Microservicio Backoffice (Tema 12)',
+        receiver: 'Bus Kafka (Tópico: backoffice.parametros)',
+        channel: 'backoffice.parametros',
+        type: 'Asincrónica (Hecho Consumado en Kafka)',
+        description: `
+          <p>Backoffice notifica inmediatamente a todos los microservicios del sistema:</p>
+          <ul>
+            <li>Publica el evento <code>PARAMETRO_ACTUALIZADO</code> en el tópico <code>backoffice.parametros</code>.</li>
+            <li>Incluye la clave del parámetro modificado, los valores anteriores y los valores nuevos.</li>
+            <li>Todos los servicios que dependan de este valor (Mercado, Banco, Cursos) reciben el evento a la par.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Asiento de auditoría administrativa en Backoffice.</p>
+        `,
+        jsonPayload: {
+          "eventId": "a8f34bc1-9124-4f9e-a89c-5c8e419b8823",
+          "eventType": "PARAMETRO_ACTUALIZADO",
+          "timestamp": "2026-09-09T17:00:00Z",
+          "producer": "tema-12-backoffice",
+          "payload": {
+            "parameterKey": "PAR-07",
+            "category": "TIER_PRICES",
+            "values": {
+              "TIER_1": 200,
+              "TIER_2": 500,
+              "TIER_3": 1200,
+              "TIER_4": 2000,
+              "TIER_5": 4000
+            },
+            "updatedBy": "admin-system",
+            "effectiveDate": "2026-09-09T17:00:00Z"
+          }
+        },
+        errorHandling: `
+          La publicación asincrónica garantiza que si algún servicio está momentáneamente reiniciando, leerá el nuevo offset al arrancar.
+        `
+      },
+
+      'BACKOFFICE_4': {
+        flowKey: 'BACKOFFICE',
+        stepNum: 4,
+        totalSteps: 4,
+        title: 'Hot-Reload Dinámico en Memoria sin Downtime',
+        subtitle: 'Kafka (backoffice.parametros) → Mercado & Inventario (Tema 09)',
+        sender: 'Bus Kafka (backoffice.parametros)',
+        receiver: 'Mercado & Inventario (Tema 09)',
+        channel: 'Kafka Listener (groupId = "mercado-group")',
+        type: 'Hot-Reload Reactivo en Memoria',
+        description: `
+          <p>El listener de Mercado recibe el evento de configuración:</p>
+          <ul>
+            <li><strong>Recarga en Caliente (Hot Reload):</strong> Actualiza su <code>ConcurrentHashMap</code> en memoria de inmediato. Las próximas compras que se coticen en el catálogo utilizarán los nuevos precios (ej: Tier 3 a 1.200 mon) <strong>sin requerir ningún reinicio del pod ni caída de servicio</strong>.</li>
+            <li><strong>Auditoría Inmutable:</strong> Graba un registro en <code>market_audit_log</code> documentando la actualización del precio.</li>
+          </ul>
+        `,
+        dbEffects: `
+          <p>Registro de actualización de parámetro en Mercado:</p>
+          <div class="step-db-badge">INSERT INTO market_audit_log (event_type, action, result, timestamp) VALUES ('PARAMETER_SYNCED', 'HOT_RELOAD_PAR_07', 'SUCCESS_NEW_TIER3_PRICE_1200', NOW());</div>
+        `,
+        jsonPayload: {
+          "cacheUpdate": {
+            "status": "HOT_RELOAD_SUCCESS",
+            "parameterKey": "PAR-07",
+            "updatedFields": ["TIER_3 = 1200"],
+            "downtimeSeconds": 0
+          }
+        },
+        errorHandling: `
+          Si el evento contiene una clave desconocida o malformada, Mercado la ignora, emite un log de advertencia y mantiene los valores vigentes sin fallar.
+        `
+      }
+    };
+
+    /* ========================================================================= */
+    /* CONTROLADOR DE LA INTERFAZ DE USUARIO Y MODAL DE PASOS                   */
+    /* ========================================================================= */
+    let currentStepKey = null;
+    const flowStepKeysMap = {
+      'BANCO': ['BANCO_1', 'BANCO_2', 'BANCO_3', 'BANCO_4', 'BANCO_5', 'BANCO_6', 'BANCO_FAIL', 'BANCO_COMP'],
+      'DESAFIOS': ['DESAFIO_1', 'DESAFIO_2', 'DESAFIO_3', 'DESAFIO_4', 'DESAFIO_5'],
+      'USUARIOS': ['USUARIOS_1', 'USUARIOS_2', 'USUARIOS_3', 'USUARIOS_4'],
+      'CURSOS': ['CURSOS_1', 'CURSOS_2', 'CURSOS_3', 'CURSOS_4'],
+      'BACKOFFICE': ['BACKOFFICE_1', 'BACKOFFICE_2', 'BACKOFFICE_3', 'BACKOFFICE_4']
+    };
+
+    function openStepDetailModal(stepKey) {
+      const step = FLOW_STEPS_DATA[stepKey];
+      if (!step) return;
+
+      currentStepKey = stepKey;
+
+      document.getElementById('modalStepTitle').innerText = 'Paso ' + step.stepNum + ': ' + step.title;
+      document.getElementById('modalStepSubtitle').innerText = step.subtitle;
+      document.getElementById('modalMetaSender').innerText = step.sender;
+      document.getElementById('modalMetaReceiver').innerText = step.receiver;
+      document.getElementById('modalMetaChannel').innerText = step.channel;
+      document.getElementById('modalMetaType').innerText = step.type;
+
+      document.getElementById('modalStepDescription').innerHTML = step.description;
+      document.getElementById('modalStepDbEffects').innerHTML = step.dbEffects;
+      document.getElementById('modalStepErrorText').innerHTML = step.errorHandling;
+
+      document.getElementById('modalStepJsonCode').innerHTML = syntaxHighlightJson(step.jsonPayload);
+
+      // Botones de navegación
+      const flowKeys = flowStepKeysMap[step.flowKey] || [];
+      const currentIndex = flowKeys.indexOf(stepKey);
+      document.getElementById('modalStepCounter').innerText = 'Paso ' + (currentIndex + 1) + ' de ' + flowKeys.length;
+      document.getElementById('btnPrevStep').disabled = (currentIndex <= 0);
+      document.getElementById('btnNextStep').disabled = (currentIndex >= flowKeys.length - 1);
+
+      document.getElementById('stepDetailModal').classList.add('open');
+    }
+
+    function closeStepDetailModal() {
+      document.getElementById('stepDetailModal').classList.remove('open');
+    }
+
+    function handleModalOverlayClick(e) {
+      if (e.target.id === 'stepDetailModal') {
+        closeStepDetailModal();
+      }
+    }
+
+    function navigateStep(offset) {
+      if (!currentStepKey) return;
+      const step = FLOW_STEPS_DATA[currentStepKey];
+      if (!step) return;
+
+      const flowKeys = flowStepKeysMap[step.flowKey] || [];
+      const currentIndex = flowKeys.indexOf(currentStepKey);
+      const targetIndex = currentIndex + offset;
+
+      if (targetIndex >= 0 && targetIndex < flowKeys.length) {
+        openStepDetailModal(flowKeys[targetIndex]);
+      }
+    }
+
+    // Navegación por teclado
+    window.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('stepDetailModal');
+      if (modal && modal.classList.contains('open')) {
+        if (e.key === 'Escape') closeStepDetailModal();
+        if (e.key === 'ArrowLeft') navigateStep(-1);
+        if (e.key === 'ArrowRight') navigateStep(1);
+      }
+    });
+
+    function syntaxHighlightJson(json) {
+      if (typeof json !== 'string') {
+        json = JSON.stringify(json, null, 2);
+      }
+      json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+        let cls = 'json-num';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'json-key';
+          } else {
+            cls = 'json-str';
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'json-bool';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return '<span class="' + cls + '">' + match + '</span>';
+      });
+    }
+
+    function copyModalStepJson(btn) {
+      const code = document.getElementById('modalStepJsonCode').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span>¡Copiado!</span>';
+        setTimeout(() => { btn.innerHTML = orig; }, 1800);
+      });
+    }
+
+    function switchTab(flowKey, btnEl) {
+      document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+      btnEl.classList.add('active');
+
+      document.querySelectorAll('.flow-panel-view').forEach(v => v.classList.remove('active'));
+      const target = document.getElementById('view' + flowKey);
+      if (target) target.classList.add('active');
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+
+      const icon = document.getElementById('themeIcon');
+      if (next === 'light') {
+        icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+      } else {
+        icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+      }
+    }
+
+    function copyCode(elementId, btn) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      
+      const text = el.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = '<span>¡Copiado!</span>';
+        setTimeout(() => {
+          btn.innerHTML = origHtml;
+        }, 1800);
+      });
+    }
+  </script>
+</body>
+</html>

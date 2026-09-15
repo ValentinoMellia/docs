@@ -1,0 +1,339 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Evaluación de ítems · Mercado (Tema 09)</title>
+<style>
+:root{--bg:#131722;--panel:#171c29;--edge:#242b3b;--ink:#e7ebf3;--dim:#8b93a7;--faint:#5d667c;
+      --ok:#2fd071;--warn:#f5a524;--bad:#f2517e;--acc:#38a3f1;--bus:#a06bf0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Segoe UI",system-ui,sans-serif;
+     font-size:15px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding:30px 20px 70px}
+h1{font-size:22px;margin:0 0 5px;font-weight:650}
+.lead{color:var(--dim);font-size:13.5px;margin:0 0 18px;max-width:76ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px solid var(--edge);
+     border-bottom:1px solid var(--edge);padding:12px 0;margin-bottom:16px}
+select,input{background:var(--panel);border:1px solid var(--edge);color:var(--ink);font:inherit;
+     font-size:12.5px;padding:6px 9px;border-radius:6px}
+input{min-width:170px}
+.count{margin-left:auto;font-size:12.5px;color:var(--dim)}
+.count b{color:var(--ink)}
+.cols{display:grid;grid-template-columns:340px 1fr;gap:18px;align-items:start}
+@media(max-width:900px){.cols{grid-template-columns:1fr}}
+.list{border:1px solid var(--edge);border-radius:10px;overflow:hidden;max-height:76vh;overflow-y:auto}
+.row{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border-bottom:1px solid #1e2534;
+     cursor:pointer;font-size:12.7px}
+.row:hover{background:#1b2130}
+.row[aria-current="true"]{background:#1f2839}
+.row .n{color:var(--faint);font-size:11px;min-width:20px;padding-top:2px}
+.row .nm{flex:1;min-width:0}
+.row .nm b{display:block;font-weight:600}
+.row .nm span{color:var(--dim);font-size:11px}
+.pill{font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;
+      background:#243046;color:var(--dim)}
+.pill.ok{background:#0f3d28;color:var(--ok)} .pill.warn{background:#43310f;color:var(--warn)}
+.pill.bad{background:#451325;color:var(--bad)}
+.dec{width:5px;border-radius:3px;align-self:stretch;background:transparent}
+.dec.in{background:var(--ok)} .dec.f2{background:var(--warn)} .dec.out{background:var(--bad)} .dec.rf{background:var(--acc)}
+.row .cm{color:var(--acc);font-size:11px;display:block;margin-top:2px;font-style:italic}
+.det{border:1px solid var(--edge);border-radius:10px;background:var(--panel);padding:20px 22px}
+.det h2{margin:0 0 3px;font-size:19px}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0 14px}
+.desc{color:var(--dim);font-size:13px;margin:0 0 16px}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);
+   margin:20px 0 8px;font-weight:600}
+.ep{border:1px solid var(--edge);border-radius:8px;padding:11px 13px;margin-bottom:10px;background:#141a26}
+.ep .h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.m{font-family:ui-monospace,monospace;font-size:10px;font-weight:700;padding:3px 7px;border-radius:4px;
+   background:#1d2536;color:var(--acc)}
+.m.POST{color:var(--ok)} .m.BUS{color:var(--bus)}
+.r{font-family:ui-monospace,monospace;font-size:11.4px}
+.ep p{margin:0 0 8px;font-size:12.4px;color:var(--dim)}
+pre{margin:0;background:#10151f;border:1px solid var(--edge);border-radius:6px;padding:10px 12px;
+    overflow-x:auto;font-family:ui-monospace,monospace;font-size:11.1px;line-height:1.6;color:#cfe0f5}
+.box{border-left:3px solid var(--edge);padding:2px 0 2px 12px;margin:0 0 12px;font-size:12.7px;color:var(--dim)}
+.box.why{border-color:var(--acc)} .box.cost{border-color:var(--warn)} .box.risk{border-color:var(--bad)}
+.box b{color:var(--ink)}
+.btns{display:flex;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid var(--edge);flex-wrap:wrap}
+button{background:#1d2536;border:1px solid var(--edge);color:var(--ink);font:inherit;font-size:12.5px;
+       padding:7px 14px;border-radius:6px;cursor:pointer}
+button:hover{border-color:#46536f}
+button.on-in{background:#0f3d28;border-color:var(--ok);color:#8ef0bb}
+button.on-f2{background:#43310f;border-color:var(--warn);color:#f7cf90}
+button.on-out{background:#451325;border-color:var(--bad);color:#f7a3bd}
+button.on-rf{background:#12304a;border-color:var(--acc);color:#bfe0ff}
+textarea{width:100%;background:#10151f;border:1px solid var(--edge);color:var(--ink);font:inherit;
+  font-size:12.6px;padding:9px 11px;border-radius:7px;resize:vertical;min-height:70px;margin-top:6px}
+textarea:focus{outline:none;border-color:var(--acc)}
+button.ghost{margin-left:auto}
+button.prim{background:#123047;border-color:#2b5f89;color:#bfe0ff}
+.note{background:#1d2130;border-left:3px solid var(--warn);border-radius:0 7px 7px 0;
+      padding:10px 13px;font-size:12.5px;color:#d9c9a6;margin:0 0 14px}
+footer{margin-top:26px;color:var(--faint);font-size:11.5px;border-top:1px solid var(--edge);padding-top:12px}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--edge);border-radius:10px;
+       max-width:660px;width:92%;padding:20px}
+dialog::backdrop{background:#0009}
+dialog pre{white-space:pre-wrap;max-height:50vh;overflow-y:auto}
+</style></head><body><div class="wrap">
+
+<h1>Evaluación de ítems: qué necesita cada uno para existir</h1>
+<p class="lead">Los 60 ítems del catálogo, agrupados por <b>patrón de integración</b>. El contrato no depende del ítem sino del patrón: dos escudos distintos usan exactamente los mismos endpoints. Marcá cada ítem como incluir, posponer o sacar, y descargá el resultado al final.</p>
+
+<div class="bar">
+  <select id="fp"><option value="">Todos los patrones</option></select>
+  <select id="ft"><option value="">Todos los tiers</option></select>
+  <select id="fo"><option value="">Todos los equipos</option></select>
+  <input id="fq" type="search" placeholder="Buscar ítem…">
+  <button class="prim" onclick="resumen()">Resumen y descarga</button>
+  <span class="count" id="cnt"></span>
+</div>
+
+<div class="cols">
+  <div class="list" id="list"></div>
+  <div class="det" id="det"></div>
+</div>
+
+<footer>Las decisiones viven en esta pestaña: si recargás, se pierden. Descargá el resultado antes de cerrar.</footer>
+</div>
+
+<dialog id="dlg"><h2 style="margin:0 0 10px;font-size:17px">Resumen de decisiones</h2>
+<pre id="dlgtxt"></pre>
+<div class="btns">
+  <button class="prim" onclick="bajar('html')">Descargar informe .html</button>
+  <button onclick="bajar('csv')">Descargar .csv</button>
+  <button onclick="copiar()">Copiar</button>
+  <button onclick="document.getElementById('dlg').close()">Cerrar</button>
+</div></dialog>
+
+<script>
+const D = {"items": [{"n": 1, "name": "Escudo de Aprendiz", "tier": "Común", "mode": "Equipable", "price": "200", "desc": "Protección fundamental de una sola carga. Diseñado para cubrir al alumno de un typo o un error puntual en la primera entrega de un ejercicio práctico. Absorción: 1 fallo puntual de compilación o test. Al activarse: Salva 1 vida intacta y pasa a estado CONSUMIDO .", "obtain": "Tienda Directa (Ilimitada)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 2, "name": "Pergamino de la Pista", "tier": "Común", "mode": "Consumo en Ejercicio", "price": "200", "desc": "Desbloquea una pista conceptual o snippet introductorio redactado por la cátedra sin penalizar los puntos de XP que otorga el desafío. Efecto: Revela pista de Nivel 1 sin costo de puntuación. Propósito: Evita la frustración por bloqueo cognitivo inicial.", "obtain": "Tienda Directa", "verb": "REVEAL_HINT", "owner": "Ejercicios (05/07)", "pat": "P6", "note": ""}, {"n": 3, "name": "Descarte 50/50", "tier": "Común", "mode": "Consumo en Quiz", "price": "200", "desc": "Herramienta táctica exclusiva para cuestionarios de opción múltiple. Elimina de pantalla dos opciones incorrectas de manera automática. Efecto: Reduce de 4 a 2 las opciones en 1 pregunta de quiz. Límite: 1 uso por intento de cuestionario.", "obtain": "Tienda Directa", "verb": "QUIZ_REMOVE_OPTIONS", "owner": "sin dueño", "pat": "P6", "note": "Ningún tema de la plataforma tiene el servicio de quiz asignado."}, {"n": 4, "name": "Congelador de Racha", "tier": "Común", "mode": "Pasivo en Mochila", "price": "200", "desc": "Si por razones laborales o personales el alumno no puede ingresar a la plataforma en todo el día, se consume para salvar su racha de días activos. Efecto: Salva 1 día de inactividad a las 23:59. Límite: Máximo 2 unidades en inventario.", "obtain": "Tienda Directa", "verb": "PRESERVE_STREAK", "owner": "Roadmap (10)", "pat": "P2", "note": ""}, {"n": 5, "name": "Infusión de Menta", "tier": "Común", "mode": "Consumo Inmediato", "price": "200", "desc": "Estimulante digestivo suave que reduce la espera tras haber perdido vidas en un desafío anterior. Efecto: Reduce en 60 minutos el contador de recarga de la próxima vida pasiva. Uso: Instantáneo desde la mochila.", "obtain": "Tienda Directa", "verb": "SPEED_UP_LIFE_REGEN", "owner": "Roadmap (10)", "pat": "P3", "note": ""}, {"n": 6, "name": "Parche de Sintaxis", "tier": "Común", "mode": "Consumo en Desafío", "price": "200", "desc": "Cubre exclusivamente errores de compilación o sintaxis pura (punto y coma, import no resuelto, llave desbalanceada). Condición: Perdona 1 intento fallido por error de sintaxis. Restricción: No cubre fallos lógicos en assertions de test.", "obtain": "Tienda Directa", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 7, "name": "Boceto de Pseudocódigo", "tier": "Común", "mode": "Consumo en Ejercicio", "price": "200", "desc": "Proporciona el esqueleto boilerplate con firmas de funciones y comentarios paso a paso para no comenzar con la pantalla en blanco. Efecto: Carga plantilla estructurada en el editor web. Pedagogía: Enseña división de problemas en subtareas.", "obtain": "Tienda Directa", "verb": "REVEAL_HINT", "owner": "Ejercicios (05/07)", "pat": "P6", "note": ""}, {"n": 8, "name": "Tónico de Concentración", "tier": "Común", "mode": "Consumo Directo", "price": "200", "desc": "Brebaje pedagógico ligero que potencia la absorción de conceptos en sesiones cortas de práctica. Efecto: +15% de XP en los siguientes 2 ejercicios aprobados. Duración: Válido durante 2 horas desde su activación.", "obtain": "Tienda Directa", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P4", "note": ""}, {"n": 9, "name": "Amuleto de Cobre", "tier": "Común", "mode": "Consumo Directo", "price": "200", "desc": "Talisman financiero introductorio emitido por el Banco que incentiva la perseverancia de los nuevos alumnos. Efecto: Bono de +30 a +60 monedas en el próximo ejercicio aprobado. Requisito: Aprobar sin agotar intentos.", "obtain": "Tienda Directa", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": ""}, {"n": 10, "name": "Extensión de Tiempo (+3 min)", "tier": "Común", "mode": "Consumo en Quiz", "price": "200", "desc": "Otorga un respiro crucial en quizzes contrarreloj con enunciados teóricos largos o análisis de fragmentos de código. Efecto: Suma 180 segundos adicionales al temporizador activo. Límite: 1 activación por intento de quiz.", "obtain": "Tienda Directa", "verb": "QUIZ_EXTRA_TIME", "owner": "sin dueño", "pat": "P6", "note": "Mismo problema que el Descarte: el quiz no tiene dueño."}, {"n": 11, "name": "Escudo Reforzado", "tier": "Poco Común", "mode": "Equipable", "price": "500", "desc": "Forjado con doble núcleo de absorción. Permite cometer hasta dos equivocaciones en el mismo desafío sin descontar vidas principales. Absorción: 2 errores sucesivos en el mismo ejercicio. Dinámica: Resta 1 carga en el primer fallo. Se quema en el segundo.", "obtain": "Tienda (Req. Nivel 2+ o Racha 3d)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 12, "name": "Café del Desarrollador", "tier": "Poco Común", "mode": "Consumo Directo", "price": "500", "desc": "Acelera drásticamente el metabolismo de recuperación. En lugar de 1 vida cada 4 horas, regenera 1 vida cada 25 minutos durante 2 horas. Efecto: Regeneración pasiva acelerada 9x. Tope: Se detiene al llegar al máximo de 3/3 vidas.", "obtain": "Tienda Directa", "verb": "SPEED_UP_LIFE_REGEN", "owner": "Roadmap (10)", "pat": "P3", "note": ""}, {"n": 13, "name": "Lente de Inspección", "tier": "Poco Común", "mode": "Consumo en Ejercicio", "price": "500", "desc": "En ejercicios que fallan tests unitarios ocultos (hidden test cases), este consumible revela el input recibido y el output esperado. Efecto: Imprime parámetros del primer test oculto fallido. Pedagogía: Enseña a reproducir casos de borde localmente.", "obtain": "Tienda (Nivel 2+) o Recompensa", "verb": "REVEAL_HIDDEN_TEST", "owner": "sin dueño", "pat": "P6", "note": "El verbo no tiene dueño identificado: depende de quién ejecuta los tests ocultos, Desafíos o Ejercicios."}, {"n": 14, "name": "Elixir de Sabiduría", "tier": "Poco Común", "mode": "Consumo Directo", "price": "500", "desc": "Duplica todos los puntos de experiencia (XP) obtenidos en desafíos y quizzes completados con éxito durante los siguientes 30 minutos. Efecto: Multiplicador x2 de XP por 30 min. Impacto: Acelera el desbloqueo de hitos en el leaderboard.", "obtain": "Tienda Rotativa / Racha 3 días", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P4", "note": ""}, {"n": 15, "name": "Imán de Monedas", "tier": "Poco Común", "mode": "Equipable de Riesgo", "price": "500", "desc": "Apuesta táctica para alumnos con confianza técnica: si apruebas tus próximas 3 entregas sin fallar, la recompensa de monedas se duplica en cada una. Efecto: Recompensa x2 en 3 desafíos seguidos. Riesgo: Si cometes 1 fallo, el imán se rompe de inmediato.", "obtain": "Tienda Directa", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": "Estado que vive tres entregas: el alumno puede desequiparlo, la cohorte archivarse o pasar dos semanas en el medio. Además obliga a que Desafíos nos llame en cada entrega APROBADA, que es el camino frecuente. Simplificarlo a una sola entrega elimina los tres problemas."}, {"n": 16, "name": "Escudo Git Stash", "tier": "Poco Común", "mode": "Equipable", "price": "500", "desc": "Guarda un checkpoint del código cuando los tests locales pasan. Si una modificación posterior rompe la entrega, revierte el editor y salva la vida. Efecto: Absorbe 1 fallo y restaura código al último punto seguro. Ideal: Refactorizaciones arriesgadas en medio de una entrega.", "obtain": "Tienda (Nivel 3+)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 17, "name": "Vial de Energía Extra", "tier": "Poco Común", "mode": "Consumo Inmediato", "price": "500", "desc": "Inyección de emergencia que restaura de inmediato 1 vida en la barra del alumno, evitando tener que esperar las 4 horas de cooldown pasivo. Efecto: Suma +1 vida al instante (hasta el tope de 3). Restricción: Máximo 2 compras por semana.", "obtain": "Tienda Directa (Cupo semanal)", "verb": "GRANT_LIFE", "owner": "Roadmap (10)", "pat": "P3", "note": ""}, {"n": 18, "name": "Brújula de Refactorización", "tier": "Poco Común", "mode": "Consumo en Ejercicio", "price": "500", "desc": "Asistente pedagógico de calidad de código: detecta duplicación, complejidad ciclomática excesiva o acoplamiento antes de evaluar. Efecto: Marca 3 líneas críticas a simplificar. Beneficio: Garantiza cumplir los umbrales de cobertura de test.", "obtain": "Tienda Directa", "verb": "CODE_ANALYSIS", "owner": "Desafíos (03)", "pat": "P6", "note": ""}, {"n": 19, "name": "Pase Segunda Oportunidad", "tier": "Poco Común", "mode": "Consumo Post-Quiz", "price": "500", "desc": "Si repruebas un quiz teórico por exactamente 1 pregunta, te permite responder una pregunta sustituta del banco para alcanzar el aprobado. Efecto: Habilita 1 pregunta de desempate en quiz reprobado. Condición: Aplica solo si el resultado fue 60-69% (casi aprobado).", "obtain": "Tienda Directa", "verb": "EXTRA_ATTEMPT", "owner": "Desafíos (03)", "pat": "P6", "note": "Habilita una pregunta sustituta en un quiz reprobado. Modifica el resultado de una evaluación."}, {"n": 20, "name": "Seguro Fin de Semana", "tier": "Poco Común", "mode": "Pasivo de Calendario", "price": "500", "desc": "Diseñado para estudiantes que viajan o descansan el fin de semana. Ampara sábado y domingo completos con un único consumible. Efecto: Protege la racha durante 48 horas continuas. Disponibilidad: A la venta únicamente los días viernes.", "obtain": "Tienda Directa (Solo Viernes)", "verb": "PRESERVE_STREAK", "owner": "Roadmap (10)", "pat": "P2", "note": ""}, {"n": 21, "name": "Campo Cuántico (30m)", "tier": "Raro", "mode": "Uso Inmediato", "price": "1.000", "desc": "Activa un domo de energía cronometrado. Durante 30 minutos, el estudiante puede cometer intentos ilimitados sin ninguna pérdida de vidas. Absorción: Errores ilimitados durante 30 minutos continuos. HUD: Activa temporizador regresivo visible en el editor.", "obtain": "Tienda Semanal (Máx. 1 por semana)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P4", "note": ""}, {"n": 22, "name": "Escudo de Redención", "tier": "Raro", "mode": "Equipable", "price": "1.000", "desc": "No solo absorbe el impacto de 1 error, sino que preserva la racha diaria y no penaliza la bonificación de XP por intento perfecto. Efecto: Salva 1 vida + Streak Freeze + 0% penalización de XP. Ideal: Desafíos decisivos para el podio del ranking.", "obtain": "Drop de Reto Boss / Tienda Nivel 4+", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": "Un solo ítem que dispara tres verbos en el mismo momento. La respuesta ya devuelve una lista de efectos, así que no hace falta contrato nuevo: hace falta que los dos consumidores lean la lista completa y no solo el primero."}, {"n": 23, "name": "Lupa Heurística Profunda", "tier": "Raro", "mode": "Consumo en Ejercicio", "price": "1.000", "desc": "Ejecuta análisis de edge cases avanzados. Revela la totalidad de los inputs y outputs esperados de todos los tests ocultos reprobados. Efecto: Muestra la matriz completa de test cases fallidos. Pedagogía: Enseña cobertura de testing de robustez.", "obtain": "Tienda Directa (Nivel 4+)", "verb": "REVEAL_HIDDEN_TEST", "owner": "sin dueño", "pat": "P6", "note": "Misma indefinición que el Lente, pero además revela la matriz completa: hay que decidir si eso es pedagógico o es dar la respuesta."}, {"n": 24, "name": "Escudo Baluarte TDD", "tier": "Raro", "mode": "Equipable Táctico", "price": "1.000", "desc": "Construido para metodologías Test-Driven Development: soporta hasta 3 fallas sucesivas en el mismo ejercicio mientras se itera el código verde. Absorción: 3 errores consecutivos en una misma sesión. Contrato: ESCUDO_CARGAS (cargas=3)", "obtain": "Tienda Directa (Nivel 3+)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 25, "name": "Elixir de Hiperexperiencia", "tier": "Raro", "mode": "Consumo Directo", "price": "1.000", "desc": "Poción de alquimia académica de alto grado que incrementa la ganancia de experiencia en un 250% en toda actividad formativa. Efecto: Multiplicador x2.5 en XP durante 45 minutos. Estrategia: Activar antes de resolver múltiples retos.", "obtain": "Tienda Rotativa / Hito de Cohorte", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P4", "note": ""}, {"n": 26, "name": "Regeneración Plena", "tier": "Raro", "mode": "Consumo Inmediato", "price": "1.000", "desc": "Elixir médico integral capaz de rellenar instantáneamente todas las vidas perdidas hasta el tope permitido (3/3 vidas). Efecto: Restaura 100% de la barra de vidas al instante. Condición: Límite de 1 unidad consumible por semana.", "obtain": "Tienda Directa (Cupo semanal)", "verb": "GRANT_LIFE", "owner": "Roadmap (10)", "pat": "P3", "note": ""}, {"n": 27, "name": "Bolsa de Rendimiento", "tier": "Raro", "mode": "Financiero Banco", "price": "1.000", "desc": "Instrumento fiduciario vinculado con la API del Banco (Tema 08). Tras aprobar 5 ejercicios consecutivos sin fallar, devuelve el costo invertido (1.000 mon) + 20% de dividendo (1.200 mon). Efecto: Reintegra 1.200 monedas tras 5 victorias limpias. Sinérgica: Premia el estudio riguroso y planificado.", "obtain": "Tienda (Integración con Banco)", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": "El reintegro lo hace el Banco, pero la condición la evalúa Desafíos y el contador lo lleva Mercado. Tres servicios para un ítem."}, {"n": 28, "name": "Orbe de Arquitectura", "tier": "Raro", "mode": "Consumo en Ejercicio", "price": "1.000", "desc": "Guía para ejercicios que exigen patrones de diseño (Factory, Strategy, Repository): renderiza el diagrama UML y contratos de interfaz esperados. Efecto: Revela estructura UML interactiva del ejercicio. Pedagogía: Modela arquitectura desacoplada y escalable.", "obtain": "Tienda de Desafíos Integradores", "verb": "REVEAL_HINT", "owner": "Ejercicios (05/07)", "pat": "P6", "note": ""}, {"n": 29, "name": "Escudo de Feedback AST", "tier": "Raro", "mode": "Equipable", "price": "1.000", "desc": "Además de salvar la vida ante un fallo, analiza el árbol sintáctico (AST) del alumno y genera un reporte comparativo con la solución canónica. Absorción: 1 fallo + reporte visual de discrepancias de código. Beneficio: Diagnóstico exacto del error en segundos.", "obtain": "Tienda (Nivel 4+)", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 30, "name": "Seguro de Racha 3 Días", "tier": "Raro", "mode": "Pasivo en Mochila", "price": "1.000", "desc": "Red de seguridad para ausencias por fuerza mayor (exámenes de otras materias, guardia laboral o enfermedad). Ampara hasta 3 días sin penalidad. Efecto: Protege hasta 3 días alternos o seguidos de ausencia. Consumo: Automático día por día según inactividad.", "obtain": "Tienda Directa", "verb": "PRESERVE_STREAK", "owner": "Roadmap (10)", "pat": "P2", "note": ""}, {"n": 31, "name": "Égida de la Torre", "tier": "Épico", "mode": "Táctico de Examen", "price": "2.000", "desc": "Barrera impenetrable diseñada para desafíos integradores o exámenes parciales de código. Absorbe hasta 3 errores o toda la sesión de examen. Absorción: Inmunidad de vidas durante toda la sesión del examen. Contrato: ESCUDO_SESION", "obtain": "Tienda Pre-Examen / Cupo limitado", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": "\"Toda la sesión del examen\" es vigencia, no cargas. Necesita que alguien defina cuándo empieza y cuándo termina una sesión de examen, y eso hoy no existe como concepto compartido."}, {"n": 32, "name": "Borrón y Cuenta Nueva", "tier": "Épico", "mode": "Uso en Historial", "price": "2.000", "desc": "Permite reiniciar los intentos y tasa de fallos registrados en un ejercicio práctico específico, restaurando la calificación al 100% de efectividad. Efecto: Limpia historial de fallos en 1 ejercicio ya aprobado. Restricción: No aplicable a exámenes finales formales.", "obtain": "Tienda de Cátedra / Fin de Unidad", "verb": "RESET_ATTEMPTS", "owner": "Desafíos (03)", "pat": "P8", "note": "Reescribe el historial de fallos, y RF-RNK-05 usa ese historial para decidir quién promociona. No es balance: es reglamento."}, {"n": 33, "name": "Prórroga de Entrega (+12h)", "tier": "Épico", "mode": "Administrativo", "price": "2.000", "desc": "Concede una ventana de gracia de 12 horas en el deadline de un Trabajo Práctico Obligatorio sin sufrir descuento por entrega tardía. Efecto: +12 horas en el reloj oficial de la entrega en Roadmap. Integración: Valida estado de inscripción en curso-cohorte.", "obtain": "Tienda de Cátedra (1 por cuatrimestre)", "verb": "DEADLINE_EXTENSION", "owner": "sin dueño", "pat": "P8", "note": "Mueve una fecha de entrega oficial. Ningún servicio tiene hoy la capacidad de hacerlo."}, {"n": 34, "name": "Baluarte Titánico (5 Cargas)", "tier": "Épico", "mode": "Equipable Pesado", "price": "2.000", "desc": "Armadura pesada de 5 núcleos de absorción, capaz de proteger al estudiante durante todo un sprint de entregas complejas sin consumir vidas. Absorción: 5 fallos de test a lo largo de una semana académica. Ventaja: Permite iterar sin miedo en múltiples ejercicios.", "obtain": "Tienda Épica / Recompensa Top 5", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 35, "name": "Tomo del Doble Titán (x3)", "tier": "Épico", "mode": "Consumo Directo", "price": "2.000", "desc": "Artefacto de progresión que triplica los puntos de experiencia y el ranking académico al entregar un trabajo práctico integrador aprobado. Efecto: Multiplicador x3 en la nota de XP del proyecto evaluado. Impacto: Ascenso fulgurante en la tabla de posiciones.", "obtain": "Tienda de Fin de Unidad", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P4", "note": ""}, {"n": 36, "name": "Seguro CI/CD de Pipeline", "tier": "Épico", "mode": "Equipable de Build", "price": "2.000", "desc": "En entregas evaluadas por pipelines automatizados, protege ante fallos de runner, timeouts de contenedor o dependencias externas no resueltas. Efecto: Otorga re-ejecución limpia del pipeline sin costo de vida. Alcance: Ejercicios con integración continua obligatoria.", "obtain": "Tienda de DevOps & Backend", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": "El efecto es re-ejecutar el pipeline, no evitar una pérdida de vida. Es una acción sobre la infraestructura de Desafíos, más cerca de EXTRA_ATTEMPT que de ABSORB_FAILURE."}, {"n": 37, "name": "Monóculo de Auditoría", "tier": "Épico", "mode": "Consumo en Ejercicio", "price": "2.000", "desc": "Inspecciona y normaliza el código antes del push de evaluación final: corrige indentación, imports no usados y nomenclaturas bajo estándares Java/Spring. Efecto: Normaliza el código al estándar oficial de la cátedra. Asegura: 100% de puntaje en la rúbrica de legibilidad y estilo.", "obtain": "Tienda Directa", "verb": "CODE_ANALYSIS", "owner": "Desafíos (03)", "pat": "P6", "note": ""}, {"n": 38, "name": "Pacto Cashback Bancario", "tier": "Épico", "mode": "Financiero Banco", "price": "2.000", "desc": "Contrato emitido por el Banco (Tema 08) para grandes consumidores: reintegra en tu cuenta bancaria el 25% de todo lo que gastes en la tienda. Efecto: Reembolso automático del 25% durante 48 horas. Depósito: Acreditación directa en el saldo de cuenta corriente.", "obtain": "Tienda (Alianza con Banco Tema 08)", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": ""}, {"n": 39, "name": "Corazón de Reserva (+1)", "tier": "Épico", "mode": "Buff de Duración", "price": "2.000", "desc": "Expande temporalmente el límite biológico del contenedor de vidas del alumno, elevando el máximo de 3 a 4 vidas durante 7 días continuos. Efecto: Capacidad máxima = 4 vidas por 1 semana. Ventaja: Mayor amortiguación ante semanas de alta exigencia.", "obtain": "Tienda Épica (Máx. 1 activo)", "verb": "RAISE_LIFE_CAP", "owner": "Roadmap (10)", "pat": "P4", "note": "Cambia el tope de vidas, que es un parámetro global (PAR-12). Un ítem comprable modificando un parámetro de plataforma por siete días."}, {"n": 40, "name": "Oráculo de Simulacro", "tier": "Épico", "mode": "Preparación Examen", "price": "2.000", "desc": "Genera una instancia de examen mock idéntica en estructura, rúbrica y tiempo al parcial oficial, permitiendo autoevaluación sin arriesgar vidas reales. Efecto: Desbloquea simulación completa con feedback docente. Cero Riesgo: No descuenta vidas en la cursada oficial.", "obtain": "Tienda Especial Pre-Examen", "verb": "MOCK_EXAM", "owner": "Desafíos (03)", "pat": "P6", "note": "Generar un examen de práctica completo es una funcionalidad entera, no un efecto."}, {"n": 41, "name": "Poción Modo Dios (60m)", "tier": "Legendario", "mode": "Consumo Directo", "price": "4.000", "desc": "Concede un halo de inmortalidad durante 60 minutos. No importa cuántos desafíos o cuestionarios repruebe: su contador de vidas se mantiene congelado al 100%. Efecto: Vidas infinitas durante 1 hora completa de reloj. Ideal: Maratones de fin de semana o resolución de laboratorios.", "obtain": "Tienda Legendaria / Hito cohorte", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P4", "note": "Inmunidad total durante 60 minutos. Anula el sumidero de vidas que sostiene la economía y afecta indirectamente RF-RNK-05."}, {"n": 42, "name": "Égida de la Corona", "tier": "Legendario", "mode": "Equipable de Módulo", "price": "4.000", "desc": "Blindaje definitivo para la regularidad: si el estudiante desaprueba la instancia evaluativa de una unidad, le concede un reintento limpio sin perder promoción. Efecto: Anula la reprobación del módulo en Roadmap. Condición: Debe haberse cursado con más del 80% de asistencia.", "obtain": "Tienda de Élite (Req. Racha 15d)", "verb": "EXTRA_ATTEMPT", "owner": "Desafíos (03)", "pat": "P8", "note": "Anula la reprobación de una unidad. Es el ítem con mayor impacto académico del catálogo."}, {"n": 43, "name": "Pergamino Mentor Mayor", "tier": "Legendario", "mode": "Consumo Directo", "price": "4.000", "desc": "Desbloquea soporte ilimitado del Agente de IA Pedagógica de Cátedra sin cuota de prompts durante 24 horas continuas de estudio. Efecto: Consultas ilimitadas de debugging socrático por 24h. Pedagogía: Respuestas orientadoras con feedback en tiempo real.", "obtain": "Tienda Legendaria", "verb": "AI_TUTOR_ACCESS", "owner": "no existe", "pat": "P9", "note": "No existe un agente de IA pedagógica en los doce temas de la plataforma."}, {"n": 44, "name": "Resurrección del Fénix", "tier": "Legendario", "mode": "Pasivo de Emergencia", "price": "4.000", "desc": "Póliza de salvataje crítico en inventario. Si el alumno pierde su última vida y llega a 0 (bloqueo de cursada), el Fénix se activa de inmediato. Efecto: Restaura 3 vidas al instante y salva la racha. Consumo: Automático al recibir el golpe letal en backend.", "obtain": "Tienda Legendaria (1 por cuatrimestre)", "verb": "GRANT_LIFE", "owner": "Roadmap (10)", "pat": "P2", "note": "Se dispara solo al llegar a 0 vidas. Roadmap tiene que consultarnos en el momento exacto en que el contador toca cero, que es un momento de decisión distinto del de perder una vida."}, {"n": 45, "name": "Elixir Supremo de Midas", "tier": "Legendario", "mode": "Consumo en Examen", "price": "4.000", "desc": "Premio superlativo para alumnos de rendimiento sobresaliente: si apruebas el Examen Parcial con nota 10/10, multiplica por 4 el XP y por 2 las monedas. Efecto: Multiplicador x4 en XP + x2 en Monedas del parcial. Requisito: Calificación perfecta sin reintentos.", "obtain": "Recompensa Torneo / Tienda Legendaria", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P4", "note": "Requiere conocer la nota del parcial (10/10) para activarse. Eso implica que Desafíos nos consulte con el resultado de una instancia evaluativa formal."}, {"n": 46, "name": "Cofre Fiduciario de Cohorte", "tier": "Legendario", "mode": "Finanzas Banco", "price": "4.000", "desc": "Contrato de alto rendimiento con el Banco (Tema 08): si mantienes 14 días consecutivos completando entregas sin perder ni una vida, recibes un retorno masivo. Retorno: Reembolsa las 4.000 monedas + 1.000 de dividendo neto (5.000 total). Penalidad: Si caes a 0 vidas en el periodo, el fondo se congela.", "obtain": "Tienda Legendaria (Alianza Banco)", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": "Catorce días de condición continua. Es el ítem con el estado más largo de todo el catálogo."}, {"n": 47, "name": "Escudo Crono-Cuántico (2h)", "tier": "Legendario", "mode": "Uso Inmediato", "price": "4.000", "desc": "Protección de larga duración para hackathones internas o fines de semana de estudio intensivo: 120 minutos continuos de intentos sin pérdida de vidas. Efecto: Inmunidad de vidas durante 2 horas completas. Libertad: Permite probar y romper código sin miedo al bloqueo.", "obtain": "Tienda Legendaria", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P4", "note": ""}, {"n": 48, "name": "Llave Maestra de Módulos", "tier": "Legendario", "mode": "Ruta Curricular", "price": "4.000", "desc": "Libertad académica para alumnos destacados: permite desbloquear un módulo avanzado sin haber completado aún los ejercicios optativos del módulo actual. Efecto: Salto de prerrequisitos opcionales en el árbol de Roadmap. Restricción: Requiere haber aprobado los parciales obligatorios.", "obtain": "Tienda de Élite (Req. Promedio 8.5+)", "verb": "UNLOCK_MODULE", "owner": "Roadmap (10)", "pat": "P8", "note": "Saltea prerrequisitos de la ruta curricular. Decisión pedagógica, no de juego."}, {"n": 49, "name": "Insignia del Decano", "tier": "Legendario", "mode": "Aura Cooperativa", "price": "4.000", "desc": "Liderazgo y compañerismo de cohorte: durante 7 días, cada ejercicio que el portador aprueba deposita un 15% de monedas extra en las cuentas de su grupo de TP. Efecto: Bono solidario del 15% de monedas para los 4 compañeros. Impacto: Fortalece la economía de todo el equipo de integración.", "obtain": "Tienda Legendaria", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P7", "note": "Deposita monedas en cuentas de terceros. Además de romper el modelo, es emisión de circulante hacia cuentas que no compraron nada."}, {"n": 50, "name": "Póliza de Examen Final", "tier": "Legendario", "mode": "Póliza Académica", "price": "4.000", "desc": "La red de contención de mayor categoría: si repruebas el examen final por menos de 10 puntos, te habilita una instancia de coloquio oral para defender tu código. Efecto: Desbloquea coloquio de defensa técnica ante el docente. Límite: 1 sola póliza por alumno en todo el cuatrimestre.", "obtain": "Tienda de Fin de Cursada", "verb": "EXTRA_ATTEMPT", "owner": "Desafíos (03)", "pat": "P8", "note": "Habilita un coloquio de defensa. Es una decisión del profesor, no del sistema."}, {"n": 51, "name": "Égida del Arconte", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Escudo relicario de doble frecuencia. Protege las vidas del estudiante a lo largo de DOS Exámenes Parciales oficiales separados en el cuatrimestre. Absorción: Hasta 4 fallos de test en el Parcial 1 Y hasta 4 en el Parcial 2. ✨ Mejor que legendario: Cubre dos fechas evaluativas mayores. 🛡️ No está roto: Si el código no compila o no resuelve los tests mínimos, el alumno no aprueba; solo salva sus vidas para la cursada regular.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}, {"n": 52, "name": "Cronorrelator Cuántico (24h)", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Artefacto de cátedra que flexibiliza los rigores del cronograma: extiende 24 horas exactas la fecha límite de entrega de un TP Obligatorio para el ganador y su dupla. Efecto: Prórroga oficial de 24 horas para ambos integrantes de la pareja. ✨ Mejor que legendario: Beneficia y salva a la dupla completa. 🛡️ No está roto: Notifica a los docentes y no aplica para el cierre final de actas de fin de cuatrimestre.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "DEADLINE_EXTENSION", "owner": "sin dueño", "pat": "P7", "note": "Mueve la fecha para dos personas: administrativo y sobre terceros a la vez."}, {"n": 53, "name": "Orbe de la Cohorte", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Dispositivo táctico cooperativo: el ganador lo equipa y protege de pérdida de vidas a los 4 integrantes de su grupo de TP durante la semana del sprint de integración. Efecto: 1 carga de absorción de fallo por cada compañero de grupo. ✨ Mejor que legendario: Blindaje colectivo de equipo. 🛡️ No está roto: Cada integrante tiene una sola carga; una vez consumida, no se regenera. No cubre entregas vacías.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P7", "note": "Un alumno equipa y el efecto protege a otros cuatro. Requiere que la consulta de Desafíos por el alumno B devuelva un ítem que está en el inventario del alumno A. Eso rompe el modelo de inventario personal."}, {"n": 54, "name": "Matriz de Resonancia", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Contrato fiduciario de alto nivel enlazado con la tesorería del Banco (Tema 08): genera un dividendo del 50% sobre el saldo bancario promedio durante 14 días. Efecto: 50% de dividendo bancario acumulado tras 2 semanas. ✨ Mejor que legendario: Multiplicación fiduciaria de ahorro. 🛡️ No está roto: Tope máximo fijado en 4.000 monedas de ganancia para prevenir hiperinflación y desbalance macroeconómico.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "COIN_MULTIPLIER", "owner": "Banco (08)", "pat": "P5", "note": "Un dividendo sobre el saldo promedio del alumno. Requiere que Banco calcule un promedio histórico, que hoy no está en su contrato."}, {"n": 55, "name": "Prisma del Catedrático", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "El activo pedagógico más valioso: garantiza una revisión manual en video o feedback exhaustivo línea por línea realizado directamente por el profesor titular en 48h. Efecto: Devolución técnica personalizada de arquitectura y código. ✨ Mejor que legendario: Aprendizaje experto directo de la cátedra. 🛡️ No está roto: Es formativo: fomenta buenas prácticas y Clean Code sin alterar calificaciones de forma arbitraria.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "HUMAN_REVIEW", "owner": "no es software", "pat": "P9", "note": "El efecto es que una persona revise código a mano. No hay contrato de software posible."}, {"n": 56, "name": "Reliquia de Persistencia (30d)", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "La mayor garantía contra imprevistos durante el cuatrimestre universitario: ampara hasta 6 días de inactividad no consecutivos a lo largo de un mes calendario entero. Efecto: Protege la racha de días activos ante 6 ausencias mensuales. ✨ Mejor que legendario: Cobertura mensual extendida. 🛡️ No está roto: Solo salva el contador de racha: el alumno sigue obligado a resolver los ejercicios para avanzar en el roadmap.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "PRESERVE_STREAK", "owner": "Roadmap (10)", "pat": "P2", "note": ""}, {"n": 57, "name": "Vial de Singularity (AI Pair)", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Integración profunda de cátedra: durante 3 desafíos complejos, actúa como un Pair Programmer Senior que analiza logs, stacktraces y profiling en vivo. Efecto: Diagnóstico en vivo de cuellos de botella y memory leaks. ✨ Mejor que legendario: Asistencia interactiva contextualizada. 🛡️ No está roto: Contrato socrático estricto: la IA jamás escribe el código final; guía al alumno con preguntas de depuración.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "AI_TUTOR_ACCESS", "owner": "no existe", "pat": "P9", "note": "Mismo problema que el Pergamino Mentor."}, {"n": 58, "name": "Pacto del Fénix Dorado", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "La póliza de mayor estatus académico: si el estudiante debe ir a recuperatorio de un parcial, restaura las 3 vidas y reintegra el 50% de la puja base (3.750 monedas) en el Banco. Efecto: 3 vidas intactas en recuperatorio + 50% cashback de puja base. ✨ Mejor que legendario: Seguridad física y restitución de liquidez. 🛡️ No está roto: El examen recuperatorio conserva exactamente el mismo nivel de exigencia; el alumno debe aprobar con código propio.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "GRANT_LIFE", "owner": "Roadmap (10)", "pat": "P3", "note": "Combina restaurar vidas con un reintegro de monedas en una instancia de recuperatorio. Tres dominios y una consecuencia académica."}, {"n": 59, "name": "Estandarte del Heraldo", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Ítem filantrópico y de prestigio: el ganador desata un \"Fin de Semana de Estudio Acelerado\" que otorga +30% de XP a todos los alumnos de la cohorte durante 48h. Efecto: Multiplicador +30% de XP para toda la comisión universitaria. ✨ Mejor que legendario: Impacto masivo en los 60+ alumnos del curso. 🛡️ No está roto: Estimula el estudio grupal sin alterar notas individuales ni regalar vidas arbitrariamente.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "XP_MULTIPLIER", "owner": "Roadmap (10)", "pat": "P7", "note": ""}, {"n": 60, "name": "Lanza Compilador Cero Fallas", "tier": "Exótico", "mode": "—", "price": "7.500 (subasta)", "desc": "Para laboratorios avanzados de multithreading, sockets y bases de datos transaccionales: perdona hasta 2 caídas por deadlocks no deterministas o timeouts de red de prueba. Absorción: 2 fallos causados por concurrencia o límites de runner. ✨ Mejor que legendario: Ampara ante condiciones de carrera de infra. 🛡️ No está roto: Si el algoritmo produce resultados lógicos incorrectos, el fallo se computa normalmente.", "obtain": "Subasta exclusiva lanzada por el Profesor", "verb": "ABSORB_FAILURE", "owner": "Desafíos (03)", "pat": "P1", "note": ""}], "pat": {"P1": {"nombre": "Consumo reactivo ante un fallo", "resumen": "El servicio evaluador nos consulta justo antes de aplicar una consecuencia negativa. Si hay protección activa, la consumimos y respondemos; el otro decide qué hacer con esa respuesta.", "quien": "Nos llama Desafíos (03) en el fallo definitivo.", "endpoints": [{"m": "GET", "r": "/api/v1/market/inventory/students/{studentId}/active-items?courseId={id}", "d": "Snapshot al abrir el desafío. Informativo: le sirve a la UI y para que el evaluador sepa qué verbos podrían aplicar. <b>No autoriza a consumir.</b>", "j": "{\n  \"activeItems\": [{\n    \"inventoryItemId\": \"inv-109\",\n    \"itemCode\": \"SHIELD_T2\",\n    \"verb\": \"ABSORB_FAILURE\",\n    \"charges\": 2,\n    \"params\": { \"appliesOn\": \"FINAL_FAILED_ATTEMPT\" }\n  }],\n  \"snapshotAt\": \"2026-09-07T16:50:00Z\"\n}"}, {"m": "POST", "r": "/api/v1/market/inventory/consume-effect", "d": "La llamada que decide y consume, en una sola transacción. Es la única que cambia estado.", "j": "// Request\n{\n  \"studentId\": \"…\", \"courseId\": \"…\",\n  \"verb\": \"ABSORB_FAILURE\",\n  \"context\": { \"type\": \"CHALLENGE\", \"id\": \"des-302\", \"attemptId\": \"att-9911\" }\n}\n\n// 200 OK\n{\n  \"applied\": true,\n  \"inventoryItemId\": \"inv-109\",\n  \"chargesLeft\": 1,\n  \"studentMessage\": \"Tu escudo absorbió el fallo.\"\n}"}, {"m": "BUS", "r": "market.inventory.events · ITEM_CONSUMED", "d": "Aviso hacia Notificaciones y Backoffice. No es el mecanismo: el evaluador decide con el 200, no con el evento.", "j": "\"payload\": {\n  \"studentId\": \"…\", \"courseId\": \"…\",\n  \"inventoryItemId\": \"inv-109\", \"itemCode\": \"SHIELD_T2\",\n  \"verb\": \"ABSORB_FAILURE\", \"chargesLeft\": 1\n}"}], "porque": "Es el patrón más barato del catálogo: ya está negociado, ocurre solo en fallos definitivos (volumen bajo) y no requiere nada nuevo de nadie. Cualquier ítem que entre acá <b>no agrega trabajo de integración</b>: cambia parámetros de una llamada que ya existe.", "costo": "Cero. Contrato ya escrito.", "riesgo": "Ninguno propio. El único riesgo es que el evaluador decida con el snapshot en vez de llamar, y ahí dos desafíos en paralelo gastan el mismo escudo dos veces."}, "P2": {"nombre": "Pasivo automático en un corte programado", "resumen": "Nadie aprieta nada. El servicio dueño evalúa una condición en un momento fijo (el corte diario, o el instante en que un contador llega a cero) y nos consulta antes de aplicar la penalidad.", "quien": "Nos llama Roadmap (10) en su proceso programado.", "endpoints": [{"m": "POST", "r": "/api/v1/market/inventory/consume-effect", "d": "Mismo endpoint que P1, con otro verbo y otro contexto. El contexto es la fecha del corte, no un intento.", "j": "// Request\n{\n  \"studentId\": \"…\", \"courseId\": \"…\",\n  \"verb\": \"PRESERVE_STREAK\",\n  \"context\": { \"type\": \"DAILY_CHECK\", \"id\": \"2026-09-07\" }\n}\n\n// 200 OK\n{ \"applied\": true, \"chargesLeft\": 1,\n  \"studentMessage\": \"Tu congelador salvó el día.\" }"}], "porque": "No hace falta ningún endpoint nuevo: es el mismo contrato de P1 con otro verbo. Lo que sí hace falta es que Roadmap tenga un proceso de corte donde preguntar, y que ese proceso sea idempotente, porque si corre dos veces consume dos ítems.", "costo": "Bajo. Un verbo nuevo con el Tema 10, mismo endpoint.", "riesgo": "El <code>contextId</code> tiene que ser la fecha del corte y no un id generado al momento. Si Roadmap reintenta su job con un id nuevo, quema un segundo congelador por el mismo día."}, "P3": {"nombre": "Consumo inmediato que escribe en un dominio ajeno", "resumen": "El alumno aprieta un botón en su mochila y el efecto tiene que ocurrir en el estado de otro servicio: sumar una vida, acelerar la regeneración, subir el tope. Acá el que inicia somos nosotros, no el otro.", "quien": "Nosotros llamamos a Roadmap (10). Es la dirección inversa a P1 y P2.", "endpoints": [{"m": "POST", "r": "/api/v1/market/inventory/{inventoryItemId}/use", "d": "Provisto por Mercado hacia el frontend. Dispara el consumo y la llamada al servicio dueño.", "j": "// 200 OK\n{ \"applied\": true, \"effect\": \"GRANT_LIFE\",\n  \"studentMessage\": \"Recuperaste 1 vida.\" }"}, {"m": "POST", "r": "/api/v1/roadmap/students/{id}/lives/grant   ← lo provee el Tema 10", "d": "<b>Endpoint que hoy no existe.</b> Hay que pedirlo. Es distinto del de acreditar una vida comprada, porque acá el origen es un ítem consumido y no una orden de compra.", "j": "{\n  \"courseId\": \"…\",\n  \"amount\": 1,\n  \"source\": \"MARKET_ITEM\",\n  \"idempotencyKey\": \"inv-780\"\n}"}], "porque": "Es el primer patrón donde <b>Mercado inicia una escritura en otro dominio</b>. Necesita un endpoint nuevo del lado del Tema 10 por cada tipo de efecto, y una regla de compensación: si el ítem se marcó consumido y la llamada falla, el alumno perdió la compra.", "costo": "Medio. Un endpoint nuevo por efecto, más el manejo de la falla.", "riesgo": "Consumir el ítem antes de confirmar que el efecto se aplicó. El orden correcto es el mismo que en la compra: aplicar primero, marcar consumido después, y si no se puede, no consumir."}, "P4": {"nombre": "Buff con vigencia temporal", "resumen": "El ítem no se gasta en un momento: queda activo durante un rato y afecta todo lo que pase en esa ventana. Multiplicadores de XP, inmunidad por tiempo, tope de vidas ampliado.", "quien": "El alumno activa; después consulta el servicio dueño, en cada momento afectado.", "endpoints": [{"m": "POST", "r": "/api/v1/market/inventory/{inventoryItemId}/activate", "d": "Provisto por Mercado. Marca el ítem ACTIVADO con su ventana de vigencia.", "j": "// 200 OK\n{ \"state\": \"ACTIVE\", \"verb\": \"XP_MULTIPLIER\",\n  \"params\": { \"factor\": 2 },\n  \"activeUntil\": \"2026-09-07T17:20:00Z\" }"}, {"m": "POST", "r": "/api/v1/market/inventory/consume-effect", "d": "El servicio dueño consulta en cada momento afectado. Con vigencia <b>no se consumen cargas</b>: se responde mientras esté vigente.", "j": "// Request, en cada otorgamiento de XP\n{ \"verb\": \"XP_MULTIPLIER\", \"context\": { \"type\": \"XP_GRANT\", \"id\": \"…\" } }\n\n// 200 OK\n{ \"applied\": true, \"params\": { \"factor\": 2 }, \"activeUntil\": \"…\" }"}], "porque": "Un endpoint de activación nuevo, y sobre todo: el servicio dueño tiene que preguntarnos <b>en todos los lugares donde otorga el efecto</b>. El XP no se otorga en un solo lugar, se otorga en muchos, y por eso este patrón es mucho más caro que P1 aunque parezca similar.", "costo": "Alto. No es un momento de decisión, son varios, y hay que instrumentarlos todos.", "riesgo": "Que el consumidor cachee la vigencia y siga aplicando el multiplicador después de que expiró. Y que dos buffs del mismo verbo se solapen: hay que definir si se apilan, si se reemplazan o si se rechaza la segunda activación."}, "P5": {"nombre": "Condición acumulada sobre varias entregas", "resumen": "El efecto no se resuelve en un momento: depende de una racha de resultados futuros. Aprobar tres seguidas, cinco seguidas, mantener catorce días. El ítem lleva un contador que avanza o se rompe.", "quien": "Nos llama Desafíos (03) en cada entrega, aprobada o no.", "endpoints": [{"m": "POST", "r": "/api/v1/market/inventory/consume-effect", "d": "Se llama en <b>cada entrega</b>, informando el resultado. Nosotros avanzamos, rompemos o cerramos el contador.", "j": "// Request — también cuando la entrega SALE BIEN\n{\n  \"verb\": \"COIN_MULTIPLIER\",\n  \"outcome\": \"APPROVED\",\n  \"context\": { \"type\": \"CHALLENGE\", \"id\": \"des-410\" }\n}\n\n// 200 OK — avanza el contador\n{ \"applied\": true, \"params\": { \"factor\": 2 }, \"chargesLeft\": 2 }\n\n// 200 OK — se rompió\n{ \"applied\": false, \"reason\": \"ITEM_BROKEN\" }"}, {"m": "BUS", "r": "acreditación de monedas hacia el Tema 08", "d": "El monto multiplicado lo acredita Banco. <b>Su contrato no tiene REST</b>, así que la acreditación va por bus y hay que diseñarla: hoy no existe.", "j": "// mensaje a definir con el Tema 08"}], "porque": "Es el único patrón que <b>obliga a llamarnos en el camino feliz</b>. Todo lo demás se consulta cuando algo falla, que es volumen bajo; acá hay una llamada por cada entrega aprobada de cada alumno con el ítem equipado.", "costo": "Muy alto. Estado de larga duración, llamada en el camino frecuente, y toca emisión de monedas.", "riesgo": "Reglas sin definir: si el alumno desequipa a mitad de racha, ¿pierde o pausa? ¿Cuenta cualquier entrega o solo las obligatorias? ¿Qué pasa si la cohorte se archiva con el contador a medias? Además duplicar recompensas inyecta circulante que el Banco no previó."}, "P6": {"nombre": "Consumo a pedido dentro del ejercicio", "resumen": "El alumno aprieta un botón dentro del ejercicio o del quiz: pedir una pista, revelar un test, eliminar opciones. El disparo es manual y ocurre en la interfaz del otro equipo, no en la nuestra.", "quien": "Nos llama el dueño del ejercicio o del quiz cuando el alumno lo pide.", "endpoints": [{"m": "POST", "r": "/api/v1/market/inventory/consume-effect", "d": "Mismo endpoint de siempre. Lo distinto es quién dispara: el alumno, no un fallo.", "j": "// Request\n{\n  \"verb\": \"REVEAL_HINT\",\n  \"context\": { \"type\": \"EXERCISE\", \"id\": \"ej-88\", \"attemptId\": \"att-401\" }\n}\n\n// 200 OK\n{ \"applied\": true, \"params\": { \"hintLevel\": 1 }, \"chargesLeft\": 0 }"}], "porque": "El contrato es idéntico a P1 y no cuesta nada de nuestro lado. <b>Todo el costo está del otro lado:</b> el equipo dueño tiene que poner el botón en su interfaz, saber si el alumno tiene el ítem para mostrarlo o no, y después ejecutar el efecto sobre su propio contenido.", "costo": "Cero para Mercado. Alto para el otro equipo.", "riesgo": "Que el botón se muestre y al apretarlo respondamos <code>applied:false</code>. Necesitan el snapshot para saber qué ofrecer, y aun así puede quedar viejo."}, "P7": {"nombre": "Efecto sobre terceros", "resumen": "Un alumno compra y el efecto recae sobre otros: sus compañeros de grupo, su dupla o toda la cohorte.", "quien": "Sin definir. Es el patrón que el modelo actual no soporta.", "endpoints": [{"m": "?", "r": "consume-effect con un destinatario distinto del portador", "d": "Cuando Desafíos consulta por el <b>alumno B</b>, tendríamos que devolver un ítem que está en el inventario del <b>alumno A</b>. Eso rompe la premisa de que el inventario es personal.", "j": "// forma posible, a definir\n{\n  \"studentId\": \"alumno-B\",\n  \"verb\": \"ABSORB_FAILURE\",\n  \"grantedBy\": { \"studentId\": \"alumno-A\", \"inventoryItemId\": \"inv-900\" }\n}"}], "porque": "No es un ítem más: es una decisión de arquitectura. Habría que introducir el concepto de efecto activo sobre un alumno que no es su dueño, con su propia vigencia y sus propias reglas de consumo.", "costo": "Muy alto. Cambia el modelo de inventario.", "riesgo": "Además del modelo: hay que saber quiénes son los compañeros de grupo, dato que es del Tema 02, y que hoy no consultamos para nada."}, "P8": {"nombre": "Efecto administrativo o académico", "resumen": "El efecto no ocurre en el juego: mueve una fecha de entrega, anula una reprobación, reinicia un historial de fallos o saltea prerrequisitos.", "quien": "Ningún servicio tiene hoy esa capacidad expuesta.", "endpoints": [{"m": "—", "r": "no hay contrato posible todavía", "d": "Antes del contrato técnico hace falta una definición de reglamento. No es que falte un endpoint: falta saber si la materia permite que se compre ese efecto.", "j": "// sin contrato hasta que el PO se expida"}], "porque": "RF-RNK-05 usa el historial de fallos para decidir quién promociona. Un ítem comprable que reescribe ese historial, mueve un deadline o anula una reprobación no es una discusión de balance: es reglamento de la materia.", "costo": "Indefinido. Bloqueado por una decisión que no es técnica.", "riesgo": "Prometerlos antes de que el PO se expida y tener que sacarlos con el catálogo ya publicado."}, "P9": {"nombre": "Sin implementador posible", "resumen": "El efecto requiere un servicio que no existe en la plataforma, o directamente no es software.", "quien": "Nadie.", "endpoints": [{"m": "—", "r": "no aplica", "d": "No hay agente de IA pedagógica entre los doce temas, y una revisión manual del profesor no tiene contrato de software.", "j": "// no aplica"}], "porque": "Podemos vender el ítem y descontarle las monedas al alumno, pero nadie va a ejecutar el efecto. Es la única categoría donde el problema no es de costo sino de imposibilidad.", "costo": "No implementable.", "riesgo": "Que quede en el catálogo y alguien lo compre."}}, "costo": {"P1": "ok", "P2": "ok", "P6": "ok", "P3": "warn", "P4": "warn", "P5": "bad", "P7": "bad", "P8": "bad", "P9": "bad"}};
+const dec = {};
+const com = {};
+let sel = D.items[0].n;
+const $ = s => document.querySelector(s);
+const uniq = f => [...new Set(D.items.map(f))].filter(Boolean).sort();
+
+uniq(i => i.pat).forEach(p => $('#fp').insertAdjacentHTML('beforeend',
+  '<option value="' + p + '">' + p + ' · ' + D.pat[p].nombre + '</option>'));
+['Común','Poco Común','Raro','Épico','Legendario','Exótico'].forEach(t =>
+  $('#ft').insertAdjacentHTML('beforeend', '<option value="' + t + '">' + t + '</option>'));
+uniq(i => i.owner).forEach(o => $('#fo').insertAdjacentHTML('beforeend',
+  '<option value="' + o + '">' + o + '</option>'));
+['#fp','#ft','#fo','#fq'].forEach(s => $(s).addEventListener('input', pintarLista));
+
+function visibles(){
+  const p = $('#fp').value, t = $('#ft').value, o = $('#fo').value,
+        q = $('#fq').value.trim().toLowerCase();
+  return D.items.filter(i =>
+    (!p || i.pat === p) && (!t || i.tier === t) && (!o || i.owner === o) &&
+    (!q || (i.name + ' ' + i.verb).toLowerCase().includes(q)));
+}
+
+function pintarLista(){
+  const v = visibles();
+  $('#list').innerHTML = v.map(i =>
+    '<div class="row" data-n="' + i.n + '" aria-current="' + (i.n === sel) + '">' +
+      '<div class="dec ' + (dec[i.n] || '') + '"></div>' +
+      '<div class="n">' + i.n + '</div>' +
+      '<div class="nm"><b>' + i.name + '</b><span>' + (i.verb || '—') + '</span>' +
+        (com[i.n] ? '<span class="cm">✎ ' + esq(com[i.n]) + '</span>' : '') + '</div>' +
+      '<span class="pill ' + D.costo[i.pat] + '">' + i.pat + '</span>' +
+    '</div>').join('') ||
+    '<div style="padding:20px;color:var(--faint);font-size:12.5px">Nada coincide con el filtro.</div>';
+  $('#list').querySelectorAll('.row').forEach(r =>
+    r.addEventListener('click', function(){ sel = +r.dataset.n; pintarLista(); pintarDet(); }));
+  const c = Object.values(dec);
+  $('#cnt').innerHTML = v.length + ' de 60 · <b>' + c.filter(x => x === 'in').length + '</b> incluir · <b>' +
+    c.filter(x => x === 'rf').length + '</b> refactorizar · <b>' + c.filter(x => x === 'f2').length +
+    '</b> fase 2 · <b>' + c.filter(x => x === 'out').length + '</b> sacar';
+}
+
+function pintarDet(){
+  const i = D.items.find(x => x.n === sel), p = D.pat[i.pat], c = D.costo[i.pat];
+  const sinDueno = i.owner.indexOf('sin') >= 0 || i.owner.indexOf('no ') >= 0;
+  $('#det').innerHTML =
+    '<h2>' + i.name + '</h2>' +
+    '<div class="tags">' +
+      '<span class="pill">' + i.tier + '</span>' +
+      '<span class="pill">' + i.price + ' monedas</span>' +
+      '<span class="pill">' + i.mode + '</span>' +
+      '<span class="pill ' + c + '">' + i.pat + ' · ' + p.nombre + '</span>' +
+      '<span class="pill">' + (i.verb || 'sin verbo') + '</span>' +
+      '<span class="pill ' + (sinDueno ? 'bad' : '') + '">' + i.owner + '</span>' +
+    '</div>' +
+    '<p class="desc">' + i.desc + '</p>' +
+    (i.note ? '<div class="note">' + i.note + '</div>' : '') +
+    '<h3>Cómo funciona este patrón</h3>' +
+    '<p class="desc" style="margin-bottom:6px">' + p.resumen + '</p>' +
+    '<p class="desc" style="font-size:12.4px">' + p.quien + '</p>' +
+    '<h3>Qué endpoints y mensajes necesita</h3>' +
+    p.endpoints.map(e =>
+      '<div class="ep"><div class="h"><span class="m ' + e.m + '">' + e.m + '</span>' +
+      '<span class="r">' + e.r + '</span></div><p>' + e.d + '</p>' +
+      '<pre>' + e.j.replace(/</g, '&lt;') + '</pre></div>').join('') +
+    '<h3>Por qué</h3>' +
+    '<div class="box why">' + p.porque + '</div>' +
+    '<div class="box cost"><b>Costo de integración:</b> ' + p.costo + '</div>' +
+    '<div class="box risk"><b>Riesgo:</b> ' + p.riesgo + '</div>' +
+    '<div class="btns">' +
+      '<button class="' + (dec[i.n] === 'in' ? 'on-in' : '') + '" onclick="marcar(\'in\')">Incluir en el MVP</button>' +
+      '<button class="' + (dec[i.n] === 'f2' ? 'on-f2' : '') + '" onclick="marcar(\'f2\')">Fase 2</button>' +
+      '<button class="' + (dec[i.n] === 'out' ? 'on-out' : '') + '" onclick="marcar(\'out\')">Sacar</button>' +
+      '<button class="' + (dec[i.n] === 'rf' ? 'on-rf' : '') + '" onclick="marcar(\'rf\')">Refactorizar</button>' +
+      '<button class="ghost" onclick="resumen()">Resumen y descarga</button>' +
+    '</div>' +
+    '<h3>Comentario del equipo</h3>' +
+    '<textarea id="cm" placeholder="Qué cambiarías de este ítem, con qué reemplazarlo, qué falta definir…">' +
+      (com[i.n] || '') + '</textarea>';
+  const ta = $('#cm');
+  ta.addEventListener('input', function(){ com[i.n] = ta.value; });
+  ta.addEventListener('blur', pintarLista);
+}
+
+function marcar(v){
+  if (dec[sel] === v) { delete dec[sel]; } else { dec[sel] = v; }
+  pintarLista(); pintarDet();
+}
+
+const LBL = { in:'Incluir en el MVP', f2:'Fase 2', out:'Sacar', rf:'Refactorizar', '':'Sin decidir' };
+function esq(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const NL = String.fromCharCode(10);
+
+function agrupar(){
+  const g = { in:[], f2:[], out:[], rf:[], '':[] };
+  D.items.forEach(i => g[dec[i.n] || ''].push(i));
+  return g;
+}
+
+function texto(){
+  const g = agrupar();
+  const L = [];
+  L.push('DECISIONES DEL CATÁLOGO — ' + fecha());
+  L.push('');
+  L.push(g.in.length + ' incluir · ' + g.rf.length + ' refactorizar · ' + g.f2.length +
+         ' fase 2 · ' + g.out.length + ' sacar · ' + g[''].length + ' sin decidir');
+  L.push('');
+  ['in','rf','f2','out',''].forEach(function(k){
+    L.push(LBL[k].toUpperCase() + ' (' + g[k].length + ')');
+    if (!g[k].length) { L.push('  —'); L.push(''); return; }
+    g[k].forEach(function(i){
+      L.push('  ' + i.n + '. ' + i.name + '  [' + i.pat + ' · ' + (i.verb || '—') + ']');
+      if (com[i.n]) L.push('      ✎ ' + com[i.n]);
+    });
+    L.push('');
+  });
+  return L.join(NL);
+}
+
+function fecha(){ return new Date().toISOString().slice(0, 10); }
+function resumen(){ $('#dlgtxt').textContent = texto(); $('#dlg').showModal(); }
+function copiar(){ navigator.clipboard.writeText(texto()); }
+
+function guardar(txt, nombre, mime){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: mime + ';charset=utf-8' }));
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+}
+
+function bajar(fmt){
+  if (fmt === 'csv') {
+    const esc = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const filas = [['N','Item','Decision','Comentario','Tier','Precio','Verbo','Equipo ejecutor',
+                    'Patron','Costo de integracion','Descripcion']];
+    D.items.forEach(i => filas.push([i.n, i.name, LBL[dec[i.n] || ''], com[i.n] || '', i.tier,
+      i.price, i.verb || '', i.owner, i.pat, D.pat[i.pat].costo, i.desc]));
+    const csv = filas.map(f => f.map(esc).join(',')).join(String.fromCharCode(13) + NL);
+    guardar(String.fromCharCode(65279) + csv, 'catalogo-decisiones-' + fecha() + '.csv', 'text/csv');
+    return;
+  }
+  guardar(informe(), 'catalogo-decisiones-' + fecha() + '.html', 'text/html');
+}
+
+const ORDEN = ['in','rf','f2','out',''];
+const COLOR = { in:'#2fd071', rf:'#38a3f1', f2:'#f5a524', out:'#f2517e', '':'#5d667c' };
+
+function informe(){
+  const g = agrupar();
+  const verbos = {}, equipos = {};
+  g.in.concat(g.rf).forEach(function(i){
+    if (i.verb) {
+      if (!verbos[i.verb]) verbos[i.verb] = [];
+      verbos[i.verb].push(i.name);
+      equipos[i.owner] = true;
+    }
+  });
+  const vs = Object.keys(verbos).sort((a, b) => verbos[b].length - verbos[a].length);
+
+  const tarjeta = function(i, k){
+    return '<div class="it" style="border-left-color:' + COLOR[k] + '">' +
+      '<div class="ith"><b>' + i.n + '. ' + esq(i.name) + '</b>' +
+      '<span class="tg">' + esq(i.tier) + '</span>' +
+      '<span class="tg">' + esq(i.price) + ' monedas</span>' +
+      '<span class="tg">' + i.pat + ' · ' + esq(D.pat[i.pat].nombre) + '</span>' +
+      '<span class="tg mono">' + (i.verb || 'sin verbo') + '</span>' +
+      '<span class="tg">' + esq(i.owner) + '</span></div>' +
+      '<p class="d">' + esq(i.desc) + '</p>' +
+      '<p class="c"><b>Costo de integración:</b> ' + esq(D.pat[i.pat].costo) + '</p>' +
+      (com[i.n] ? '<div class="cmb"><b>Comentario del equipo</b><br>' + esq(com[i.n]) + '</div>' : '') +
+      '</div>';
+  };
+
+  const secciones = ORDEN.map(function(k){
+    if (!g[k].length) return '';
+    return '<h2 style="border-color:' + COLOR[k] + '">' + LBL[k] +
+           ' <span class="n">' + g[k].length + '</span></h2>' +
+           g[k].map(i => tarjeta(i, k)).join('');
+  }).join('');
+
+  const tablaVerbos = vs.length
+    ? '<table><tr><th>Verbo</th><th>Ítems</th><th>Equipo</th><th>Cuáles</th></tr>' +
+      vs.map(function(v){
+        const eq = D.items.find(x => x.verb === v).owner;
+        return '<tr><td class="mono">' + v + '</td><td><b>' + verbos[v].length + '</b></td><td>' +
+               esq(eq) + '</td><td class="dim">' + esq(verbos[v].join(' · ')) + '</td></tr>';
+      }).join('') + '</table>' +
+      '<p class="lead">Equipos con los que hay que reunirse: <b>' +
+      esq(Object.keys(equipos).join(', ')) + '</b>. Cada verbo es una negociación, ' +
+      'independientemente de cuántos ítems habilite.</p>'
+    : '<p class="lead">Todavía no hay ítems marcados para construir.</p>';
+
+  const css = 'body{margin:0;background:#131722;color:#e7ebf3;font-family:"Inter","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.55}' +
+    '.w{max-width:940px;margin:0 auto;padding:34px 20px 70px}' +
+    'h1{font-size:23px;margin:0 0 6px}' +
+    '.lead{color:#8b93a7;font-size:13.3px;margin:0 0 8px}' +
+    '.res{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 26px}' +
+    '.res span{font-size:12.3px;padding:5px 11px;border-radius:6px;background:#171c29;border:1px solid #242b3b}' +
+    'h2{font-size:16.5px;margin:32px 0 12px;padding-left:11px;border-left:4px solid #242b3b}' +
+    'h2 .n{color:#5d667c;font-weight:400;font-size:13px}' +
+    '.it{background:#171c29;border:1px solid #242b3b;border-left:4px solid #242b3b;border-radius:8px;padding:13px 15px;margin-bottom:11px}' +
+    '.ith{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:7px;font-size:13.6px}' +
+    '.tg{font-size:10.2px;font-weight:600;padding:2px 7px;border-radius:4px;background:#243046;color:#8b93a7}' +
+    '.mono{font-family:ui-monospace,monospace}' +
+    '.d{color:#8b93a7;font-size:12.5px;margin:0 0 7px}' +
+    '.c{font-size:12px;color:#8b93a7;margin:0}' +
+    '.cmb{margin-top:9px;background:#12304a;border-left:3px solid #38a3f1;border-radius:0 6px 6px 0;padding:9px 12px;font-size:12.6px;color:#cfe0f5}' +
+    'table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:12.6px}' +
+    'th{text-align:left;font-size:10.6px;text-transform:uppercase;letter-spacing:.05em;color:#8b93a7;padding:8px 9px;border-bottom:1px solid #242b3b}' +
+    'td{padding:8px 9px;border-bottom:1px solid #1e2534;vertical-align:top}' +
+    '.dim{color:#8b93a7;font-size:11.6px}' +
+    'footer{margin-top:34px;border-top:1px solid #242b3b;padding-top:13px;color:#5d667c;font-size:11.5px}';
+
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>Decisiones del catálogo · Mercado (Tema 09)</title><style>' + css + '</style></head><body><div class="w">' +
+    '<h1>Decisiones del catálogo de ítems</h1>' +
+    '<p class="lead">Equipo Mercado · Tema 09 — ' + fecha() + '</p>' +
+    '<p class="lead">Resultado de la evaluación ítem por ítem. El costo de integración es el del patrón, ' +
+    'no el del ítem: dos ítems del mismo patrón no cuestan el doble.</p>' +
+    '<div class="res">' + ORDEN.map(k => '<span style="border-color:' + COLOR[k] + '">' +
+      LBL[k] + ': <b>' + g[k].length + '</b></span>').join('') + '</div>' +
+    '<h2 style="border-color:#38a3f1">Verbos a negociar <span class="n">' + vs.length + '</span></h2>' +
+    tablaVerbos + secciones +
+    '<footer>Generado desde la herramienta de evaluación de ítems del equipo Mercado.</footer>' +
+    '</div></body></html>';
+}
+
+pintarLista(); pintarDet();
+</script></body></html>

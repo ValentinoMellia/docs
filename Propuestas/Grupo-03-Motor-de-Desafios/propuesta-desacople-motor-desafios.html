@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propuesta Arquitectónica — Desacople del Motor de Desafíos</title>
+<style>
+  :root {
+    --bg: #0f1218;
+    --card: #171b24;
+    --card-sub: #1e2430;
+    --border: #2b3242;
+    --border-light: #3d465c;
+    --text: #f0f2f5;
+    --text-muted: #9ba3b5;
+    --text-dim: #6c768c;
+    
+    /* Paleta por Microservicio */
+    --desafios: #ff6b8b;
+    --mercado: #2dd4bf;
+    --roadmap: #38bdf8;
+    --banco: #fbbf24;
+    --cursos: #818cf8;
+    --backoffice: #c084fc;
+    --teoricos: #f472b6;
+    --practicos: #fb923c;
+    --bus: #a78bfa;
+    --danger: #f87171;
+    --success: #34d399;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    line-height: 1.6;
+    padding: 32px 24px 80px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .badge-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 107, 139, 0.12);
+    color: var(--desafios);
+    border: 1px solid rgba(255, 107, 139, 0.3);
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 900px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* Navigation Tabs */
+  .tabs-nav {
+    display: flex;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover {
+    background: var(--card-sub);
+    color: var(--text);
+    border-color: var(--border-light);
+  }
+  .tab-btn.active {
+    background: var(--card-sub);
+    color: #ffffff;
+    border-color: var(--desafios);
+    box-shadow: 0 0 12px rgba(255, 107, 139, 0.2);
+  }
+
+  .tab-pane {
+    display: none;
+    animation: fadeIn 0.25s ease forwards;
+  }
+  .tab-pane.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Grid Layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .tag-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border: 1px solid rgba(248, 113, 113, 0.3); }
+  .tag-success { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.3); }
+  .tag-bus { background: rgba(167, 139, 250, 0.15); color: var(--bus); border: 1px solid rgba(167, 139, 250, 0.3); }
+
+  /* Callouts */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+    border-left: 4px solid;
+    line-height: 1.6;
+  }
+  .callout-danger {
+    background: rgba(248, 113, 113, 0.06);
+    border-color: var(--danger);
+    color: #fca5a5;
+  }
+  .callout-success {
+    background: rgba(45, 212, 191, 0.06);
+    border-color: var(--mercado);
+    color: #99f6e4;
+  }
+  .callout-warn {
+    background: rgba(251, 191, 36, 0.06);
+    border-color: var(--banco);
+    color: #fde68a;
+  }
+
+  /* Microservices Color Indicators */
+  .service-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .svc-desafios { background-color: var(--desafios); box-shadow: 0 0 8px var(--desafios); }
+  .svc-mercado { background-color: var(--mercado); box-shadow: 0 0 8px var(--mercado); }
+  .svc-roadmap { background-color: var(--roadmap); box-shadow: 0 0 8px var(--roadmap); }
+  .svc-banco { background-color: var(--banco); box-shadow: 0 0 8px var(--banco); }
+  .svc-cursos { background-color: var(--cursos); box-shadow: 0 0 8px var(--cursos); }
+  .svc-backoffice { background-color: var(--backoffice); box-shadow: 0 0 8px var(--backoffice); }
+  .svc-teoricos { background-color: var(--teoricos); box-shadow: 0 0 8px var(--teoricos); }
+  .svc-practicos { background-color: var(--practicos); box-shadow: 0 0 8px var(--practicos); }
+
+  /* Tables */
+  table.matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  table.matrix th, table.matrix td {
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  table.matrix th {
+    background: var(--card-sub);
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  table.matrix td {
+    background: var(--card);
+  }
+  table.matrix tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* Code Block */
+  pre.code-json {
+    background: #090b0e;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+    font-size: 12px;
+    color: #a78bfa;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  code {
+    background: rgba(255, 255, 255, 0.07);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #e2e8f0;
+  }
+
+  /* Visual Flow Simulator */
+  .flow-visual {
+    background: #0d1017;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .sequence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .seq-item {
+    display: grid;
+    grid-template-columns: 140px 1fr 180px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    transition: transform 0.15s ease;
+  }
+  .seq-item:hover {
+    border-color: var(--border-light);
+    transform: translateX(4px);
+  }
+  .seq-actor {
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .seq-action {
+    color: var(--text);
+  }
+  .seq-bus {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--bus);
+    background: rgba(167, 139, 250, 0.1);
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-align: right;
+  }
+
+  /* Group Detail Badges */
+  .group-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .gb-desafios { background: rgba(255, 107, 139, 0.15); color: var(--desafios); }
+  .gb-mercado { background: rgba(45, 212, 191, 0.15); color: var(--mercado); }
+  .gb-roadmap { background: rgba(56, 189, 248, 0.15); color: var(--roadmap); }
+  .gb-banco { background: rgba(251, 191, 36, 0.15); color: var(--banco); }
+  .gb-cursos { background: rgba(129, 140, 248, 0.15); color: var(--cursos); }
+  .gb-backoffice { background: rgba(192, 132, 252, 0.15); color: var(--backoffice); }
+  .gb-teoricos { background: rgba(244, 114, 182, 0.15); color: var(--teoricos); }
+  .gb-practicos { background: rgba(251, 146, 60, 0.15); color: var(--practicos); }
+
+  /* Slot Badges (4 Slots Oficiales) */
+  .slot-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .slot-xp { background: rgba(56, 189, 248, 0.15); color: var(--roadmap); border: 1px solid rgba(56, 189, 248, 0.35); }
+  .slot-coins { background: rgba(251, 191, 36, 0.15); color: var(--banco); border: 1px solid rgba(251, 191, 36, 0.35); }
+  .slot-challenge { background: rgba(255, 107, 139, 0.15); color: var(--desafios); border: 1px solid rgba(255, 107, 139, 0.35); }
+  .slot-life { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.35); }
+
+  ul.clean-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  ul.clean-list li {
+    position: relative;
+    padding-left: 18px;
+  }
+  ul.clean-list li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.2;
+  }
+  ul.clean-list li strong {
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="badge-header">
+      <span>📐 Rediseño de Arquitectura & Integración Inter-Servicios</span>
+    </div>
+    <h1>Desacople del Motor de Desafíos (Tema 03)</h1>
+    <p class="subtitle">
+      Transición desde el modelo de <strong>"Árbitro Monolítico Centralizador"</strong> hacia una 
+      <strong>"Coreografía Orientada a Eventos"</strong>. Redistribución de responsabilidades entre 
+      <strong>Motor de Desafíos, Mercado, Roadmap, Banco, Cursos, Backoffice, Teóricos y Prácticos</strong>.
+    </p>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('tab-nuevo-modelo', this)">⚡ 1. El Nuevo Flujo Coreografiado</button>
+    <button class="tab-btn" onclick="switchTab('tab-flujos-criticos', this)">🔄 2. Casos Críticos (Escudos, XP, IDE)</button>
+    <button class="tab-btn" onclick="switchTab('tab-contratos', this)">📜 3. Contratos de Eventos (Kafka)</button>
+  </nav>
+
+  <!-- TAB 1: NUEVO MODELO -->
+  <div id="tab-nuevo-modelo" class="tab-pane active">
+    <div class="callout callout-success">
+      <strong>💡 La Clave del Nuevo Modelo:</strong> De acuerdo con la especificación original (<code>arq_text.txt: L286</code>):
+      <em>"El Tema 03 emite el hecho; el Tema 10 decide su efecto sobre vidas y XP"</em> y <strong>el Tema 09 decide el efecto sobre el inventario</strong>.
+      Ningún servicio le da órdenes directas a otro; todos reaccionan al bus de eventos de Kafka (Tema 11).
+    </div>
+
+    <div class="flow-visual">
+      <h3 style="font-size:16px; margin-bottom:16px; color:var(--text);">Secuencia de Coreografía: Envío de Desafío con Fallo Definitivo</h3>
+      
+      <div class="sequence-list">
+        <div class="seq-item">
+          <div class="seq-actor"><span class="service-dot svc-desafios"></span> Desafíos (03)</div>
+          <div class="seq-action">Alumno agota reintentos permitidos (RF-DES-07). Desafíos califica y emite el <strong>contrato unificado</strong> con <code>status: "FAILED"</code> (<code>baseXp: 0</code>, <code>baseCoins: 0</code>).</div>
+          <div class="seq-bus">challenge.completed ➔</div>
+        </div>
+
+        <div class="seq-item">
+          <div class="seq-actor"><span class="service-dot svc-mercado"></span> Mercado (09)</div>
+          <div class="seq-action">Consume <code>challenge.completed</code>. Aplica la lógica de inventario (escudos y multiplicadores) y emite <strong>2 eventos de liquidación directa</strong>:
+            <br>• Para Roadmap: <code>market.resolution.roadmap</code> (XP a acreditar y resolución de vidas).
+            <br>• Para Banco: <code>market.resolution.bank</code> (Monedas a acreditar).
+          </div>
+          <div class="seq-bus">market.resolution.* ➔</div>
+        </div>
+
+        <div class="seq-item">
+          <div class="seq-actor"><span class="service-dot svc-roadmap"></span> Roadmap (10)</div>
+          <div class="seq-action">Consume <code>market.resolution.roadmap</code>. Si hubo escudo preserva vidas (3/3); si hubo penalización descuenta 1 vida. Acredita la XP definitiva calculada.</div>
+          <div class="seq-bus">roadmap.ledger.updated</div>
+        </div>
+
+        <div class="seq-item">
+          <div class="seq-actor"><span class="service-dot svc-banco"></span> Banco (08)</div>
+          <div class="seq-action">Consume <code>market.resolution.bank</code>. Acredita las monedas liquidadas directamente en la cuenta del alumno (o 0 si reprobó).</div>
+          <div class="seq-bus">bank.balance.credited</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title"><span class="service-dot svc-desafios"></span> ¿Qué hace ahora Motor de Desafíos?</div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+          Solo se concentra en lo que le es propio:
+        </p>
+        <ul class="clean-list">
+          <li>Abre y cierra ventanas de entrega de ejercicios (cohortes).</li>
+          <li>Coordina con <strong>Tema 06 (Sandbox)</strong> para correr código aislado.</li>
+          <li>Coordina con <strong>Tema 04 (Teóricos)</strong> para validar cuestionarios.</li>
+          <li>Aplica las reglas de reintentos configuradas por el profesor en el desafío (de 0 a 3 reintentos antes de cerrar la entrega).</li>
+          <li>Genera la métrica académica pura en el contrato unificado: tiempo empleado, porcentaje de tests superados, intentos usados, dificultad, challengeName, baseXp y baseCoins.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="service-dot svc-mercado"></span> ¿Qué asume Mercado?</div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+          Se convierte en el motor de resolución de efectos mecánicos y gestión de slots:
+        </p>
+        <ul class="clean-list">
+          <li>Gestiona los <strong>4 slots ortogonales de equipamiento</strong>: <span class="slot-badge slot-xp">XP</span>, <span class="slot-badge slot-coins">Coins</span>, <span class="slot-badge slot-challenge">Challenge</span> y <span class="slot-badge slot-life">Life</span>.</li>
+          <li><strong>Invariante Estricto de Slots:</strong> Máximo <strong>1 ítem activo por tipo</strong> en simultáneo (máximo 4 ítems equipados). Activar otro del mismo tipo ejecuta swap/reemplazo.</li>
+          <li><strong>Mecánica TTL (Time-To-Live):</strong> Los multiplicadores de <code>XP</code> y <code>Coins</code> duran una ventana de tiempo (ej. 3 horas). Aplican a todos los desafíos aprobados dentro de la ventana sin quemarse como consumo único.</li>
+          <li><strong>Consumo por Carga / Sesión:</strong> Los ítems <code>Life</code> descuentan 1 carga ante fallo; los ítems <code>Challenge</code> generan un token efímero de sesión para el IDE.</li>
+          <li>Intercepta <code>challenge.completed</code>, liquida bonus/mitigaciones y despacha <strong>2 eventos especializados</strong> (uno a Roadmap y uno a Banco).</li>
+          <li>Libera a Desafíos, Roadmap y Banco de hacer cálculos cruzados o consultas HTTP síncronas.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- MATRIZ DE LOS 4 SLOTS OFICIALES -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; margin-bottom: 14px; color: var(--text); display: flex; align-items: center; gap: 8px;">
+        <span>🎒 Taxonomía Oficial de Equipamiento (4 Slots Ortogonales & Invariante de 1 por Tipo)</span>
+      </h3>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+        
+        <!-- Slot XP -->
+        <div style="background: var(--card); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span class="slot-badge slot-xp">Slot XP</span>
+            <span style="font-size:11px; color:var(--text-dim); font-family:monospace;">Tipo: "XP"</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:var(--roadmap); margin-bottom:4px;">Boost de XP (Nivel 1 a 5)</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Catálogo: <code>Boost XP Lv.1</code> a <code>Boost XP Lv.5</code></div>
+          <ul class="clean-list" style="font-size:12.5px;">
+            <li><strong>Mecánica:</strong> ⏱️ <strong>TTL Temporal (ej. 3 horas)</strong>.</li>
+            <li><strong>Efecto:</strong> Multiplica <code>baseXp</code> según el nivel (ej. Lv.1: x1.2 ➔ Lv.5: x2.0) en cada desafío aprobado dentro de la ventana.</li>
+            <li><strong>Si reprueba:</strong> <code>baseXp = 0</code> ➔ bonus = 0; el reloj de TTL sigue corriendo sin perderse el buff.</li>
+            <li><strong>Destino:</strong> <code>market.resolution.roadmap</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Slot Coins -->
+        <div style="background: var(--card); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; padding: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span class="slot-badge slot-coins">Slot Coins</span>
+            <span style="font-size:11px; color:var(--text-dim); font-family:monospace;">Tipo: "Coins"</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:var(--banco); margin-bottom:4px;">Boost de Monedas (Nivel 1 a 5)</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Catálogo: <code>Boost Monedas Lv.1</code> a <code>Boost Monedas Lv.5</code></div>
+          <ul class="clean-list" style="font-size:12.5px;">
+            <li><strong>Mecánica:</strong> ⏱️ <strong>TTL Temporal (ej. 3 horas)</strong>.</li>
+            <li><strong>Efecto:</strong> Multiplica <code>baseCoins</code> según el nivel (ej. Lv.1: x1.2 ➔ Lv.5: x2.0) en cada desafío aprobado dentro de la ventana.</li>
+            <li><strong>Si reprueba:</strong> <code>baseCoins = 0</code> ➔ bonus = 0; el reloj de TTL sigue corriendo sin perderse el buff.</li>
+            <li><strong>Destino:</strong> <code>market.resolution.bank</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Slot Challenge -->
+        <div style="background: var(--card); border: 1px solid rgba(255, 107, 139, 0.25); border-radius: 10px; padding: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span class="slot-badge slot-challenge">Slot Challenge</span>
+            <span style="font-size:11px; color:var(--text-dim); font-family:monospace;">Tipo: "Challenge"</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:var(--desafios); margin-bottom:4px;">Efectos en Vivo / IDE</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Catálogo: <em>Reservado para consumibles de sesión IDE</em></div>
+          <ul class="clean-list" style="font-size:12.5px;">
+            <li><strong>Mecánica:</strong> 🎯 <strong>Consumo por Sesión / Capability Token</strong>.</li>
+            <li><strong>Efecto:</strong> Ventajas interactivas dentro del editor (revelar tests ocultos, pistas semánticas, tiempo extra).</li>
+            <li><strong>Activación:</strong> Directa en IDE vía JWT firmado emitido por Mercado hacia Desafíos.</li>
+            <li><strong>Destino:</strong> Motor de Desafíos (Tema 03).</li>
+          </ul>
+        </div>
+
+        <!-- Slot Life -->
+        <div style="background: var(--card); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <span class="slot-badge slot-life">Slot Life</span>
+            <span style="font-size:11px; color:var(--text-dim); font-family:monospace;">Tipo: "Life"</span>
+          </div>
+          <div style="font-size:14px; font-weight:700; color:var(--success); margin-bottom:4px;">Escudo (Nivel 1 a 5)</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">Catálogo: <code>Escudo Lv.1</code> (1 carga) a <code>Escudo Lv.5</code> (5 cargas)</div>
+          <ul class="clean-list" style="font-size:12.5px;">
+            <li><strong>Mecánica:</strong> 🛡️ <strong>Cargas Escalonadas por Nivel (1 fallo = 1 carga)</strong>.</li>
+            <li><strong>Efecto:</strong> Absorbe penalización ante <code>status: "FAILED"</code> salvando 1 vida por carga.</li>
+            <li><strong>Si aprueba:</strong> No se consume ninguna carga; el escudo conserva intactas sus cargas restantes.</li>
+            <li><strong>Destino:</strong> <code>market.resolution.roadmap</code>.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECCIÓN: ESLABÓN DE DECISIÓN EN LA CADENA -->
+    <div class="card" style="margin-top: 24px; border-top: 4px solid var(--success);">
+      <div class="card-header">
+        <div class="card-title">
+          🔗 Arquitectura Confirmada: Mercado como "Eslabón de Decisión en la Cadena"
+        </div>
+        <span class="tag tag-success">Patrón Oficial de Integración</span>
+      </div>
+
+      <p style="font-size:13.5px; color:var(--text-muted); margin-bottom:16px;">
+        Se establece de forma definitiva el modelo de <strong>Eslabón de Decisión</strong> con un <strong>único contrato canónico simétrico de entrada</strong> (<code>challenge.completed</code>) y <strong>dos eventos dedicados de salida emitidos por Mercado</strong> (uno para Banco y uno para Roadmap). 
+        Motor de Desafíos no calcula economía ni vidas; Mercado asume el cómputo mecánico completo e instruye a los ledgers con valores finales listos para asentar.
+      </p>
+
+      <div style="background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.2); border-radius: 8px; padding: 18px; margin-bottom: 20px;">
+        <div style="color: var(--success); font-weight: 700; font-size: 14.5px; margin-bottom: 10px; display:flex; align-items:center; gap:8px;">
+          <span>✅ Principios del Eslabón en la Cadena</span>
+        </div>
+        <ul class="clean-list" style="font-size: 13px; color: #99f6e4;">
+          <li><strong>Flujo Unidireccional Limpio:</strong> <code>Desafíos (challenge.completed)</code> ➔ <code>Mercado (Eslabón de Resolución)</code> ➔ <code>Emite 2 Eventos Destino</code> (<code>market.resolution.bank</code> y <code>market.resolution.roadmap</code>).</li>
+          <li><strong>Evento para Banco (<code>market.resolution.bank</code>):</strong> Contiene las monedas exactas a <strong>ACREDITAR</strong> (0 si reprobó), junto con <code>baseCoins</code>, <code>multiplierFactor</code>, <code>itemName</code>, <code>type</code>, <code>inventoryItem</code>, <code>challengeId</code> y <code>challengeName</code>.</li>
+          <li><strong>Evento para Roadmap (<code>market.resolution.roadmap</code>):</strong> Contiene la XP exacta a <strong>ACREDITAR</strong> (0 si reprobó), la resolución de vidas (<code>livesToDeduct</code>, <code>lifeAction</code>), junto con <code>baseXp</code>, <code>multiplierFactor</code>, <code>itemName</code>, <code>type</code>, <code>challengeId</code> y <code>challengeName</code>.</li>
+          <li><strong>Cero Cálculos en los Ledgers:</strong> Roadmap y Banco no hacen multiplicaciones ni cruzan eventos. Asientan directamente lo que Mercado les envía.</li>
+          <li><strong>Cero Mecanismos de Rollback:</strong> No existen compensaciones tardías ni devoluciones de vidas. Todo es unidireccional y atómico.</li>
+        </ul>
+      </div>
+
+      <div class="callout callout-success" style="margin-bottom:0;">
+        <strong>🛡️ Resiliencia y Consistencia Eventual ante Caídas Temporales (El rol de Kafka y Patrones):</strong>
+        <ul class="clean-list" style="margin-top:8px; font-size:13px; line-height:1.7;">
+          <li><strong>1. Offsets de Consumer Groups en Kafka (Tema 11):</strong> Kafka es un registro de eventos persistente en disco (commit log), no un canal efímero. Cada consumidor (<code>mercado-group</code>) mantiene su cursor (offset). Si Mercado se apaga temporalmente y Motor emite eventos de fallo, al reconectar Kafka le entrega automáticamente los eventos pendientes en el orden exacto. <strong>No se requiere polling ni sincronizaciones manuales</strong>.</li>
+          <li><strong>2. Patrón Outbox (en Motor - Emisor):</strong> Para garantizar que Motor no pierda eventos si sufre un fallo justo antes de emitir a Kafka, Motor guarda el resultado del test y el evento en la misma transacción SQL local (tabla <code>outbox_events</code>), garantizando <em>at-least-once delivery</em> hacia el bus.</li>
+          <li><strong>3. Patrón Inbox / Idempotencia (en Mercado - Consumidor):</strong> Para protegerse ante rebalanceos o reenvíos de Kafka, Mercado mantiene su tabla de idempotencia (<code>consumos_procesados_log</code> con <code>eventId</code> único) asegurando que un mismo fallo jamás descuente dos escudos duplicados.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: FLUJOS CRÍTICOS -->
+  <div id="tab-flujos-criticos" class="tab-pane">
+    
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title" style="color:var(--desafios);">
+        Caso 1: Resolución del Escudo (Slot Life — Protección de Vida ante Fallo)
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin: 8px 0 16px;">
+        En el modelo anterior, Desafíos decidía no llamar a Roadmap. En el modelo coreografiado, Desafíos solo avisa que el intento concluyó con fallo. 
+        Mercado intercepta el evento y consulta su <strong>Slot Life</strong>:
+      </p>
+
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Momento</th>
+            <th>Emisor</th>
+            <th>Evento / Acción</th>
+            <th>Receptor</th>
+            <th>Efecto de Negocio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1. Evaluación</td>
+            <td><strong>Desafíos (03)</strong></td>
+            <td><code>challenge.completed</code><br><span style="font-size:11px; color:var(--danger); font-weight:600;">{ status: "FAILED", baseXp: 0, baseCoins: 0 }</span></td>
+            <td>Bus Kafka</td>
+            <td>Desafíos emite el contrato unificado simétrico indicando reprobación (reintentos agotados). No toca vidas.</td>
+          </tr>
+          <tr>
+            <td>2. Intercepción</td>
+            <td><strong>Mercado (09)</strong></td>
+            <td>Evalúa Slot <span class="slot-badge slot-life">Life</span></td>
+            <td>Mercado</td>
+            <td>Verifica si el alumno tiene equipado un ítem activo en su slot <strong>Life</strong> (ej. "Escudo de Atenea") con cargas disponibles.</td>
+          </tr>
+          <tr>
+            <td>3a. Con Escudo</td>
+            <td><strong>Mercado (09)</strong></td>
+            <td>Emite 2 eventos:
+              <br>• <code>market.resolution.roadmap</code> <span style="font-size:11px; color:var(--success);">{ livesToDeduct: 0, lifeAction: "PRESERVED_BY_SHIELD", xpToCredit: 0, itemName: "Shield Level 3", itemLevel: 3, type: "Life" }</span>
+              <br>• <code>market.resolution.bank</code> <span style="font-size:11px; color:var(--text-dim);">{ coinsToCredit: 0, type: null }</span>
+            </td>
+            <td>Roadmap (10) &amp;<br>Banco (08)</td>
+            <td>Mercado descuenta 1 carga del <strong>"Escudo Nivel 3"</strong> (le restan 2 cargas de protección). Roadmap archiva el intento manteniendo 3/3 vidas intactas. Banco asienta 0 monedas. Notificaciones avisa: <em>"¡Tu Escudo Nivel 3 protegió tu vida! (Cargas restantes: 2)"</em>.</td>
+          </tr>
+          <tr>
+            <td>3b. Sin Escudo</td>
+            <td><strong>Mercado (09)</strong></td>
+            <td>Emite 2 eventos:
+              <br>• <code>market.resolution.roadmap</code> <span style="font-size:11px; color:var(--danger);">{ livesToDeduct: 1, lifeAction: "DEDUCT_LIFE", xpToCredit: 0, itemName: null, itemLevel: null, type: null }</span>
+              <br>• <code>market.resolution.bank</code> <span style="font-size:11px; color:var(--text-dim);">{ coinsToCredit: 0, type: null }</span>
+            </td>
+            <td>Roadmap (10) &amp;<br>Banco (08)</td>
+            <td>Roadmap descuenta 1 vida en el ledger oficial (3 -> 2 vidas). Banco asienta 0 monedas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title" style="color:var(--banco);">
+        Caso 2: Aprobación con Multiplicadores con TTL (Slots XP y Coins — Ventana de 3 Horas)
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin: 8px 0 16px;">
+        A diferencia de los escudos (consumidos por unidad de fallo), los multiplicadores pertenecen a los slots 
+        <span class="slot-badge slot-xp">XP</span> (<em>Boost de XP Nivel 1 a 5</em>) y 
+        <span class="slot-badge slot-coins">Coins</span> (<em>Boost de Monedas Nivel 1 a 5</em>) y operan mediante 
+        <strong>TTL (Time-To-Live, ej. 3 horas de vigencia continua)</strong>. Durante esa ventana temporal, 
+        <strong>cada desafío que el alumno apruebe</strong> multiplica sus recompensas base. El ítem no se extingue tras un solo uso, 
+        sino que permanece activo hasta que expire su reloj. Mercado liquida los montos definitivos y emite 2 eventos especializados:
+      </p>
+
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Paso</th>
+            <th>Servicio</th>
+            <th>Qué publica / ejecuta</th>
+            <th>Impacto Desacoplado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><strong>Desafíos (03)</strong></td>
+            <td>Publica contrato unificado:
+              <br><code>challenge.completed { status: "PASSED", passed: true, difficulty: "MEDIUM", baseXp: 100, baseCoins: 50, scorePercentage: 100 }</code></td>
+            <td>Desafíos emite la métrica base pedagógica (Dificultad, XP Base y Monedas Base) y concluye su labor sin calcular bonus.</td>
+          </tr>
+          <tr>
+            <td>2a</td>
+            <td><strong>Mercado (09)</strong></td>
+            <td>Detecta <span class="slot-badge slot-xp">Slot XP</span> activo con <strong>"Boost de XP Nivel 5"</strong> (factor x2.0, TTL de 3h vigente) ➔ Aplica factor:
+              <br><code>xpAcreditar = 100 * 2.0 = 200 XP</code>
+              <br>Publica a Roadmap: <code>market.resolution.roadmap { baseXp: 100, multiplierFactor: 2.0, xpToCredit: 200, livesToDeduct: 0, itemName: "XP Boost Level 5", itemLevel: 5, type: "XP", validUntil: "2026-09-09T22:10:00Z" }</code></td>
+            <td>Mercado resuelve el cálculo gamificado de XP de forma aislada. El TTL sigue corriendo para próximos desafíos.</td>
+          </tr>
+          <tr>
+            <td>2b</td>
+            <td><strong>Mercado (09)</strong></td>
+            <td>Detecta <span class="slot-badge slot-coins">Slot Coins</span> activo con <strong>"Boost de Monedas Nivel 5"</strong> (factor x2.0, TTL de 3h vigente) ➔ Aplica factor:
+              <br><code>monedasAcreditar = 50 * 2.0 = 100 Monedas</code>
+              <br>Publica a Banco: <code>market.resolution.bank { baseCoins: 50, multiplierFactor: 2.0, coinsToCredit: 100, itemName: "Coin Boost Level 5", itemLevel: 5, type: "Coins", validUntil: "2026-09-09T22:10:00Z" }</code></td>
+            <td>Mercado resuelve el cálculo económico de monedas de forma aislada. El TTL sigue corriendo para próximos desafíos.</td>
+          </tr>
+          <tr>
+            <td>3a</td>
+            <td><strong>Roadmap (10)</strong></td>
+            <td>Consume <code>market.resolution.roadmap</code> y asienta <strong>200 XP</strong> directamente en el ledger de progreso.</td>
+            <td>Roadmap actualiza ranking y nivel sin necesidad de realizar cálculos matemáticos ni conocer el inventario.</td>
+          </tr>
+          <tr>
+            <td>3b</td>
+            <td><strong>Banco (08)</strong></td>
+            <td>Consume <code>market.resolution.bank</code> y acredita <strong>100 monedas</strong> directamente en la billetera virtual.</td>
+            <td>Banco asienta el saldo en la cuenta del alumno con trazabilidad total del ítem y factor aplicado.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warn" style="margin-top: 16px; margin-bottom: 0;">
+        <strong>⏱️ Reglas Clave del Multiplicador con TTL (3 Horas) & Simetría:</strong>
+        <ul class="clean-list" style="margin-top:6px; font-size:13px; line-height:1.7;">
+          <li>• <strong>Múltiples Aprobaciones:</strong> Si durante las 3 horas el alumno resuelve 5 desafíos aprobados, los 5 multiplican su recompensa base.</li>
+          <li>• <strong>Reprobación dentro de la Ventana TTL:</strong> Desafíos emite simétricamente <code>baseXp: 0</code> y <code>baseCoins: 0</code>. Mercado calcula <code>0 * 2.0 = 0</code> y emite <code>0</code> a Roadmap y Banco. <strong>El multiplicador no se pierde ni se cancela</strong>; su reloj de 3 horas sigue corriendo normalmente.</li>
+          <li>• <strong>Invariante de Slot Único:</strong> Máximo 1 ítem activo en el Slot <code>XP</code> y máximo 1 ítem activo en el Slot <code>Coins</code>. Se prohíbe el stackeo multiplicativo (x2 * x2 = x4). Si el usuario compra o activa otro ítem de XP, se aplica reemplazo (swap) o renovación del temporizador.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:var(--mercado);">
+        Caso 3: Efectos en Vivo dentro del IDE (Slot Challenge — Tests Ocultos, Pistas, Tiempo Extra)
+      </div>
+      <p style="font-size:13.5px; color:var(--text-muted); margin: 8px 0 16px;">
+        ¿Cómo utiliza el alumno un ítem interactivo con efecto <strong>DURANTE y DENTRO del desafío</strong> sin que Desafíos conozca el inventario de Mercado?
+      </p>
+      <div class="callout callout-success">
+        <strong>🎯 Patrón Token de Capacidad (Capability Token) para Slot <span class="slot-badge slot-challenge">Challenge</span>:</strong>
+        <br>1. <strong>Equipamiento:</strong> El alumno tiene equipado en su <strong>Slot Challenge</strong> un consumible interactivo (ej. <em>"Lente de Inspección — Revelar Test Oculto"</em> o <em>"+10 Minutos de Cronómetro"</em>).
+        <br>2. <strong>Activación en Vivo:</strong> Al estar programando en el IDE web, el alumno hace clic en: <em>"Usar Lente de Inspección"</em>.
+        <br>3. <strong>Validación en Mercado:</strong> El Frontend llama directamente a Mercado: <code>POST /api/v1/market/inventory/{id}/activate { challengeId: "des-302" }</code>.
+        <br>4. <strong>Emisión de Capability Token:</strong> Mercado valida que el ítem esté en el slot <code>Challenge</code>, consume su uso/carga de sesión y responde al Frontend con un <strong>JWT efímero firmado criptográficamente</strong>: <code>{ sub: "alm-441", action: "REVEAL_HIDDEN_TEST", challengeId: "des-302", exp: now() + 5min }</code>.
+        <br>5. <strong>Consumo en Desafíos:</strong> El Frontend envía el token al Motor de Desafíos: <code>POST /api/v1/challenges/session/apply-capability { token }</code>.
+        <br>6. <strong>Ejecución Segura y Desacoplada:</strong> Motor de Desafíos únicamente valida la firma del JWT con la clave pública de Mercado y aplica el efecto (muestra el test o extiende el temporizador). <strong>Desafíos jamás consultó la base de datos de Mercado ni conoció el inventario del alumno.</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 3: CONTRATOS -->
+  <div id="tab-contratos" class="tab-pane">
+    <div class="callout callout-success">
+      <strong>📜 Especificación de Contratos Kafka (Tema 11):</strong> 
+      La arquitectura desacoplada se compone de:
+      <br>1. <strong>1 Contrato Único de Entrada emitido por Desafíos (Tema 03):</strong> <code>CHALLENGE_COMPLETED</code> (simétrico en estructura para aprobado y reprobado).
+      <br>2. <strong>2 Contratos Especializados de Salida emitidos por Mercado (Tema 09):</strong> uno para <strong>Banco</strong> (<code>MARKET_RESOLUTION_BANK</code> / monedas a acreditar) y uno para <strong>Roadmap</strong> (<code>MARKET_RESOLUTION_ROADMAP</code> / XP a acreditar y resolución de vidas).
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>🎯 Regla de Simetría y Recompensas Base:</strong>
+      <ul class="clean-list" style="margin-top: 6px;">
+        <li>• <strong>Contrato Canónico de Desafíos:</strong> Emite siempre la misma estructura con 16 campos. En aprobación envía <code>baseXp</code> y <code>baseCoins</code> computadas; en reprobación fija estrictamente <code>baseXp: 0</code> y <code>baseCoins: 0</code>.</li>
+        <li>• <strong>Salida para Banco (<code>MARKET_RESOLUTION_BANK</code>):</strong> Contiene el cálculo final de <code>coinsToCredit</code> (si reprobó = 0). Informa siempre <code>itemName</code>, <code>multiplierFactor</code>, <code>baseCoins</code>, <code>inventoryItem</code>, <code>type</code>, <code>studentId</code>, <code>courseId</code>, <code>challengeId</code>, <code>challengeName</code> y <code>difficulty</code>.</li>
+        <li>• <strong>Salida para Roadmap (<code>MARKET_RESOLUTION_ROADMAP</code>):</strong> Contiene el cálculo final de <code>xpToCredit</code> (si reprobó = 0) y el mandato definitivo sobre vidas (<code>livesToDeduct</code> y <code>lifeAction</code>). Informa siempre <code>itemName</code>, <code>multiplierFactor</code>, <code>baseXp</code>, <code>inventoryItem</code>, <code>type</code>, <code>studentId</code>, <code>courseId</code>, <code>challengeId</code>, <code>challengeName</code> y <code>difficulty</code>.</li>
+      </ul>
+    </div>
+
+    <h3 style="font-size:16px; margin:20px 0 12px; color:var(--desafios);">A. Contrato Único Emitido por Motor de Desafíos (Tema 03)</h3>
+    <div class="grid-2">
+      <div>
+        <h4 style="color:var(--desafios); margin-bottom:8px;">1. Instancia APROBADO (Bases Computadas)</h4>
+        <pre class="code-json">// Topic: challenges.evaluations | EventType: CHALLENGE_COMPLETED
+{
+  "eventId": "evt-df-1144c",
+  "eventType": "CHALLENGE_COMPLETED",
+  "timestamp": "2026-09-09T19:10:00Z",
+  "payload": {
+    "studentId": "alm-441",
+    "courseCohortId": "coh-2026-1c",
+    "challengeId": "des-302",
+    "challengeName": "Binary Search Trees",
+    "difficulty": "MEDIUM",
+    "isMandatory": true,
+    "status": "PASSED",
+    "passed": true,
+    "baseXp": 100,
+    "baseCoins": 50,
+    "scorePercentage": 100,
+    "timeSpentSeconds": 420,
+    "attemptsUsed": 1,
+    "retriesAllowed": 3,
+    "reason": "TESTS_COMPLETED",
+    "testResults": {
+      "passed": 5,
+      "failed": 0,
+      "total": 5
+    }
+  }
+}</pre>
+      </div>
+
+      <div>
+        <h4 style="color:var(--desafios); margin-bottom:8px;">2. Instancia REPROBADO (Bases en Cero)</h4>
+        <pre class="code-json">// Topic: challenges.evaluations | EventType: CHALLENGE_COMPLETED
+{
+  "eventId": "evt-df-9821a",
+  "eventType": "CHALLENGE_COMPLETED",
+  "timestamp": "2026-09-09T18:45:00Z",
+  "payload": {
+    "studentId": "alm-441",
+    "courseCohortId": "coh-2026-1c",
+    "challengeId": "des-302",
+    "challengeName": "Binary Search Trees",
+    "difficulty": "MEDIUM",
+    "isMandatory": true,
+    "status": "FAILED",
+    "passed": false,
+    "baseXp": 0,
+    "baseCoins": 0,
+    "scorePercentage": 40,
+    "timeSpentSeconds": 850,
+    "attemptsUsed": 4,
+    "retriesAllowed": 3,
+    "reason": "RETRIES_EXHAUSTED",
+    "testResults": {
+      "passed": 2,
+      "failed": 3,
+      "total": 5
+    }
+  }
+}</pre>
+      </div>
+    </div>
+
+    <h3 style="font-size:16px; margin:28px 0 12px; color:var(--mercado);">B. Los 2 Eventos Especializados Emitidos por Mercado (Tema 09)</h3>
+    <div class="grid-2">
+      
+      <div>
+        <h4 style="color:var(--banco); margin-bottom:8px;">3. Evento para BANCO — Liquidación Económica</h4>
+        <pre class="code-json">// Topic: market.bank | EventType: MARKET_RESOLUTION_BANK
+{
+  "eventId": "evt-mc-bnk-701a",
+  "eventType": "MARKET_RESOLUTION_BANK",
+  "timestamp": "2026-09-09T19:10:01Z",
+  "correlationId": "evt-df-1144c",
+  "payload": {
+    "studentId": "alm-441",
+    "courseId": "coh-2026-1c",
+    "challengeId": "des-302",
+    "challengeName": "Binary Search Trees",
+    "difficulty": "MEDIUM",
+    "challengeStatus": "PASSED",
+    "baseCoins": 50,
+    "multiplierFactor": 2.0,
+    "coinsToCredit": 100,
+    "inventoryItem": "inv-boost-coins-05",
+    "itemName": "Coin Boost Level 5",
+    "itemLevel": 5,
+    "type": "Coins",
+    "validUntil": "2026-09-09T22:10:00Z"
+  }
+}</pre>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">
+          • <strong>Si reprobó:</strong> <code>baseCoins: 0</code>, <code>multiplierFactor: 1.0</code>, <code>coinsToCredit: 0</code>, <code>inventoryItem: null</code>, <code>itemName: null</code>, <code>itemLevel: null</code>, <code>type: null</code>, <code>validUntil: null</code>.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="color:var(--roadmap); margin-bottom:8px;">4. Evento para ROADMAP — XP y Vidas</h4>
+        <pre class="code-json">// Topic: market.roadmap | EventType: MARKET_RESOLUTION_ROADMAP
+{
+  "eventId": "evt-mc-rdm-801b",
+  "eventType": "MARKET_RESOLUTION_ROADMAP",
+  "timestamp": "2026-09-09T19:10:01Z",
+  "correlationId": "evt-df-1144c",
+  "payload": {
+    "studentId": "alm-441",
+    "courseId": "coh-2026-1c",
+    "challengeId": "des-302",
+    "challengeName": "Binary Search Trees",
+    "difficulty": "MEDIUM",
+    "challengeStatus": "PASSED",
+    "baseXp": 100,
+    "multiplierFactor": 2.0,
+    "xpToCredit": 200,
+    "livesToDeduct": 0,
+    "lifeAction": "NO_CHANGE",
+    "inventoryItem": "inv-boost-xp-05",
+    "itemName": "XP Boost Level 5",
+    "itemLevel": 5,
+    "type": "XP",
+    "validUntil": "2026-09-09T22:10:00Z"
+  }
+}</pre>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">
+          • <strong>Si reprobó con escudo:</strong> <code>xpToCredit: 0</code>, <code>livesToDeduct: 0</code>, <code>lifeAction: "PRESERVED_BY_SHIELD"</code>, <code>itemName: "Shield Level 3"</code>, <code>itemLevel: 3</code>, <code>type: "Life"</code>, <code>chargesConsumed: 1</code>, <code>chargesRemaining: 2</code>.
+          <br>• <strong>Si reprobó sin escudo:</strong> <code>xpToCredit: 0</code>, <code>livesToDeduct: 1</code>, <code>lifeAction: "DEDUCT_LIFE"</code>, <code>itemName: null</code>, <code>itemLevel: null</code>, <code>type: null</code>.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- SECCIÓN C: MATRIZ DE DOMINIO Y TIPOS -->
+    <h3 style="font-size:16px; margin:28px 0 12px; color:var(--text);">C. Catálogo Oficial de Ítems (Nivel 1 a 5) & Modelo Operativo</h3>
+    
+    <table class="matrix" style="margin-bottom:20px;">
+      <thead>
+        <tr>
+          <th>Familia de Ítems</th>
+          <th>Slot / Tipo</th>
+          <th>Niveles Disponibles</th>
+          <th>Escalamiento por Nivel</th>
+          <th>Mecánica de Vigencia</th>
+          <th>Consumo ante Fallo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Escudo</strong></td>
+          <td><span class="slot-badge slot-life">Life</span></td>
+          <td><code>Nivel 1 a 5</code></td>
+          <td><strong>Cargas de protección:</strong> Lv.1 (1 carga), Lv.2 (2 cargas), Lv.3 (3 cargas), Lv.4 (4 cargas), Lv.5 (5 cargas).</td>
+          <td>Permanente hasta consumir todas sus cargas.</td>
+          <td>Absorbe 1 fallo y resta 1 carga. Si le restan cargas, sigue activo; si llega a 0, pasa a <code>CONSUMIDO</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Boost de XP</strong></td>
+          <td><span class="slot-badge slot-xp">XP</span></td>
+          <td><code>Nivel 1 a 5</code></td>
+          <td><strong>Factor multiplicador:</strong> Lv.1 (x1.2), Lv.2 (x1.4), Lv.3 (x1.6), Lv.4 (x1.8), Lv.5 (x2.0).</td>
+          <td>⏱️ <strong>TTL de 3 Horas</strong> continuo. Válido para todos los desafíos aprobados en la ventana.</td>
+          <td>No se consume ni se penaliza. <code>baseXp = 0</code> ➔ bonus 0. Temporizador sigue corriendo.</td>
+        </tr>
+        <tr>
+          <td><strong>Boost de Monedas</strong></td>
+          <td><span class="slot-badge slot-coins">Coins</span></td>
+          <td><code>Nivel 1 a 5</code></td>
+          <td><strong>Factor multiplicador:</strong> Lv.1 (x1.2), Lv.2 (x1.4), Lv.3 (x1.6), Lv.4 (x1.8), Lv.5 (x2.0).</td>
+          <td>⏱️ <strong>TTL de 3 Horas</strong> continuo. Válido para todos los desafíos aprobados en la ventana.</td>
+          <td>No se consume ni se penaliza. <code>baseCoins = 0</code> ➔ bonus 0. Temporizador sigue corriendo.</td>
+        </tr>
+        <tr>
+          <td><strong>Ítems de IDE</strong> <em>(Futuros)</em></td>
+          <td><span class="slot-badge slot-challenge">Challenge</span></td>
+          <td><code>En diseño</code></td>
+          <td>Pistas semánticas, revelación de tests ocultos, extensión de cronómetro de sesión.</td>
+          <td>🎯 <strong>Por Sesión en IDE</strong> vía Capability Token (JWT efímero de 5 min).</td>
+          <td>Se consumen durante la sesión interactiva previa a la entrega final.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-success" style="margin-top:16px; margin-bottom:0;">
+      <strong>🛡️ Invariante Canónico de Equipamiento:</strong> 
+      Un alumno puede tener equipados simultáneamente <strong>como máximo 4 ítems</strong> (exactamente uno por cada tipo: <code>1 XP + 1 Coins + 1 Challenge + 1 Life</code>). 
+      Queda estrictamente prohibido equipar dos ítems de la misma categoría a la vez (ej. no se puede acumular un <em>Boost de XP Nivel 2</em> con un <em>Boost de XP Nivel 5</em>). Al equipar un nuevo ítem de un tipo ya ocupado, se ejecuta swap (reemplazo) inmediato en la base de datos de Mercado.
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function switchTab(tabId, btnElement) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    const selectedTab = document.getElementById(tabId);
+    if(selectedTab) selectedTab.classList.add('active');
+
+    if(btnElement) {
+      btnElement.classList.add('active');
+    }
+  }
+</script>
+
+</body>
+</html>

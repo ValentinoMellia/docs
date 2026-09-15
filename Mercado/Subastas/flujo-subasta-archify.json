@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Flujo Transaccional de Subastas e Integracion con Banco",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "viewBox": [940, 1180],
+    "views": [
+      {
+        "id": "puja-y-hold",
+        "label": "1. Oferta y Reserva de Monedas (HOLD)",
+        "focus": ["client", "gateway", "mercado", "banco", "kafka"],
+        "note": "El alumno oferta desde Web o Movil. Mercado registra la intencion y solicita el HOLD contable a Banco via Kafka."
+      },
+      {
+        "id": "incremento-y-liderazgo",
+        "label": "2. Mejora de Oferta y Notificaciones",
+        "focus": ["client", "mercado", "banco", "notif"],
+        "note": "Al mejorar la puja se ajusta el hold existente en Banco y se notifica en tiempo real a los participantes superados."
+      },
+      {
+        "id": "cierre-y-adjudicacion",
+        "label": "3. Cierre Concurrente y Liquidacion Final",
+        "focus": ["gateway", "mercado", "banco", "inventario", "kafka"],
+        "note": "El cron de cierre evalua ganador con bloqueo optimista. Se confirma el hold del ganador y se liberan los perdedores."
+      }
+    ]
+  },
+  "participants": [
+    { "id": "client", "type": "frontend", "label": "Cliente Alumno", "sublabel": "Web y Movil PWA" },
+    { "id": "gateway", "type": "security", "label": "API Gateway", "sublabel": "Tema 01 - Auth" },
+    { "id": "mercado", "type": "backend", "label": "Mercado Core", "sublabel": "Tema 09 - Subastas" },
+    { "id": "kafka", "type": "messagebus", "label": "Apache Kafka", "sublabel": "Bus de Eventos" },
+    { "id": "banco", "type": "database", "label": "Servicio Banco", "sublabel": "Tema 08 - Ledger" },
+    { "id": "inventario", "type": "backend", "label": "Inventario", "sublabel": "Tema 09 - Items" },
+    { "id": "notif", "type": "messagebus", "label": "Notificaciones", "sublabel": "Tema 11 - SSE" }
+  ],
+  "segments": [
+    { "from": 160, "to": 395, "label": "Fase 1: Entrada de Puja y Creacion de HOLD" },
+    { "from": 410, "to": 625, "label": "Fase 2: Incremento de Puja y Aviso a Superados" },
+    { "from": 640, "to": 865, "label": "Fase 3: Cierre, Adjudicacion e Idempotencia" },
+    { "from": 880, "to": 1070, "label": "Fase 4: Liquidacion Ganador y Liberacion Masiva" }
+  ],
+  "messages": [
+    { "from": "client", "to": "gateway", "y": 185, "label": "POST /api/v1/market/auctions/{id}/bids", "variant": "emphasis" },
+    { "from": "gateway", "to": "mercado", "y": 225, "label": "Valida JWT, inyecta X-User-Id y X-Roles", "variant": "security" },
+    { "from": "mercado", "to": "client", "y": 265, "label": "202 Accepted { bidId, status: PROCESSING, sseUrl }", "variant": "return" },
+    { "from": "mercado", "to": "kafka", "y": 305, "label": "HOLD_CREATE_REQUESTED -> bank.holds.commands", "variant": "emphasis" },
+    { "from": "kafka", "to": "banco", "y": 345, "label": "Consume comando y crea BalanceHold(PENDING)", "variant": "default" },
+    { "from": "banco", "to": "kafka", "y": 385, "label": "HOLD_CREATED -> bank.holds.events", "variant": "dashed" },
+
+    { "from": "kafka", "to": "mercado", "y": 430, "label": "Confirma hold y actualiza market_auction_bid", "variant": "default" },
+    { "from": "client", "to": "mercado", "y": 470, "label": "PUT /api/v1/market/auctions/{id}/bids (Aumenta monto)", "variant": "emphasis" },
+    { "from": "mercado", "to": "kafka", "y": 510, "label": "HOLD_INCREASE_REQUESTED -> bank.holds.commands", "variant": "emphasis" },
+    { "from": "banco", "to": "kafka", "y": 550, "label": "HOLD_INCREASED (actualiza saldo bloqueado)", "variant": "dashed" },
+    { "from": "mercado", "to": "notif", "y": 590, "label": "Publica OFERTA_SUPERADA para alumnos en la sala", "variant": "dashed" },
+
+    { "from": "gateway", "to": "mercado", "y": 660, "label": "Trigger Cron Cierre: Lock optimista @Version", "variant": "security" },
+    { "from": "mercado", "to": "kafka", "y": 700, "label": "HOLD_CONFIRM_REQUESTED (holdId ganador)", "variant": "emphasis" },
+    { "from": "kafka", "to": "banco", "y": 740, "label": "HoldService.confirmHold(): Debita saldo real en Ledger", "variant": "default" },
+    { "from": "banco", "to": "kafka", "y": 780, "label": "HOLD_CONFIRMED -> bank.holds.events (ledgerEntryId)", "variant": "dashed" },
+    { "from": "kafka", "to": "mercado", "y": 820, "label": "Consume HOLD_CONFIRMED y actualiza a CLOSED", "variant": "default" },
+    { "from": "mercado", "to": "inventario", "y": 855, "label": "Acredita item en student_inventory (AVAILABLE)", "variant": "emphasis" },
+
+    { "from": "mercado", "to": "kafka", "y": 900, "label": "HOLD_RELEASE_REQUESTED x N perdedores", "variant": "emphasis" },
+    { "from": "kafka", "to": "banco", "y": 940, "label": "Desbloquea monedas y restituye available_balance", "variant": "default" },
+    { "from": "banco", "to": "kafka", "y": 980, "label": "HOLD_RELEASED x N en bank.holds.events", "variant": "dashed" },
+    { "from": "mercado", "to": "notif", "y": 1015, "label": "Emite SUBASTA_ADJUDICADA a todos los participantes", "variant": "dashed" },
+    { "from": "notif", "to": "client", "y": 1050, "label": "Push Notification & EventSource SSE Update", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "gateway", "from": 180, "to": 235, "type": "security" },
+    { "participant": "mercado", "from": 220, "to": 315, "type": "backend" },
+    { "participant": "banco", "from": 340, "to": 395, "type": "database" },
+    { "participant": "mercado", "from": 425, "to": 520, "type": "backend" },
+    { "participant": "banco", "from": 545, "to": 560, "type": "database" },
+    { "participant": "gateway", "from": 655, "to": 670, "type": "security" },
+    { "participant": "mercado", "from": 660, "to": 865, "type": "backend" },
+    { "participant": "banco", "from": 735, "to": 790, "type": "database" },
+    { "participant": "inventario", "from": 850, "to": 870, "type": "backend" },
+    { "participant": "mercado", "from": 895, "to": 1025, "type": "backend" },
+    { "participant": "banco", "from": 935, "to": 990, "type": "database" },
+    { "participant": "notif", "from": 1010, "to": 1055, "type": "messagebus" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Garantia de Idempotencia y Outbox",
+      "items": [
+        "Clave unica commandId calculada como auctionId + studentId + sequenceNumber",
+        "Tabla processed_events en Banco y Mercado previene ejecucion duplicada de pujas",
+        "Patron Transactional Outbox garantiza entrega At-Least-Once sin dos fases bloqueantes"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Contratos de Eventos sobre Kafka",
+      "items": [
+        "bank.holds.commands: HOLD_CREATE_REQUESTED, HOLD_INCREASE_REQUESTED, HOLD_CONFIRM_REQUESTED, HOLD_RELEASE_REQUESTED",
+        "bank.holds.events: HOLD_CREATED, HOLD_INCREASED, HOLD_CONFIRMED, HOLD_RELEASED, HOLD_EXPIRED",
+        "Envoltura obligatoria JSON: eventId, eventType, timestamp, producer y payload tipado"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Resiliencia ante Fallos Concurrentes",
+      "items": [
+        "Control de concurrencia optimista @Version sobre market_auction para evitar doble martillo",
+        "Reconciliador asincrono (Sweeper Cron) detecta subastas estancadas y reintenta liberaciones",
+        "Compensacion de fondos automatica ante fallo de persistencia local en student_inventory"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flujo de Compra — Versión Corregida</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,500&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #eef2f0;
+    --surface: #ffffff;
+    --surface-2: #e4eae7;
+    --ink: #16211e;
+    --ink-soft: #47564f;
+    --ink-faint: #7c8b84;
+    --line: #d3ddd8;
+    --accent: #0b6f66;
+    --accent-ink: #063f3a;
+    --accent-soft: #dcefec;
+    --ok: #1f7a4d;
+    --ok-soft: #dcefe2;
+    --warn: #93650a;
+    --warn-soft: #f6ecd6;
+    --bad: #a8402f;
+    --bad-soft: #f7ddd7;
+    --code-bg: #f4f1e9;
+    --shadow: 0 1px 2px rgba(15,30,26,0.04), 0 8px 24px -12px rgba(15,30,26,0.16);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0f1614; --surface: #16211e; --surface-2: #1c2925;
+      --ink: #e7efec; --ink-soft: #aebdb6; --ink-faint: #74857d; --line: #2a3733;
+      --accent: #4fbdb0; --accent-ink: #bfe9e2; --accent-soft: #1c322f;
+      --ok: #5fbf8c; --ok-soft: #163227; --warn: #e0b458; --warn-soft: #362c15;
+      --bad: #e3897b; --bad-soft: #38201c; --code-bg: #12201c;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0f1614; --surface: #16211e; --surface-2: #1c2925;
+    --ink: #e7efec; --ink-soft: #aebdb6; --ink-faint: #74857d; --line: #2a3733;
+    --accent: #4fbdb0; --accent-ink: #bfe9e2; --accent-soft: #1c322f;
+    --ok: #5fbf8c; --ok-soft: #163227; --warn: #e0b458; --warn-soft: #362c15;
+    --bad: #e3897b; --bad-soft: #38201c; --code-bg: #12201c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:'Source Sans 3', system-ui, sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Newsreader', Georgia, serif; text-wrap:balance; color:var(--ink); font-weight:600;}
+  code, .mono, pre{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+  p{line-height:1.65; font-size:15.5px; color:var(--ink);}
+  strong{color:var(--ink); font-weight:700;}
+
+  .page{max-width:920px; margin:0 auto; padding:56px 24px 100px;}
+
+  .eyebrow{font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); font-weight:600; display:flex; align-items:center; gap:10px;}
+  .eyebrow::before{content:""; width:7px;height:7px;border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);}
+  h1.title{font-size:clamp(28px,4.4vw,40px); line-height:1.12; margin:14px 0 6px; letter-spacing:-0.01em;}
+  .subtitle{font-family:'Newsreader',serif; font-style:italic; font-size:17.5px; color:var(--ink-soft); margin:0 0 22px;}
+  .badge-v2{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; background:var(--ok-soft); color:var(--ok); padding:4px 10px; border-radius:999px; margin-bottom:16px;}
+
+  section{margin-top:50px;}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:6px; flex-wrap:wrap;}
+  .sec-num{font-family:'IBM Plex Mono',monospace; color:var(--accent); font-size:15px; font-weight:600;}
+  section h2{font-size:22px; margin:0;}
+  section > .lede{color:var(--ink-soft); font-size:15px; line-height:1.6; max-width:72ch; margin:14px 0 20px;}
+
+  .fixlist{list-style:none; margin:0 0 8px; padding:0; display:grid; gap:10px;}
+  .fixlist li{display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:flex-start; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:12px 15px; box-shadow:var(--shadow);}
+  .fixlist .num{font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:700; color:#fff; background:var(--accent); width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:none; margin-top:2px;}
+  .fixlist p{margin:0; font-size:14.3px; color:var(--ink-soft);}
+  .fixlist strong{color:var(--ink);}
+
+  /* plain numbered step list */
+  ol.steps-plain{margin:18px 0; padding-left:1.4em; display:grid; gap:14px;}
+  ol.steps-plain li{font-size:14.8px; line-height:1.7; color:var(--ink-soft); padding-left:6px;}
+  ol.steps-plain li::marker{font-family:'IBM Plex Mono',monospace; font-weight:700; color:var(--accent);}
+  ol.steps-plain li.alt::marker{color:var(--warn);}
+  ol.steps-plain li strong{color:var(--ink);}
+
+  /* step-by-step list */
+  ol.steps{list-style:none; margin:18px 0; padding:0; display:grid; gap:0;}
+  ol.steps li{position:relative; padding:0 0 26px 44px; border-left:2px solid var(--line); margin-left:15px;}
+  ol.steps li:last-child{border-left-color:transparent; padding-bottom:2px;}
+  ol.steps li.alt{border-left-style:dashed;}
+  .step-head{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+  .step-n{position:absolute; left:-16px; top:0; width:32px; height:32px; border-radius:50%; background:var(--accent); color:#fff; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow);}
+  .step-n.alt{background:var(--warn);}
+  .step-head h3{margin:0; font-size:16.5px;}
+  ol.steps p{margin:0; font-size:14.3px; color:var(--ink-soft); max-width:70ch;}
+  .et-inline{font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600; color:var(--accent-ink); background:var(--accent-soft); padding:1px 7px; border-radius:5px;}
+  .et-inline.evt{color:var(--ok); background:var(--ok-soft);}
+  .state{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:700; color:#fff; padding:2px 8px; border-radius:999px; white-space:nowrap;}
+  .state.ok{background:var(--accent);}
+  .state.ok2{background:var(--ok);}
+  .state.warn{background:var(--warn);}
+
+  .tbl-wrap{overflow-x:auto; margin:16px 0; border:1px solid var(--line); border-radius:10px;}
+  table{border-collapse:collapse; width:100%; background:var(--surface); font-size:13.6px;}
+  th, td{text-align:left; padding:10px 13px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.55;}
+  thead th{font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); background:var(--surface-2);}
+  tbody tr:last-child td{border-bottom:none;}
+  td code, th code{font-size:12.3px; background:var(--surface-2); padding:1px 5px; border-radius:4px;}
+  td.was code{color:var(--bad); text-decoration:line-through; text-decoration-color:var(--bad); opacity:0.75;}
+  td.now code{color:var(--ok); font-weight:600;}
+
+  pre.code-block{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:16px; font-size:12.6px; line-height:1.65; overflow-x:auto; color:var(--ink-soft); margin:14px 0;}
+  .k{color:var(--accent-ink); font-weight:600;}
+
+  .compare{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0;}
+  @media (max-width:720px){.compare{grid-template-columns:1fr;}}
+  .compare .col h4{margin:0 0 8px; font-size:12px; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.05em; display:flex; align-items:center; gap:6px;}
+  .compare .col.before h4{color:var(--bad);}
+  .compare .col.after h4{color:var(--ok);}
+  .compare pre{margin:0;}
+  .removed{background:var(--bad-soft); text-decoration:line-through; text-decoration-color:var(--bad); padding:1px 3px; border-radius:3px;}
+  .added{background:var(--ok-soft); padding:1px 3px; border-radius:3px;}
+
+  .topic-box{border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:16px 0;}
+  .topic-box .th{background:var(--accent); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; padding:9px 14px;}
+  .topic-box .tb{padding:13px 14px; background:var(--surface); font-size:13.2px; color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; line-height:1.7;}
+  .topic-box .tb .et{color:var(--accent-ink); font-weight:600;}
+
+  .note{padding:13px 16px; border-radius:10px; border:1px solid var(--line); background:var(--surface); font-size:14px; margin:16px 0; color:var(--ink-soft);}
+  .note.accent{background:var(--accent-soft); border-color:transparent; color:var(--accent-ink);}
+
+  footer{margin-top:64px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-faint); font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Pareja 1 · Infraestructura del Hold</span>
+  <h1 class="title">Flujo de compra de un curso — versión corregida</h1>
+  <p class="subtitle">Reserva y confirmación de moneda (con Kafka), alineado al contrato final de Hold</p>
+  <span class="badge-v2">✓ 3 correcciones aplicadas sobre el diagrama original</span>
+
+  <section id="que-cambio">
+    <div class="sec-head"><span class="sec-num">00</span><h2>Qué cambió respecto al diagrama original</h2></div>
+    <p class="lede">El diagrama que compartiste describía bien el flujo de negocio (reserva → confirmación/expiración), pero tres detalles técnicos quedaron desactualizados frente al contrato de Hold ya cerrado con el equipo.</p>
+    <ul class="fixlist">
+      <li><span class="num">1</span><p><strong>Tópicos consolidados.</strong> Los seis tópicos granulares (<code>hold.create.requested</code>, <code>hold.created</code>, <code>hold.confirm.requested</code>, <code>hold.confirmed</code>, <code>hold.release.requested</code>, <code>hold.released</code>) se reemplazan por dos: <code>bank.holds.commands</code> y <code>bank.holds.events</code>. El hecho puntual se distingue por <code>eventType</code>, no por el nombre del tópico.</p></li>
+      <li><span class="num">2</span><p><strong><code>ttlSeconds</code> eliminado del ejemplo de compra directa.</strong> El payload de ejemplo para <code>orderType: DIRECT_PURCHASE</code> incluía <code>ttlSeconds</code>, pero ese campo lo calcula Banco internamente para compras directas — Mercado no lo envía. (Sí viaja cuando el <code>orderType</code> es de subasta.)</p></li>
+      <li><span class="num">3</span><p><strong>Nombres de tabla corregidos.</strong> En «Detalle técnico por componente», <code>processed_commands</code> → <code>processed_events</code> (tabla compartida de idempotencia, de Pareja 4) y <code>outbox</code> → <code>outbox_events</code> (tabla compartida de publicación, usada por Hold, Ledger y Accounts).</p></li>
+    </ul>
+  </section>
+
+  <section id="pasos">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Paso a paso corregido</h2></div>
+    <p class="lede">Cada paso indica quién actúa, qué endpoint o tópico de Kafka usa, y en qué estado queda el Hold.</p>
+
+    <ol class="steps-plain">
+      <li><strong>Cliente confirma la compra en Mercado (FRONT).</strong> El click del usuario no llega directo a Banco: pasa por el <strong>API Gateway</strong>, que lo redirige al endpoint de Mercado (la plataforma no permite que un microservicio le hable a otro de forma síncrona). Mercado es quien le da la cara al usuario durante todo el checkout — arma el pedido (<code>orderId</code>) y decide el <code>orderType</code> (en este ejemplo, <code>DIRECT_PURCHASE</code>).</li>
+      <li><strong>Mercado envía el comando de reserva.</strong> Publica <span class="et-inline">HOLD_CREATE_REQUESTED</span> en Kafka en <code>bank.holds.commands</code>, con <code>accountId</code>, <code>orderId</code>, <code>amount</code> y <code>orderType</code>. No incluye <code>ttlSeconds</code> porque el pedido es una compra directa — ese cálculo lo hace Banco.</li>
+      <li><strong>Banco consume el comando y crea el BalanceHold.</strong> El <code>HoldEventListener</code> escucha <code>bank.holds.commands</code>, valida el <code>eventType</code> recibido y, antes de nada, chequea <code>processed_events</code> por si ese <code>commandId</code> ya se procesó (idempotencia). Delega en <code>HoldService.createHold(accountId, orderId, amount, orderType)</code>, que toma lock pesimista sobre <code>BankAccount</code> y crea el <code>BalanceHold</code> con estado <strong>PENDING</strong>. En la misma transacción escribe una fila en <code>outbox_events</code>.</li>
+      <li><strong>Banco publica la confirmación de la reserva.</strong> El relay/publisher de <code>outbox_events</code> toma las filas con <code>published_at IS NULL</code>, arma la envoltura estándar y publica <span class="et-inline evt">HOLD_CREATED</span> en Kafka en <code>bank.holds.events</code>. Mercado consume ese evento y se entera de que el cupo quedó reservado.</li>
+      <li><strong>Usuario completa el checkout en Mercado (FRONT).</strong> De nuevo, vía Gateway → Mercado, nunca directo a Banco. El usuario abrió el checkout en el paso 1 (eso disparó la reserva); acá es cuando efectivamente confirma y paga, dentro de la ventana del TTL. Si lo completa a tiempo, el flujo sigue al paso 6. Si abandona el checkout sin terminarlo, el hold expira solo (rama de los pasos 8 y 9) — Banco nunca sabe que hubo un usuario del otro lado, solo ve comandos de Mercado.</li>
+      <li><strong>Mercado envía el comando de confirmación.</strong> Publica <span class="et-inline">HOLD_CONFIRM_REQUESTED</span> en Kafka en <code>bank.holds.commands</code>, con <code>accountId</code>, <code>orderId</code> y <code>holdId</code>.</li>
+      <li><strong>Banco consume el comando y debita el saldo real.</strong> El <code>HoldEventListener</code> registra el <code>commandId</code> en <code>processed_events</code> y delega en <code>HoldService.confirmHold(holdId)</code>, que aplica el movimiento definitivo en Ledger, cierra el <code>BalanceHold</code> como <strong>COMMITTED</strong> y escribe la fila correspondiente en <code>outbox_events</code>, todo en la misma transacción.</li>
+      <li><strong>Banco publica la confirmación y Mercado habilita el curso.</strong> El relay publica <span class="et-inline evt">HOLD_CONFIRMED</span> en Kafka en <code>bank.holds.events</code>, incluyendo el <code>ledgerEntryId</code> que generó <code>confirmHold()</code>. Mercado lo consume y habilita el acceso al curso para el usuario.</li>
+      <li class="alt"><strong>Ruta alternativa — el hold vence sin confirmación.</strong> Dentro de Banco, <code>expirePendingHolds()</code> corre cada 45 segundos (<code>@Scheduled(fixedDelay=45000)</code>) en el <code>HoldExpirationScheduler</code>. Trae un lote de holds vencidos en <strong>PENDING</strong> con <code>findBatchOfExpiredPendingHolds()</code> y, por cada uno, llama a <code>HoldService.expireHold(holdId)</code> en su propia transacción — así, si uno falla, el resto del lote se procesa igual. <code>expireHold()</code> libera el hold, lo marca <strong>EXPIRED</strong> y escribe la fila en <code>outbox_events</code>.</li>
+      <li class="alt"><strong>Banco publica la liberación.</strong> El relay publica <span class="et-inline evt">HOLD_RELEASED</span> (si fue una liberación manual vía <code>HoldService.releaseHold(holdId, reason)</code>, ej. cancelación del usuario) o <span class="et-inline evt">HOLD_EXPIRED</span> (si fue automática, vía <code>expireHold()</code>) en Kafka en <code>bank.holds.events</code>. Mercado lo consume y libera el cupo reservado.</li>
+    </ol>
+  </section>
+
+  <section id="topicos">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Tópicos consolidados usados en el diagrama</h2></div>
+    <div class="topic-box">
+      <div class="th">bank.holds.commands</div>
+      <div class="tb">
+        <span class="et">HOLD_CREATE_REQUESTED</span> · <span class="et">HOLD_CONFIRM_REQUESTED</span> · <span class="et">HOLD_RELEASE_REQUESTED</span>
+      </div>
+    </div>
+    <div class="topic-box">
+      <div class="th">bank.holds.events</div>
+      <div class="tb">
+        <span class="et">HOLD_CREATED</span> · <span class="et">HOLD_CONFIRMED</span> · <span class="et">HOLD_RELEASED</span> · <span class="et">HOLD_EXPIRED</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="payload">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Payload de ejemplo: compra directa sin <code>ttlSeconds</code></h2></div>
+    <p class="lede">El comando que Mercado envía para una compra directa ya no incluye <code>ttlSeconds</code> — ese valor lo define Banco internamente según el tipo de orden.</p>
+    <div class="compare">
+      <div class="col before">
+        <h4>✗ Diagrama original</h4>
+        <pre class="code-block">{
+  <span class="k">"eventId"</span>: "…",
+  <span class="k">"eventType"</span>: "HOLD_CREATE_REQUESTED",
+  <span class="k">"timestamp"</span>: "2026-09-06T14:02:11Z",
+  <span class="k">"producer"</span>: "topic-09-marketplace",
+  <span class="k">"payload"</span>: {
+    "accountId": "acc-778",
+    "orderId": "ord-4471",
+    "amount": 15000,
+    "orderType": "DIRECT_PURCHASE",
+    <span class="removed">"ttlSeconds": 300</span>
+  }
+}</pre>
+      </div>
+      <div class="col after">
+        <h4>✓ Corregido</h4>
+        <pre class="code-block">{
+  <span class="k">"eventId"</span>: "…",
+  <span class="k">"eventType"</span>: "HOLD_CREATE_REQUESTED",
+  <span class="k">"timestamp"</span>: "2026-09-06T14:02:11Z",
+  <span class="k">"producer"</span>: "topic-09-marketplace",
+  <span class="k">"payload"</span>: {
+    "accountId": "acc-778",
+    "orderId": "ord-4471",
+    "amount": 15000,
+    <span class="added">"orderType": "DIRECT_PURCHASE"</span>
+  }
+}</pre>
+      </div>
+    </div>
+    <div class="note">Para <code>orderType: AUCTION</code> sí corresponde incluir <code>ttlSeconds</code>, porque ahí el tiempo de reserva lo define la subasta y no Banco.</div>
+    <div class="note accent"><strong>¿Y el TTL para <code>DIRECT_PURCHASE</code>?</strong> Mercado no lo manda, pero tampoco queda oculto: Banco lo calcula al crear el hold y se lo devuelve en el campo <code>expiresAt</code> del evento <span class="et-inline evt">HOLD_CREATED</span> (paso 04). Mercado lee ese <code>expiresAt</code> y arranca su propio contador en el checkout (ej. "te quedan 4:59 para pagar"). La fuente de verdad del vencimiento sigue siendo el scheduler de Banco — <code>expiresAt</code> es solo el mecanismo por el cual ese dato viaja hacia Mercado, sin que haga falta agregar ningún campo nuevo al contrato.</div>
+  </section>
+
+  <section id="tablas">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Detalle técnico por componente — nombres de tabla corregidos</h2></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Componente</th><th>Diagrama original</th><th>Corregido</th><th>Rol</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Idempotencia de comandos entrantes</td>
+            <td class="was"><code>processed_commands</code></td>
+            <td class="now"><code>processed_events</code></td>
+            <td>Tabla compartida (Pareja 4). Clave: <code>event_id</code>/<code>commandId</code>; evita reprocesar el mismo comando dos veces.</td>
+          </tr>
+          <tr>
+            <td>Publicación transaccional (outbox)</td>
+            <td class="was"><code>outbox</code></td>
+            <td class="now"><code>outbox_events</code></td>
+            <td>Tabla compartida por Hold, Ledger y Accounts. Se escribe en la misma transacción que el cambio de negocio; el relay publica lo que tiene <code>published_at IS NULL</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note accent"><strong>Por qué importa:</strong> ambas tablas ya no son específicas de Hold — son la infraestructura compartida de todo el microservicio Banco. Usar los nombres genéricos evita que cada dominio (Hold, Ledger, Accounts) piense que necesita su propia tabla de idempotencia o de publicación.</div>
+  </section>
+
+  <section id="campos">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Los dos tópicos, con todos sus campos</h2></div>
+    <p class="lede">Todo mensaje —comando o evento— viaja con la misma envoltura estándar (<code>eventId</code>, <code>eventType</code>, <code>timestamp</code>, <code>producer</code>, <code>payload</code>). Lo que cambia entre un <code>eventType</code> y otro es el contenido de <code>payload</code>.</p>
+
+    <h3 class="sub">bank.holds.commands</h3>
+    <p class="lede" style="margin-top:0;">Comandos que Mercado envía para pedirle una acción a Banco. Banco los procesa contra <code>processed_events</code> para idempotencia.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Campo (envoltura)</th><th>Tipo</th><th>Ejemplo / notas</th></tr></thead>
+        <tbody>
+          <tr><td><code>eventId</code></td><td>UUID</td><td>Id único del mensaje</td></tr>
+          <tr><td><code>eventType</code></td><td>String (enum)</td><td><code>HOLD_CREATE_REQUESTED</code> · <code>HOLD_CONFIRM_REQUESTED</code> · <code>HOLD_RELEASE_REQUESTED</code></td></tr>
+          <tr><td><code>timestamp</code></td><td>String</td><td>ISO 8601 UTC, ej. <code>2026-09-06T14:02:11Z</code></td></tr>
+          <tr><td><code>producer</code></td><td>String</td><td><code>topic-09-marketplace</code></td></tr>
+          <tr><td><code>payload</code></td><td>Object</td><td>Ver tabla por <code>eventType</code> abajo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>eventType</th><th>Campos de payload</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>HOLD_CREATE_REQUESTED</code></td>
+            <td><code>accountId</code>, <code>orderId</code>, <code>amount</code>, <code>orderType</code> (<code>DIRECT_PURCHASE</code> / <code>AUCTION</code>), <code>ttlSeconds</code> <em>(solo si orderType es AUCTION)</em></td>
+          </tr>
+          <tr>
+            <td><code>HOLD_CONFIRM_REQUESTED</code></td>
+            <td><code>accountId</code>, <code>orderId</code>, <code>holdId</code></td>
+          </tr>
+          <tr>
+            <td><code>HOLD_RELEASE_REQUESTED</code></td>
+            <td><code>accountId</code>, <code>orderId</code>, <code>holdId</code>, <code>reason</code> <em>(ej. "USER_CANCELLED")</em></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">bank.holds.events</h3>
+    <p class="lede" style="margin-top:0;">Hechos que Banco publica como consecuencia de procesar un comando (o del scheduler de expiración). Se escriben primero en <code>outbox_events</code> y el relay los publica.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Campo (envoltura)</th><th>Tipo</th><th>Ejemplo / notas</th></tr></thead>
+        <tbody>
+          <tr><td><code>eventId</code></td><td>UUID</td><td>Id único del mensaje</td></tr>
+          <tr><td><code>eventType</code></td><td>String (enum)</td><td><code>HOLD_CREATED</code> · <code>HOLD_CONFIRMED</code> · <code>HOLD_RELEASED</code> · <code>HOLD_EXPIRED</code></td></tr>
+          <tr><td><code>timestamp</code></td><td>String</td><td>ISO 8601 UTC</td></tr>
+          <tr><td><code>producer</code></td><td>String</td><td><code>topic-08-bank</code></td></tr>
+          <tr><td><code>payload</code></td><td>Object</td><td>Ver tabla por <code>eventType</code> abajo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>eventType</th><th>Campos de payload</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>HOLD_CREATED</code></td>
+            <td><code>holdId</code>, <code>accountId</code>, <code>orderId</code>, <code>amount</code>, <code>status</code> (<code>PENDING</code>), <code>expiresAt</code></td>
+          </tr>
+          <tr>
+            <td><code>HOLD_CONFIRMED</code></td>
+            <td><code>holdId</code>, <code>accountId</code>, <code>orderId</code>, <code>amount</code>, <code>status</code> (<code>COMMITTED</code>)</td>
+          </tr>
+          <tr>
+            <td><code>HOLD_RELEASED</code></td>
+            <td><code>holdId</code>, <code>accountId</code>, <code>orderId</code>, <code>status</code> (<code>RELEASED</code>), <code>reason</code></td>
+          </tr>
+          <tr>
+            <td><code>HOLD_EXPIRED</code></td>
+            <td><code>holdId</code>, <code>accountId</code>, <code>orderId</code>, <code>status</code> (<code>EXPIRED</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note accent"><strong>Nota:</strong> los payloads de <code>HOLD_RELEASED</code> y <code>HOLD_EXPIRED</code> no estaban detallados en el material original de Pareja 1 — estos campos son la propuesta consistente con el resto del contrato, a confirmar con el equipo.</div>
+  </section>
+
+  <footer>Pareja 1 — Infraestructura del Hold · Versión corregida del diagrama de flujo de compra</footer>
+</div>
+</body>
+</html>

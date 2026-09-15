@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Flujo Inter-Microservicios — Posición y Entrada de Mercado</title>
+<style>
+  :root {
+    --bg: #090c10;
+    --canvas: #0e131b;
+    --card: #151b26;
+    --card-hover: #1c2433;
+    --border: #263042;
+    --border-bright: #3b4861;
+    --text: #f0f3f8;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    /* Microservicios */
+    --desafios: #ff5e7e;
+    --runner: #ec4899;
+    --mercado: #2dd4bf;
+    --roadmap: #38bdf8;
+    --banco: #fbbf24;
+    --kafka: #a78bfa;
+    --notif: #f43f5e;
+    --success: #34d399;
+    --danger: #f87171;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    line-height: 1.5;
+    padding: 30px 24px 80px;
+  }
+
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(45, 212, 191, 0.12);
+    color: var(--mercado);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 20%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+    max-width: 950px;
+  }
+
+  /* Interactive Simulator Toolbar */
+  .sim-toolbar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .sim-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+  .sim-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sim-btn {
+    background: #11151e;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sim-btn:hover {
+    background: var(--card-hover);
+    color: #fff;
+    border-color: var(--border-bright);
+  }
+  .sim-btn.active {
+    background: rgba(45, 212, 191, 0.12);
+    border-color: var(--mercado);
+    color: var(--mercado);
+    box-shadow: 0 0 10px rgba(45, 212, 191, 0.2);
+  }
+
+  /* Main Canvas Grid */
+  .diagram-board {
+    background: var(--canvas);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  /* Section Tracks */
+  .track-label {
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .track-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Node Cards */
+  .nodes-row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .row-2 { grid-template-columns: 1fr 1fr; }
+  .row-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .row-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .node-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  .node-card:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-2px);
+  }
+
+  /* Service Specific Border Accents */
+  .node-desafios { border-top: 3px solid var(--desafios); }
+  .node-runner { border-top: 3px solid var(--runner); }
+  .node-kafka { border: 2px solid var(--kafka); background: rgba(167, 139, 250, 0.05); }
+  .node-roadmap { border-top: 3px solid var(--roadmap); }
+  .node-banco { border-top: 3px solid var(--banco); }
+  .node-notif { border-top: 3px solid var(--notif); }
+
+  /* MERCADO HERO CARD */
+  .node-mercado-hero {
+    border: 2px solid var(--mercado);
+    background: linear-gradient(160deg, rgba(45, 212, 191, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.12);
+    position: relative;
+  }
+  .hero-pin {
+    position: absolute;
+    top: -10px;
+    right: 14px;
+    background: var(--mercado);
+    color: #042f2e;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .node-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .node-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .node-role {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-dim);
+  }
+  .node-desc {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .node-desc strong { color: var(--text); }
+
+  /* Flow Channels & Event Badges */
+  .channel-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(167, 139, 250, 0.12);
+    color: var(--kafka);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: monospace;
+    font-weight: 600;
+    margin: 4px 0;
+  }
+  .channel-pill.out-pill {
+    background: rgba(45, 212, 191, 0.12);
+    color: var(--mercado);
+    border-color: rgba(45, 212, 191, 0.3);
+  }
+  .channel-pill.err-pill {
+    background: rgba(248, 113, 113, 0.12);
+    color: var(--danger);
+    border-color: rgba(248, 113, 113, 0.3);
+  }
+
+  /* Bus Banner */
+  .kafka-bus-strip {
+    background: linear-gradient(90deg, rgba(167, 139, 250, 0.15) 0%, rgba(167, 139, 250, 0.05) 100%);
+    border: 1px dashed var(--kafka);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin: 18px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .bus-label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--kafka);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bus-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Step Badges */
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--border-bright);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .step-num.hero {
+    background: var(--mercado);
+    color: #042f2e;
+  }
+
+  /* Interactive Feedback Log */
+  .sim-console {
+    background: #06080c;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.8;
+  }
+  .log-line {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .log-time { color: var(--text-dim); }
+  .log-tag { font-weight: 700; border-radius: 3px; padding: 0 4px; }
+  .tag-desafios { color: var(--desafios); background: rgba(255, 94, 126, 0.15); }
+  .tag-mercado { color: var(--mercado); background: rgba(45, 212, 191, 0.15); }
+  .tag-roadmap { color: var(--roadmap); background: rgba(56, 189, 248, 0.15); }
+  .tag-banco { color: var(--banco); background: rgba(251, 191, 36, 0.15); }
+  .tag-kafka { color: var(--kafka); background: rgba(167, 139, 250, 0.15); }
+
+  /* Info Cards Footer */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .info-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  ul.mini-list {
+    list-style: none;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  ul.mini-list li::before {
+    content: "• ";
+    color: var(--text-dim);
+  }
+  ul.mini-list li strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="badge">
+      <span>🗺️ Mapa Topológico & Secuencia de Integración</span>
+    </div>
+    <h1>¿Dónde estoy y cuándo entro? El Rol de Mercado en la Coreografía</h1>
+    <p class="subtitle">
+      Visualización clara de la interacción entre los <strong>7 microservicios</strong>. 
+      Comprende por qué <strong>Mercado ya no es un cuello de botella</strong> y cómo entra en paralelo como un 
+      <strong>"Observador Silencioso"</strong> que solo habla cuando hay ítems activos.
+    </p>
+  </header>
+
+  <!-- Interactive Scenario Simulator -->
+  <div class="sim-toolbar">
+    <div class="sim-title">🎮 Selecciona un Escenario para Ver el Flujo en Acción:</div>
+    <div class="sim-buttons">
+      <button class="sim-btn active" onclick="runScenario('sin-items')">
+        <span>⚪ 1. Aprobó SIN Ítems</span>
+      </button>
+      <button class="sim-btn" onclick="runScenario('con-boosts')">
+        <span>⚡ 2. Aprobó CON Boosts (XP + Monedas)</span>
+      </button>
+      <button class="sim-btn" onclick="runScenario('fallo-con-escudo')">
+        <span>🛡️ 3. Reprobó CON Escudo Activo</span>
+      </button>
+      <button class="sim-btn" onclick="runScenario('mercado-caido')">
+        <span>🔌 4. Mercado CAÍDO (Zero Downtime)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Topology Diagram -->
+  <div class="diagram-board">
+    
+    <!-- FASE 1: ORIGEN ACADÉMICO -->
+    <div class="track-label">
+      <span>Fase 1: Origen Académico (Evaluación Pura — Cero conocimiento de ítems)</span>
+    </div>
+    <div class="nodes-row row-3">
+      
+      <!-- Alumno -->
+      <div class="node-card">
+        <div class="node-header">
+          <div class="node-title">
+            <span class="step-num">1</span> Alumno en IDE Web
+          </div>
+          <span class="node-role">Frontend / Web</span>
+        </div>
+        <div class="node-desc">
+          Escribe su código y pulsa <strong>"Enviar Solución"</strong>.
+          <br><span style="color:var(--text-dim); font-size:11.5px;">No conoce la infraestructura interna.</span>
+        </div>
+      </div>
+
+      <!-- Motor de Desafío -->
+      <div class="node-card node-desafios">
+        <div class="node-header">
+          <div class="node-title" style="color:var(--desafios);">
+            <span class="step-num">2</span> Motor Desafíos (Tema 03)
+          </div>
+          <span class="node-role">Orquestador Académico</span>
+        </div>
+        <div class="node-desc">
+          Gestiona los intentos (0 a 3 reintentos). 
+          Coordina con el Sandbox. Calcula <strong>baseXp: 100</strong> y <strong>baseCoins: 50</strong>. 
+          <br><strong>¡No sabe qué es un ítem ni qué inventario tiene el alumno!</strong>
+        </div>
+      </div>
+
+      <!-- Sandbox Runner -->
+      <div class="node-card node-runner">
+        <div class="node-header">
+          <div class="node-title" style="color:var(--runner);">
+            <span>🧪</span> Sandbox Runner (Tema 05/06)
+          </div>
+          <span class="node-role">Docker Efímero</span>
+        </div>
+        <div class="node-desc">
+          Compila y ejecuta JUnit / PyTest aislados. Retorna: tests pasados, fallidos y tiempos de CPU.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- EL CANAL CENTRAL: KAFKA -->
+    <div class="kafka-bus-strip">
+      <div class="bus-label">
+        <span>📡</span> Apache Kafka (Tema 11) — Tópico Central: <code>challenges.evaluations</code>
+      </div>
+      <div class="bus-sub">
+        Evento: <span class="channel-pill">CHALLENGE_COMPLETED { studentId, status, baseXp, baseCoins, attemptTimestamp }</span>
+      </div>
+    </div>
+
+    <!-- FASE 2: CONSUMO PARALELO Y TU ENTRADA -->
+    <div class="track-label">
+      <span>Fase 2: Consumo Paralelo (Tu Momento de Entrada en la Arquitectura)</span>
+    </div>
+
+    <div class="nodes-row row-3">
+
+      <!-- Roadmap -->
+      <div class="node-card node-roadmap">
+        <div class="node-header">
+          <div class="node-title" style="color:var(--roadmap);">
+            <span class="step-num">3a</span> Roadmap (Tema 10)
+          </div>
+          <span class="node-role">Progreso, XP & Vidas</span>
+        </div>
+        <div class="node-desc">
+          <strong>Directo desde Kafka:</strong>
+          <br>• Si Aprobó: Asienta <strong>+100 XP base</strong>.
+          <br>• Si Reprobó: Aplica penalización estándar (<strong>-1 Vida</strong>).
+          <br><em style="color:var(--roadmap);">No le pregunta nada a Mercado.</em>
+        </div>
+      </div>
+
+      <!-- Banco -->
+      <div class="node-card node-banco">
+        <div class="node-header">
+          <div class="node-title" style="color:var(--banco);">
+            <span class="step-num">3b</span> Banco (Tema 08)
+          </div>
+          <span class="node-role">Billetera & Monedas</span>
+        </div>
+        <div class="node-desc">
+          <strong>Directo desde Kafka:</strong>
+          <br>• Si Aprobó: Acredita <strong>+50 Monedas base</strong>.
+          <br>• Si Reprobó: Asienta 0 monedas.
+          <br><em style="color:var(--banco);">No le pregunta nada a Mercado.</em>
+        </div>
+      </div>
+
+      <!-- MERCADO HERO CARD -->
+      <div class="node-card node-mercado-hero">
+        <div class="hero-pin">¡AQUÍ ENTRAS TÚ!</div>
+        <div class="node-header">
+          <div class="node-title" style="color:var(--mercado);">
+            <span class="step-num hero">3c</span> Mercado (Tema 09)
+          </div>
+          <span class="node-role" style="color:var(--mercado); font-weight:700;">"El Espía Silencioso"</span>
+        </div>
+        <div class="node-desc">
+          <strong>Posición: Observador Asíncrono en Paralelo (Sidecar).</strong>
+          <br>Lees <code>CHALLENGE_COMPLETED</code> al mismo tiempo que Roadmap y Banco.
+          <br><strong>¿Qué haces exactamente?</strong>
+          <br>1. Consultas tus 4 slots (XP, Coins, Life, Challenge).
+          <br>2. <strong>Si NO hay ítems:</strong> Te quedas en silencio. Cero eventos.
+          <br>3. <strong>Si HAY Boosts:</strong> Calculas deltas (+XP extra, +Coins extra) y emites <code>ITEM_BONUS_APPLIED</code>.
+          <br>4. <strong>Si HAY Escudo y reprobó:</strong> Restas 1 carga y emites <code>ITEM_SHIELD_TRIGGERED</code> (restitución de vida).
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FASE 3: CONVERGENCIA Y NOTIFICACIONES -->
+    <div class="track-label">
+      <span>Fase 3: Liquidación de Bonos y Alertas al Usuario</span>
+    </div>
+
+    <div class="nodes-row row-2">
+
+      <!-- Reconciliación en Ledgers -->
+      <div class="node-card">
+        <div class="node-header">
+          <div class="node-title">
+            <span class="step-num">4</span> Reconciliación de Bonos (Roadmap & Banco)
+          </div>
+          <span class="node-role">Segundo Asiento Contable</span>
+        </div>
+        <div class="node-desc">
+          Roadmap y Banco escuchan tus eventos especializados:
+          <br>• Si emitiste <span class="channel-pill out-pill">ITEM_BONUS_APPLIED</span>: Suman el saldo extra (+100 XP / +20 Monedas).
+          <br>• Si emitiste <span class="channel-pill out-pill">ITEM_SHIELD_TRIGGERED</span>: Roadmap devuelve <strong>+1 Vida</strong> (saldo vuelve a 3/3).
+        </div>
+      </div>
+
+      <!-- Notificaciones -->
+      <div class="node-card node-notif">
+        <div class="node-header">
+          <div class="node-title" style="color:var(--notif);">
+            <span class="step-num">5</span> Notificaciones (Tema 11)
+          </div>
+          <span class="node-role">Campanita & Toast in-app</span>
+        </div>
+        <div class="node-desc">
+          Dispara feedback visual al alumno:
+          <br><em>"¡Desafío Aprobado! (+100 XP base, +100 XP por Boost Nivel 5)"</em>
+          <br>O bien: <em>"¡Tu Escudo te salvó de perder una vida!"</em>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive Terminal Feedback -->
+  <div class="sim-console" id="consoleLog">
+    <div style="color:var(--text-dim); margin-bottom:4px;">// Consola de Trazabilidad en Tiempo Real — Simulación activa:</div>
+    <div id="logContent">
+      <div class="log-line">
+        <span class="log-time">19:10:00.100</span>
+        <span class="log-tag tag-desafios">[DESAFIOS-03]</span>
+        <span>Alumno aprobó tests. Emite <code>CHALLENGE_COMPLETED (baseXp: 100, baseCoins: 50)</code> a Kafka.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-time">19:10:00.120</span>
+        <span class="log-tag tag-roadmap">[ROADMAP-10]</span>
+        <span>Lee evento base de Kafka ➔ Acredita inmediatamente <strong>+100 XP</strong> en el árbol del alumno.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-time">19:10:00.125</span>
+        <span class="log-tag tag-banco">[BANCO-08]</span>
+        <span>Lee evento base de Kafka ➔ Acredita inmediatamente <strong>+50 Monedas</strong> en la billetera virtual.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-time">19:10:00.130</span>
+        <span class="log-tag tag-mercado">[MERCADO-09]</span>
+        <span><strong>¡Entras tú!</strong> Lees el evento en paralelo. Consultas inventario: Alumno NO tiene ítems activos.</span>
+      </div>
+      <div class="log-line">
+        <span class="log-time">19:10:00.135</span>
+        <span class="log-tag tag-mercado">[MERCADO-09]</span>
+        <span style="color:var(--text-muted); font-style:italic;">Mercado permanece en silencio. Cero eventos emitidos. El flujo base concluyó sin intermediarios.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakdown Cards -->
+  <div class="info-grid">
+    
+    <div class="info-card" style="border-left: 3px solid var(--mercado);">
+      <div class="info-title" style="color:var(--mercado);">
+        <span>📍</span> ¿Cuál es exactamente tu posición?
+      </div>
+      <ul class="mini-list">
+        <li><strong>No estás en el medio ("in-line"):</strong> No eres un proxy o cartero obligatorio por el que deben pasar todos los desafíos.</li>
+        <li><strong>Estás "off-path" (al costado):</strong> Eres un suscriptor paralelo al bus Kafka (Consumer Group independiente).</li>
+        <li><strong>Frontera limpia:</strong> Nadie te pide permiso para rendir un examen y nadie te espera para acreditar la base.</li>
+      </ul>
+    </div>
+
+    <div class="info-card" style="border-left: 3px solid var(--success);">
+      <div class="info-title" style="color:var(--success);">
+        <span>⏱️</span> ¿Cuándo entras exactamente?
+      </div>
+      <ul class="mini-list">
+        <li><strong>Momento exacto:</strong> En el instante en que Motor de Desafío publica <code>CHALLENGE_COMPLETED</code>.</li>
+        <li><strong>En sincronía con los otros:</strong> Entras al mismo milisegundo en que Roadmap y Banco reciben el evento.</li>
+        <li><strong>Decisión condicional:</strong> Si hay ítems, emites tus deltas en <code>t + 50ms</code>; si no hay ítems, duermes.</li>
+      </ul>
+    </div>
+
+    <div class="info-card" style="border-left: 3px solid var(--danger);">
+      <div class="info-title" style="color:var(--danger);">
+        <span>🛡️</span> ¿Por qué elimina el acoplamiento?
+      </div>
+      <ul class="mini-list">
+        <li><strong>Si Mercado se cae:</strong> Desafíos, Roadmap y Banco siguen funcionando. Cero alumnos bloqueados.</li>
+        <li><strong>No sabes de exámenes:</strong> No sabes de tests, suites ni reintentos.</li>
+        <li><strong>Desafíos no sabe de ítems:</strong> Desafíos jamás consulta la BD de Mercado ni sabe qué ítems existen.</li>
+      </ul>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  function runScenario(type) {
+    // Update button active states
+    document.querySelectorAll('.sim-btn').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    const log = document.getElementById('logContent');
+    
+    if (type === 'sin-items') {
+      log.innerHTML = `
+        <div class="log-line"><span class="log-time">19:10:00.100</span><span class="log-tag tag-desafios">[DESAFIOS-03]</span><span>Alumno aprobó tests. Emite <code>CHALLENGE_COMPLETED (baseXp: 100, baseCoins: 50)</code> a Kafka.</span></div>
+        <div class="log-line"><span class="log-time">19:10:00.120</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Lee evento base ➔ Acredita inmediatamente <strong>+100 XP</strong> en el árbol del alumno.</span></div>
+        <div class="log-line"><span class="log-time">19:10:00.125</span><span class="log-tag tag-banco">[BANCO-08]</span><span>Lee evento base ➔ Acredita inmediatamente <strong>+50 Monedas</strong> en la billetera virtual.</span></div>
+        <div class="log-line"><span class="log-time">19:10:00.130</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span><strong>¡Entras tú!</strong> Lees en paralelo. Consultas inventario: Alumno NO tiene ítems activos.</span></div>
+        <div class="log-line"><span class="log-time">19:10:00.135</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span style="color:var(--text-muted); font-style:italic;">Mercado permanece en silencio. Cero eventos emitidos. El flujo base concluyó sin intermediarios.</span></div>
+      `;
+    } else if (type === 'con-boosts') {
+      log.innerHTML = `
+        <div class="log-line"><span class="log-time">19:15:00.100</span><span class="log-tag tag-desafios">[DESAFIOS-03]</span><span>Alumno aprobó tests. Emite <code>CHALLENGE_COMPLETED (baseXp: 100, baseCoins: 50)</code> a Kafka.</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.120</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Acredita <strong>+100 XP base</strong> de inmediato.</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.125</span><span class="log-tag tag-banco">[BANCO-08]</span><span>Acredita <strong>+50 Monedas base</strong> de inmediato.</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.130</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span><strong>¡Entras tú!</strong> Detectas <em>Slot XP: Boost Lv.5 (x2.0)</em> y <em>Slot Coins: Boost Lv.2 (x1.4)</em>.</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.145</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span>Calculas deltas: extraXp = +100, extraCoins = +20. Emite: <strong style="color:var(--mercado);">ITEM_BONUS_APPLIED</strong>.</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.160</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Consume bono ➔ Suma <strong>+100 XP extra</strong> (Total final alumno: 200 XP).</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.165</span><span class="log-tag tag-banco">[BANCO-08]</span><span>Consume bono ➔ Suma <strong>+20 Monedas extra</strong> (Total final alumno: 70 Monedas).</span></div>
+        <div class="log-line"><span class="log-time">19:15:00.170</span><span class="log-tag tag-kafka">[NOTIF-11]</span><span>Toast: <em>"¡Felicitaciones! +200 XP (+100 de bono) y +70 Monedas (+20 de bono) acreditadas!"</em></span></div>
+      `;
+    } else if (type === 'fallo-con-escudo') {
+      log.innerHTML = `
+        <div class="log-line"><span class="log-time">18:30:00.100</span><span class="log-tag tag-desafios">[DESAFIOS-03]</span><span>Reintentos agotados. Emite <code>CHALLENGE_COMPLETED (status: FAILED, baseXp: 0, baseCoins: 0)</code>.</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.120</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Aplica regla académica: <strong>Resta 1 vida</strong> al alumno (Saldo: 3/3 ➔ 2/3 vidas).</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.125</span><span class="log-tag tag-banco">[BANCO-08]</span><span>Asienta 0 monedas.</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.130</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span><strong>¡Entras tú!</strong> Lees el fallo. Consultas <em>Slot Life</em>: Alumno tiene <strong>Escudo Nivel 3 (2 cargas)</strong>.</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.145</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span>Restas 1 carga en DB (queda 1). Emite: <strong style="color:var(--success);">ITEM_SHIELD_TRIGGERED (livesToRestore: 1)</strong>.</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.160</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Consume compensación ➔ Restituye <strong>+1 Vida</strong> por Escudo (Saldo vuelve a 3/3 vidas intactas).</span></div>
+        <div class="log-line"><span class="log-time">18:30:00.170</span><span class="log-tag tag-kafka">[NOTIF-11]</span><span>Toast: <em>"¡Tu Escudo Nivel 3 absorbió el fallo! Conservas tus 3 vidas (Cargas restantes: 1)."</em></span></div>
+      `;
+    } else if (type === 'mercado-caido') {
+      log.innerHTML = `
+        <div class="log-line"><span class="log-time">14:00:00.000</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span style="color:var(--danger); font-weight:700;">¡CONTENEDOR DE MERCADO SE APAGA POR MANTENIMIENTO!</span></div>
+        <div class="log-line"><span class="log-time">14:15:00.100</span><span class="log-tag tag-desafios">[DESAFIOS-03]</span><span>Alumno rinde y aprueba. Emite <code>CHALLENGE_COMPLETED (baseXp: 100, baseCoins: 50)</code>.</span></div>
+        <div class="log-line"><span class="log-time">14:15:00.120</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Acredita <strong>+100 XP base</strong> sin problemas.</span></div>
+        <div class="log-line"><span class="log-time">14:15:00.125</span><span class="log-tag tag-banco">[BANCO-08]</span><span>Acredita <strong>+50 Monedas base</strong> sin problemas.</span></div>
+        <div class="log-line"><span class="log-time">14:15:00.130</span><span class="log-tag tag-kafka">[KAFKA-11]</span><span>Kafka retiene el evento en el log. El offset de <code>mercado-group</code> queda congelado (acumula lag).</span></div>
+        <div class="log-line"><span class="log-time">16:00:00.000</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span style="color:var(--mercado); font-weight:700;">MERCADO SE REINICIA. Lee el backlog secuencialmente desde el offset pendiente.</span></div>
+        <div class="log-line"><span class="log-time">16:00:00.050</span><span class="log-tag tag-mercado">[MERCADO-09]</span><span>Valida <code>attemptTimestamp (14:15:00)</code> contra el TTL del ítem. ¡El ítem era válido! Emite bonos retroactivos.</span></div>
+        <div class="log-line"><span class="log-time">16:00:00.080</span><span class="log-tag tag-roadmap">[ROADMAP-10]</span><span>Acredita la XP del bono atrasado. <strong>Consistencia eventual perfecta sin pérdida de datos.</strong></span></div>
+      `;
+    }
+  }
+</script>
+
+</body>
+</html>
