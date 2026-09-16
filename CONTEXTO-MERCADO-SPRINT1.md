@@ -1,8 +1,8 @@
 # Contexto consolidado — Mercado (Tema 09) para Sprint 1
 
-> ⚠️ **Estado: borrador para revisión, no es la versión final.** Este documento centraliza el contexto disponible al 16/09/2026. El equipo va a sumar definiciones nuevas del PO en las próximas horas que todavía no están escritas en ningún archivo — principalmente sobre el **alcance real de Sprint 1**, el **mecanismo de consumo de equipamiento** (quién invoca a quién), la **sincronización de PAR-06/07 vía Gateway**, y la **desmatriculación a mitad de curso** (ver detalle completo en la Sección 12-B). Hay que retocar este archivo apenas lleguen esas definiciones — no darlo por cerrado todavía.
+> ⚠️ **Estado: borrador para revisión, no es la versión final.** Este documento centraliza el contexto disponible al 16/09/2026. El equipo va a sumar definiciones nuevas del PO en las próximas horas que todavía no están escritas en ningún archivo — principalmente sobre el **alcance real de Sprint 1**, el **mecanismo de consumo de equipamiento** (quién invoca a quién), la **sincronización de PAR-06/07 vía Gateway**, la **desmatriculación a mitad de curso**, el **posible recorte de alcance por inventario (¿lo toma Banco?)** y la **propuesta de catálogo configurable por plantillas del profesor** (ver detalle completo en la Sección 12-B). Hay que retocar este archivo apenas lleguen esas definiciones — no darlo por cerrado todavía.
 
-> **Alcance de este documento:** mercado, subastas, compra directa e inventario — el foco de trabajo actual del equipo. No es un resumen: es un análisis exhaustivo pensado para que el agente que arranca el ciclo SDD (`sdd-explore` → `sdd-propose` → `sdd-spec` → `sdd-design` → `sdd-tasks` → `sdd-apply`) tenga todo el contexto técnico y de negocio sin tener que reconstruirlo leyendo 10 documentos dispersos.
+> **Alcance de este documento:** mercado, subastas, compra directa e inventario — el foco de trabajo actual del equipo. **El alcance de inventario está en revisión** (ver pendiente #13, Sección 12-B): no se descarta que se acote a catálogo + compra directa + subastas. No es un resumen: es un análisis exhaustivo pensado para que el agente que arranca el ciclo SDD (`sdd-explore` → `sdd-propose` → `sdd-spec` → `sdd-design` → `sdd-tasks` → `sdd-apply`) tenga todo el contexto técnico y de negocio sin tener que reconstruirlo leyendo 10 documentos dispersos.
 
 ---
 
@@ -25,7 +25,7 @@ Este archivo es un **mapa de navegación con profundidad técnica real**, no un 
 7. Cursos (Tema 02) debe **bloquear el archivado** de un curso mientras tenga subastas activas.
 8. Validaciones de negocio (ej. tope de vidas) se resuelven **reservando → corroborando la acreditación → confirmando el débito recién si la acreditación se corroboró**. No hace falta compensación para ese caso.
 
-Y 4 pendientes genuinos que siguen sin resolver — no los dés por definidos: sincronización de PAR-06/07 vía Gateway, desmatriculación a mitad de curso, quién invoca a quién para consumir equipamiento, y **el alcance real de Sprint 1 en sí**.
+Y 6 pendientes genuinos que siguen sin resolver — no los dés por definidos: sincronización de PAR-06/07 vía Gateway, desmatriculación a mitad de curso, quién invoca a quién para consumir equipamiento, **el alcance real de Sprint 1 en sí**, el **posible recorte de alcance de inventario hacia Banco**, y la **propuesta de catálogo configurable por plantillas del profesor (sin tiers fijos)**.
 
 ---
 
@@ -51,7 +51,7 @@ Cada curso es un roadmap de aprendizaje incremental. El alumno resuelve desafío
 | **02** | Cursos y Matrícula | Dueño del curso-cohorte y su ciclo de vida (draft→activo→archivado). Publica eventos de archivado/desmatriculación que Mercado debe procesar. |
 | **03** | Motor de Desafíos | Consulta a Mercado qué ítems tiene equipados el alumno antes de correr un desafío; reporta el consumo vía evento asíncrono. |
 | **05** | Runner | Sandbox Docker efímero que ejecuta tests para el Motor de Desafíos (colaborador de Tema 03, sin relación directa con Mercado). |
-| **08** | Banco | **Dependencia crítica bloqueante.** Dueño exclusivo del ledger y los saldos. Mercado nunca guarda saldo — todo pasa por reserva/confirmación/liberación contra Banco. |
+| **08** | Banco | **Dependencia crítica bloqueante.** Dueño exclusivo del ledger y los saldos. Mercado nunca guarda saldo — todo pasa por reserva/confirmación/liberación contra Banco. ⚠️ *Posible ampliación de rol — pendiente #13 (Sección 12-B): si se confirma, Banco también asumiría el inventario/mochila del alumno, hoy modelado tentativamente en Mercado (Sección 5).* |
 | **09** | **Mercado** | Este tema: catálogo, compra directa, subastas, inventario/mochila del alumno. |
 | **10** | Ranking / Roadmap y Progreso | **Dependencia crítica.** Dueño de XP, niveles, vidas, logros e insignias. Mercado vende vidas y equipamiento, pero es Tema 10 quien las acredita/gobierna sus reglas (ej. tope de vidas PAR-12). |
 | **11** | Notificaciones (Social) | **Dueño del contrato de eventos de toda la plataforma.** Consume los eventos de Mercado para notificar al alumno. |
@@ -86,6 +86,23 @@ Nota textual del documento de arquitectura: *"Es el tema más liviano del repart
 - **Subastas = Fase 3**, sin ambigüedad. El spike M-00 del Sprint 0 menciona "subastas de Fase 2" en una de sus preguntas — es un **error de redacción del equipo**, no un cambio real de alcance (decisión #1).
 - El TPI, al no ser el MVP estricto del producto, sí está avanzando sobre alcance de Fase 2 (compra directa, catálogo) en sprints tempranos — esto es una decisión de secuenciación del trabajo práctico, no una contradicción con el PRD.
 
+### 3.4 Propuesta en evaluación — recorte de alcance por inventario (no confirmada, tratar como guía)
+
+> ⚠️ **Esto es una propuesta, no una decisión del equipo.** Se documenta acá para que quede como guía del ciclo SDD, no para que se la trate como cerrada. Ver pendiente **#13** (Sección 12-B).
+
+Todavía sin confirmar, pero aparentemente el scope de **inventario** ya no sería de Mercado — lo tomaría el grupo de **Banco (Tema 08)**. Si esto se ratifica, el alcance de trabajo de Mercado se acota a:
+
+- **Catálogo** (definición de la oferta disponible por curso-cohorte).
+- **Compra directa** (reserva/confirmación contra Banco).
+- **Subastas** (todo lo de la Sección 8).
+
+Y quedaría explícitamente **fuera** de Mercado:
+
+- El **inventario/mochila del alumno** (`ItemInventario`, Sección 5) y su ciclo de vida.
+- El **consumo de ítems** durante un desafío y sus **efectos mecánicos** (hoy documentado en la Sección 9.4 con el Motor de Desafíos).
+
+Esto acorta bastante el alcance actual descripto en este documento (Secciones 5, 6, 8, 9.2, 9.4, 9.7 y 10 tienen contenido de inventario/consumo que quedaría afectado — cada punto está anotado en su lugar con una referencia a este pendiente). Aun así, el equipo sigue el mismo camino de trabajo (catálogo → compra → subastas); lo que cambia es dónde termina la responsabilidad de Mercado, no la dirección general.
+
 ---
 
 ## 4. Reglas de negocio cerradas (fuente: PRD — "no sujetas a replanteo" salvo consenso con el PO)
@@ -110,7 +127,7 @@ Nota textual del documento de arquitectura: *"Es el tema más liviano del repart
 - **RF-REC-02**: las insignias son cosméticas/prestigio, no se usan ni consumen.
 - **RF-REC-03**: insignias = cosmético sin efecto mecánico. **Equipamiento = único tipo de recompensa con efecto mecánico** (ej. escudo que evita perder una vida).
 - **RF-REC-04**: "Desafío de recuperación de vida" — solo para alumnos con 0 vidas, no consume vidas, reintentable indefinidamente, obligatorio para seguir tomando desafíos.
-- **RF-REC-05**: el equipamiento con efecto mecánico **se consume al usarse** (uso único) → el inventario necesita **estado por instancia**, no un contador.
+- **RF-REC-05**: el equipamiento con efecto mecánico **se consume al usarse** (uso único) → el inventario necesita **estado por instancia**, no un contador. ⚠️ *Si se confirma el pendiente #13 (Sección 12-B), este requerimiento sigue existiendo a nivel de producto, pero la responsabilidad de modelarlo pasaría a Banco/Tema 10, no a Mercado.*
 - **RF-REC-06**: el profesor carga un pool de desafíos de recuperación de vida; el sistema elige uno al azar priorizando los no resueltos.
 
 ### 4.3 Configuración — catálogo de parámetros económicos (Sección 4.1 del PRD)
@@ -149,16 +166,28 @@ Entidades candidatas, todas con `cursoCohorteId` obligatorio y baja lógica (RF-
 
 | Entidad | Atributos clave |
 |---|---|
-| **ItemDefinicion** | `id`, `nombre`, `tipo` (VIDA \| EQUIPAMIENTO), `efecto` (contrato de nombre con Tema 10), `consumible`, `activo` |
+| **ItemDefinicion** | `id`, `nombre`, `tipo` (VIDA \| EQUIPAMIENTO), `efecto` (contrato de nombre con Tema 10), `consumible`, `activo` ⚠️ *`tipo`/`consumible` en revisión — ver propuesta de catálogo por plantillas, Sección 5.1 (pendiente #14).* |
 | **OfertaCatalogo** | `id`, `cursoCohorteId`, `itemDefinicionId`, `precioMonedas`, `estado` — **sin campo de stock** (decisión #6: disponibilidad siempre ilimitada mientras esté activa) |
 | **Orden** | `id`, `cursoCohorteId`, `alumnoId`, `ofertaId`, `precioAplicado` (**snapshot**, RF-CFG-06), `reservaId`, `idempotencyKey`, `estado`, `creadaEn` |
 | **Subasta** | `id`, `cursoCohorteId`, `itemDefinicionId`, `profesorId`, `inicio`, `fin`, `pujaMinima`, `estado`, `version` (bloqueo optimista) |
 | **Puja** | `id`, `subastaId`, `alumnoId`, `monto`, `reservaId`, `estado`, `creadaEn` |
-| **ItemInventario** | `id`, `cursoCohorteId`, `alumnoId`, `itemDefinicionId`, `origen` (COMPRA \| SUBASTA \| DESAFIO), `estado`, `consumidoEn`, `version` |
+| **ItemInventario** ⚠️ | `id`, `cursoCohorteId`, `alumnoId`, `itemDefinicionId`, `origen` (COMPRA \| SUBASTA \| DESAFIO), `estado`, `consumidoEn`, `version` — ⚠️ *posiblemente fuera de alcance de Mercado, ver pendiente #13 (Sección 12-B / 3.4).* |
 
-**Lo que NO es de Mercado:** saldo de monedas (Tema 08), vidas/XP (Tema 10), matrícula (Tema 02), parámetros (Tema 12), identidad (Tema 01).
+**Lo que NO es de Mercado:** saldo de monedas (Tema 08), vidas/XP (Tema 10), matrícula (Tema 02), parámetros (Tema 12), identidad (Tema 01). *Si se confirma el pendiente #13, el inventario/mochila del alumno se suma a esta lista.*
 
-**Relaciones:** ItemDefinicion 1→0..\* OfertaCatalogo; OfertaCatalogo 1→0..\* Orden; Orden 1→0..1 ItemInventario; ItemDefinicion 1→0..\* Subasta; Subasta 1→0..\* Puja; Subasta 1→0..1 ItemInventario (adjudicación).
+**Relaciones:** ItemDefinicion 1→0..\* OfertaCatalogo; OfertaCatalogo 1→0..\* Orden; Orden 1→0..1 ItemInventario ⚠️; ItemDefinicion 1→0..\* Subasta; Subasta 1→0..\* Puja; Subasta 1→0..1 ItemInventario (adjudicación) ⚠️. *Las relaciones marcadas con ⚠️ dependen de que `ItemInventario` siga siendo de Mercado — ver pendiente #13.*
+
+### 5.1 Propuesta en evaluación — catálogo por plantillas de tipo (no confirmada, tratar como guía)
+
+> ⚠️ **Esto es una propuesta, no charlada en equipo todavía.** Se deja documentada como guía para el ciclo SDD, no como decisión cerrada. Ver pendiente **#14** (Sección 12-B).
+
+El modelo actual de `ItemDefinicion` (arriba) asume que Mercado crea y define ítems concretos, con su propio `tipo`/`efecto`. La propuesta en evaluación cambia ese enfoque:
+
+- Mercado **no crea ítems concretos** — ofrece un catálogo cerrado de **tipos de ítem (templates)**, cada uno con un conjunto de **parámetros fijos configurables** (ej. efecto, rango de precio, magnitud del efecto).
+- El **profesor**, para su curso-cohorte, arma el catálogo eligiendo un tipo y **configurando esos parámetros** — no escribiendo un ítem desde cero.
+- **Ya no existen "tiers" como clasificación fija definida por Mercado** (a diferencia del catálogo canónico de 16 consumibles con tiers de la Sección 9.4, `familias SHIELD/XP/COIN/LIFE`). Cada tipo **define su propio tier a partir de lo que el profesor configura** — el tier es un resultado de la configuración elegida, no una categoría que Mercado hardcodea.
+
+Esto afectaría directamente el modelo de `ItemDefinicion` (pasaría a ser más una instancia de un template + configuración, que una definición libre) y las historias de la Épica M-01 (Sección 11) sobre cómo se arma el catálogo.
 
 ### Preguntas de modelado que quedan abiertas (no tratadas en esta sesión — no asumir respuesta)
 
@@ -186,7 +215,7 @@ DRAFT → SCHEDULED → OPEN (NO_BIDS ↔ ACTIVE_BIDS)
                        └─→ CLOSING_IN_PROGRESS
                              ├─ EVALUATING_WINNER
                              ├─ CONFIRMING_LEDGER
-                             ├─ CREDITING_INVENTORY
+                             ├─ CREDITING_INVENTORY  [⚠️ paso en revisión — pendiente #13]
                              ├─ RELEASING_LOSERS
                              ├─ MARKED_DESERTED (sin pujas)
                              └─→ FAILED_SETTLEMENT (AWAITING_MANUAL_OR_CRON_RETRY)
@@ -204,6 +233,9 @@ ACTIVA → LIBERADA (cierre sin ganar, o cancelación de la subasta)
 ```
 
 ### ItemInventario
+
+> ⚠️ **Posiblemente fuera de alcance de Mercado** — ver propuesta de recorte de alcance, pendiente #13 (Sección 3.4 / 12-B). Esta máquina de estados sigue siendo válida solo si Mercado conserva la responsabilidad de inventario.
+
 ```
 DISPONIBLE/EQUIPPED → CONSUMIDO (uso único, RF-REC-05)
                     → EXPIRADO (vencimiento, si aplica)
@@ -224,7 +256,7 @@ El orden de operaciones es **reservar → acreditar/corroborar (vida o ítem) �
 Alumno → Gateway → Mercado: POST /mercado/ordenes {ofertaId, idempotencyKey}
 Mercado valida: cohorte activa, oferta activa, precio vigente (PAR)
 Mercado → Gateway → Banco: POST /banco/reservas {alumno, cohorte, monto, key} → 201 {reservaId}
-Mercado crea ItemInventario / corrobora que la acreditación es válida
+Mercado crea ItemInventario / corrobora que la acreditación es válida  [⚠️ paso "crea ItemInventario" en revisión — pendiente #13]
 Mercado → Gateway → Banco: POST /banco/reservas/{id}/confirmar → 200 OK (ledger debitado)
 Orden = CONFIRMADA (+ outbox) → 201 al alumno
 Mercado publica evento de compra confirmada al bus
@@ -290,7 +322,7 @@ Tabla `market_orders`: estados `PENDING_RESERVATION → PROCESSING → CONFIRMED
 | Banco | Liberación (`HOLD_RELEASE`) | Perdedores no desbloqueados | Tabla `market_pending_refunds` + cronjob de re-emisión; alerta en Backoffice si un hold lleva &gt;15 min sin liberar |
 | Mercado | Crash del pod durante cierre | Ganador elegido pero comandos no enviados | `AuctionRecoveryService` al arrancar: busca subastas vencidas en `OPEN`/`CLOSING_IN_PROGRESS` y reanuda idempotentemente (`orderId = auctionId`) |
 | Kafka | Caída de clúster/partición | Comandos no entregados | **Transactional Outbox Pattern**: tabla `market_outbox` en la misma transacción ACID |
-| Inventario | Fallo de persistencia al acreditar | Pagó en Banco pero el ítem no se creó | **Saga Reversal**: `COMPENSATION_REFUND_REQUESTED`, subasta marcada `FAILED_COMPENSATED` |
+| Inventario ⚠️ *(pendiente #13)* | Fallo de persistencia al acreditar | Pagó en Banco pero el ítem no se creó | **Saga Reversal**: `COMPENSATION_REFUND_REQUESTED`, subasta marcada `FAILED_COMPENSATED` |
 
 ### 8.4 Doctrina de idempotencia en 3 capas
 
@@ -357,7 +389,7 @@ Puntos que **siguen sin acordar formalmente**: expiración de reserva en compra 
   - `CURSO_ARCHIVADO` (partitionKey `courseId`): Mercado transiciona `student_inventory` de ese curso a `ARCHIVED_READ_ONLY`, bloquea nuevas órdenes/compras/subastas.
   - `ALUMNO_DESMATRICULADO` (partitionKey `studentId`): Mercado congela los ítems del alumno en esa cohorte, desequipa automáticamente cualquier ítem activo.
 - **Decisión #7 (confirmada):** Cursos debe **bloquear el archivado** de un curso mientras tenga subastas activas, en vez de cancelarlas automáticamente. **Pendiente de comunicación formal con el equipo de Cursos** — es una restricción que ellos deben implementar de su lado.
-- Esquema relevante: `student_inventory(inventory_item_id PK, student_id, course_id, item_code, state, charges, UNIQUE(student_id, course_id, inventory_item_id))`.
+- Esquema relevante: `student_inventory(inventory_item_id PK, student_id, course_id, item_code, state, charges, UNIQUE(student_id, course_id, inventory_item_id))`. ⚠️ *Si se confirma el pendiente #13 (Sección 12-B), esta tabla dejaría de ser de Mercado — la transición a `ARCHIVED_READ_ONLY` y el congelamiento por desmatriculación pasarían a ser responsabilidad de Banco.*
 
 ### 9.3 Identidad y Gateway (Tema 01)
 
@@ -371,11 +403,13 @@ Puntos que **siguen sin acordar formalmente**: expiración de reserva en compra 
 
 ### 9.4 Motor de Desafíos (Tema 03) + Runner (Tema 05)
 
+> ⚠️ **Sección completa en revisión — pendiente #13 (Sección 3.4 / 12-B).** Todo lo que sigue describe el mecanismo de **consulta y consumo de equipamiento**. Si se confirma el recorte de alcance propuesto, esto deja de ser responsabilidad de Mercado por completo (no solo "quién invoca a quién", que ya era el pendiente #11 — directamente si Mercado participa o no).
+
 - **Consulta síncrona** (Desafíos → Mercado vía Gateway): `GET /api/v1/market/inventory/students/{studentId}/active-items?courseId={courseId}` — devuelve el "Executable Directive Pattern": lista de ítems equipados con `verb` (`ABSORB_FAILURE`, `XP_MULTIPLIER`, `COIN_MULTIPLIER`) y `actionParams`. Timeout de 800ms → si Mercado no responde, Desafíos asume "sin ítems equipados" y no bloquea al alumno.
 - **Tópico `desafios.resultados`**, evento `DESAFIO_RESUELTO`: Mercado (`mercado-consumo-group`) descuenta cargas de `student_inventory`; si llegan a 0, transiciona a `CONSUMED`. Idempotencia por `attemptId`.
 - Mercado emite su propio evento de auditoría `ITEM_CONSUMIDO` en el tópico `mercado.inventario`.
 - **Este es el mecanismo real y concreto que existe hoy** para el consumo de equipamiento durante un desafío — ver la discusión completa y su estado (pendiente #11) en la Sección 12-B, porque el equipo tiene propuestas nuevas en camino que podrían reemplazarlo.
-- Catálogo canónico de 16 consumibles (familias SHIELD, XP, COIN, LIFE — con tiers, precios y efectos) documentado íntegramente en este contrato.
+- Catálogo canónico de 16 consumibles (familias SHIELD, XP, COIN, LIFE — con tiers, precios y efectos) documentado íntegramente en este contrato. ⚠️ *El uso de "tiers" fijos acá entra en conflicto con la propuesta de catálogo por plantillas del profesor (Sección 5.1, pendiente #14) — si se confirma esa propuesta, este catálogo canónico habría que revisarlo.*
 
 ### 9.5 Backoffice (Tema 12)
 
@@ -389,7 +423,7 @@ Dueño del contrato de eventos de toda la plataforma. Consume los eventos de Mer
 
 ### 9.7 Ranking / Roadmap y Progreso (Tema 10)
 
-- Acreditación de vidas y aplicación del efecto de equipamiento — **mecanismo exacto pendiente** (#11).
+- Acreditación de vidas y aplicación del efecto de equipamiento — **mecanismo exacto pendiente** (#11). ⚠️ *Si se confirma el pendiente #13, Tema 10 (o Banco) asumiría esto sin mediación de Mercado.*
 - Consume `DESAFIO_RESUELTO` en paralelo a Mercado, para XP y leaderboard — no participa en la decisión de consumir equipamiento (ver 9.4).
 - La validación de tope de vidas (PAR-12) al comprar se resuelve con la decisión #8: reservar → corroborar la acreditación con Tema 10 → confirmar el débito solo si Tema 10 la aceptó.
 
@@ -403,7 +437,7 @@ Convención confirmada (decisión #4): **MAYÚSCULAS_SNAKE_CASE, en inglés**, p
 |---|---|---|
 | `mercado.oferta.publicada` | kickoff §5.4 | `CATALOG_OFFER_PUBLISHED` |
 | `mercado.compra.confirmada` | kickoff §5.4 | `PURCHASE_CONFIRMED` |
-| `mercado.item.consumido` / `ITEM_CONSUMIDO` | kickoff / Comunicacion Grupo-03 | `ITEM_CONSUMED` |
+| `mercado.item.consumido` / `ITEM_CONSUMIDO` | kickoff / Comunicacion Grupo-03 | `ITEM_CONSUMED` ⚠️ *(pendiente #13: si se confirma, Mercado deja de publicar este evento)* |
 | `mercado.subasta.abierta` | kickoff §5.4 | `AUCTION_OPENED` |
 | `mercado.subasta.cerrada` | kickoff §5.4 | `AUCTION_CLOSED` |
 | `mercado.subasta.cancelada` | kickoff §5.4 | `AUCTION_CANCELLED` |
@@ -446,6 +480,8 @@ Preguntas del spike (estado: **resuelto parcialmente**):
 
 ### Épica M-01 — Catálogo de ítems
 
+> ⚠️ **Nota de alcance:** si se confirma la propuesta de catálogo por plantillas (Sección 5.1, pendiente #14), estas historias cambiarían de forma — el profesor configuraría el catálogo eligiendo tipo + parámetros, en vez de que el catálogo sea una lista fija de ítems ya definidos. Las historias de abajo quedan como punto de partida, no como definición cerrada de HU-01.1/01.2.
+
 - **HU-01.1**: Como alumno, ver la lista de ítems disponibles en mi curso (nombre, tipo, precio). Solo ítems activos de mi curso-cohorte con precio vigente.
 - **HU-01.2**: Como profesor, el catálogo muestra solo ítems del curso-cohorte correcto.
 - Tareas: modelar `ItemDefinicion` (tipo, precio, curso-cohorte, activo/inactivo); endpoint de listado filtrado por curso-cohorte del token; leer precios por defecto de PAR-06/PAR-07; UI de catálogo (alcance escritorio).
@@ -482,6 +518,8 @@ Estas se toman como definitivas para el diseño de Sprint 1, aunque los document
 10. **Desmatriculación a mitad de curso:** hay una propuesta razonable (mismo criterio que curso archivado — solo lectura), pero **no validada por el equipo todavía**.
 11. **Consumo de equipamiento con efecto mecánico — quién invoca a quién:** existen dos piezas documentadas hoy (la recomendación especulativa del kickoff, y el contrato concreto ya escrito con Motor de Desafíos vía consulta síncrona + reporte asíncrono), pero **ninguna está confirmada como definitiva** — hay propuestas nuevas del equipo en camino que todavía no están en ningún archivo.
 12. **El alcance real de Sprint 1 en sí.** La propuesta del Sprint 0 (M-00 + M-01 + M-02) es un punto de partida, no un acuerdo ratificado. Se define en las próximas horas.
+13. **Posible recorte de alcance — inventario pasaría a Banco (Tema 08).** Todavía sin confirmar, pero al parecer el scope de inventario ya no sería de Mercado. Si se ratifica, el alcance de Mercado se acota a catálogo + compra directa + subastas, dejando fuera inventario/mochila del alumno, consumo de ítems y sus efectos mecánicos (detalle completo en la Sección 3.4). Afecta directamente el modelo de dominio (`ItemInventario`, Sección 5), su máquina de estados (Sección 6), el paso de acreditación en compra directa (Sección 7) y subastas (Sección 8), la tabla `student_inventory` de Cursos (Sección 9.2), todo el mecanismo de consumo con el Motor de Desafíos (Sección 9.4), la acreditación de efectos en Ranking (Sección 9.7) y el evento `ITEM_CONSUMED` (Sección 10).
+14. **Propuesta — catálogo configurable por plantillas de tipo, sin tiers fijos.** No charlada en equipo todavía, se documenta como guía (detalle completo en la Sección 5.1). Mercado ofrecería tipos de ítem (templates) con parámetros fijos configurables; el profesor arma el catálogo de su curso-cohorte eligiendo tipo y configurando esos parámetros. Ya no habría tiers fijos definidos por Mercado — el tier sería el resultado de la configuración que elige el profesor dentro de un tipo. Afecta el modelo de `ItemDefinicion` (Sección 5), el catálogo canónico de 16 consumibles con tiers (Sección 9.4) y las historias de la Épica M-01 (Sección 11).
 
 ### 12-C. Otras preguntas menores abiertas en las fuentes (no tratadas en esta sesión)
 
