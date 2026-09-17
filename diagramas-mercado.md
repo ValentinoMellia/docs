@@ -1,299 +1,298 @@
-# Diagramas base — Tema 09 Mercado
-
-Borradores en Mermaid para discutir y corregir en equipo. **No los tomen como
-verdad**: la mitad del valor de hoy está en romperlos y rehacerlos juntos.
-
-Se renderizan en GitHub, GitLab, Notion, Obsidian, VS Code (extensión Mermaid) y en
-mermaid.live.
+# Architectural Diagrams — Market (Team 09)
+## Distributed Gamified Platform · Aula Quest (TUP UTN FRC)
 
 ---
 
-## 1. Contexto: el Mercado y sus vecinos
+## 1. Context Diagram: Market & External Microservices
+
+Market acts as an orchestrating Kiosk / Storefront. In accordance with platform design, the Two-Phase Hold Saga, and the **Local Stock Hold (Fail-Fast)** pattern:
+- **Market (Team 09):** Holds local product stock (`StockHold`) before touching external services, orchestrates the purchase saga, and curates the Open Catalog.
+- **Bank (Team 08):** Manages coin balances, handles `BalanceHold` commands, and settles ledger debits.
+- **Inventory Service:** Separate microservice managing the student backpack (`student_inventory`), active slots, charges, and runtime effect execution.
 
 ```mermaid
 graph TB
-    subgraph Cliente
-        FE[Front End]
+    subgraph Web Clients
+        Student[Student Frontend - Storefront / Auctions]
+        Professor[Professor Frontend - Catalog Curation / Auctions]
     end
-    GW[API Gateway]
-    FE --> GW
 
-    GW --> T09[Tema 09 · Mercado<br/>catálogo, órdenes, inventario, subastas]
-    T09 -. sincrónico vía gateway .-> GW
+    GW[API Gateway / Perimetral Security]
+    Student --> GW
+    Professor --> GW
 
-    GW --> T08[Tema 08 · Banco<br/>ledger, saldos, reservas]
-    GW --> T10[Tema 10 · Roadmap<br/>XP, vidas, insignias]
-    GW --> T02[Tema 02 · Cursos<br/>cohorte, matrícula]
-    GW --> T12[Tema 12 · Backoffice<br/>parámetros PAR]
+    GW -->|HTTP REST| T09[Team 09 · Market<br/><b>Kiosk / Open Catalog / Stock Hold / Auctions</b>]
 
-    T09 -->|publica| BUS[(Bus de eventos<br/>contrato: Tema 11)]
-    T02 -->|curso.archivado| BUS
-    BUS --> T11[Tema 11 · Notificaciones]
-    BUS --> T10
-    BUS --> T12
+    subgraph Kafka Event Bus Ecosystem
+        T09 -->|bank.holds.commands| BUS[(Apache Kafka<br/>Event Bus)]
+        BUS -->|bank.holds.events| T09
+        
+        T09 -->|inventory.items.commands| BUS
+        BUS -->|inventory.items.events| T09
+
+        BUS <-->|Balance Holds & Ledger Debits| T08[Team 08 · Bank<br/><b>Ledger, Coin Holds & Balances</b>]
+        BUS <-->|Item Persistence & Charges| T_INV[Inventory Service<br/><b>Student Backpack & Effects</b>]
+    end
+
+    BUS -.->|Informative Alerts| T11[Team 11 · Notifications]
 ```
-
-**Regla que el diagrama tiene que respetar:** el Mercado nunca llama directo a otro
-microservicio ni lee su base. Sale y vuelve a entrar por el gateway.
 
 ---
 
-## 2. Modelo de dominio (borrador)
+## 2. Market Domain Model (Open Catalog, Stock Holds & Two-Layer Architecture)
+
+Market manages templates, cohort offerings, purchase orders, **local stock holds**, and auctions:
 
 ```mermaid
 classDiagram
-    class ItemDefinicion {
+    class ItemBaseTemplate {
         +UUID id
-        +String nombre
-        +TipoItem tipo  // VIDA | EQUIPAMIENTO
-        +String efecto  // contrato con Tema 10
-        +boolean consumible
-        +boolean activo
+        +ItemType type  // SHIELD | BOOST_XP | BOOST_COINS | LIFE
+        +String defaultName
+        +String defaultDescription
+        +String iconUrl
+        +boolean active
     }
 
-    class OfertaCatalogo {
+    class CourseCatalogOffer {
         +UUID id
-        +UUID cursoCohorteId
-        +UUID itemDefinicionId
-        +int precioMonedas
-        +Integer stock  // null = ilimitado
-        +EstadoOferta estado
+        +UUID courseCohortId
+        +UUID itemBaseTemplateId
+        +String customName
+        +String customDescription
+        +int coinPrice
+        +Integer stock  // null = unlimited, > 0 = finite cohort pool
+        +Integer availableStock  // remaining units not committed or held
+        +boolean active
+        +ItemConfiguration configuration
+        +Instant createdAt
+        +Instant updatedAt
     }
 
-    class Orden {
+    class StockHold {
         +UUID id
-        +UUID cursoCohorteId
-        +UUID alumnoId
-        +UUID ofertaId
-        +int precioAplicado  // snapshot RF-CFG-06
-        +UUID reservaId
+        +UUID catalogOfferId
+        +UUID purchaseOrderId
+        +UUID studentId
+        +StockHoldStatus status  // PENDING | COMMITTED | RELEASED | EXPIRED
+        +Instant expiresAt  // default: 5 minutes TTL
+        +Instant createdAt
+    }
+
+    class ShieldConfiguration {
+        +int charges
+        +ApplicableChallenges scope  // ALL | THEORETICAL_ONLY | PRACTICAL_ONLY | NO_EXAMS
+    }
+
+    class BoostConfiguration {
+        +double multiplier  // e.g., 1.25, 1.5, 2.0
+        +BoostMode mode  // TTL | PER_EXAM
+        +Integer durationMinutes  // if mode == TTL
+        +Integer attempts  // if mode == PER_EXAM
+        +ConsumptionRule consumptionRule  // ALWAYS_CONSUME | CONSUME_ON_PASS_ONLY
+    }
+
+    class LifeConfiguration {
+        +int livesGranted  // default: 1
+    }
+
+    class PurchaseOrder {
+        +UUID id
+        +UUID courseCohortId
+        +UUID studentId
+        +UUID catalogOfferId
+        +int snapshotPrice
+        +UUID stockHoldId  // Local Market stock lock
+        +UUID bankHoldId   // Bank coin balance lock
         +String idempotencyKey
-        +EstadoOrden estado
-        +Instant creadaEn
+        +OrderStatus status
+        +Instant createdAt
+        +Instant completedAt
     }
 
-    class Subasta {
+    class Auction {
         +UUID id
-        +UUID cursoCohorteId
-        +UUID itemDefinicionId
-        +UUID profesorId
-        +Instant inicio
-        +Instant fin
-        +Integer pujaMinima
-        +EstadoSubasta estado
+        +UUID courseCohortId
+        +UUID catalogOfferId
+        +UUID professorId
+        +Instant startsAt
+        +Instant endsAt
+        +Integer minimumBid
+        +AuctionStatus status
         +long version
     }
 
-    class Puja {
+    class Bid {
         +UUID id
-        +UUID subastaId
-        +UUID alumnoId
-        +int monto
-        +UUID reservaId
-        +EstadoPuja estado
-        +Instant creadaEn
+        +UUID auctionId
+        +UUID studentId
+        +int amount
+        +UUID holdId  // Locked funds in Bank
+        +BidStatus status
+        +Instant createdAt
     }
 
-    class ItemInventario {
-        +UUID id
-        +UUID cursoCohorteId
-        +UUID alumnoId
-        +UUID itemDefinicionId
-        +OrigenItem origen  // COMPRA | SUBASTA | DESAFIO
-        +EstadoItem estado
-        +Instant consumidoEn
-        +long version
-    }
+    ItemBaseTemplate "1" --> "0..*" CourseCatalogOffer : instantiates
+    CourseCatalogOffer "1" *-- "1" ShieldConfiguration : when type == SHIELD
+    CourseCatalogOffer "1" *-- "1" BoostConfiguration : when type == BOOST_*
+    CourseCatalogOffer "1" *-- "1" LifeConfiguration : when type == LIFE
 
-    ItemDefinicion "1" --> "0..*" OfertaCatalogo
-    OfertaCatalogo "1" --> "0..*" Orden
-    Orden "1" --> "0..1" ItemInventario : entrega
-    ItemDefinicion "1" --> "0..*" Subasta
-    Subasta "1" --> "0..*" Puja
-    Subasta "1" --> "0..1" ItemInventario : adjudica
+    CourseCatalogOffer "1" --> "0..*" StockHold : locks_stock
+    CourseCatalogOffer "1" --> "0..*" PurchaseOrder : transactions
+    PurchaseOrder "1" o-- "0..1" StockHold : references
+    CourseCatalogOffer "1" --> "0..*" Auction : featured_in
+    Auction "1" --> "0..*" Bid : receives
 ```
-
-Preguntas para la discusión:
-- ¿La vida entra al inventario o va directo al Tema 10 sin instancia local?
-- ¿`OfertaCatalogo` guarda el precio o lo lee siempre del Tema 12? (Sugerencia: lo lee,
-  pero la `Orden` guarda el snapshot.)
-- ¿Hace falta `stock`? El PRD no lo pide para compra directa.
 
 ---
 
-## 3. Máquina de estados — Orden de compra directa
+## 3. State Machines
 
+### 3.1 Local Stock Hold State Machine (Market)
 ```mermaid
 stateDiagram-v2
-    [*] --> CREADA
-    CREADA --> RESERVA_SOLICITADA : solicitar reserva al Banco
-    RESERVA_SOLICITADA --> RESERVADA : reserva OK
-    RESERVA_SOLICITADA --> RECHAZADA_SALDO : saldo insuficiente
-    RESERVA_SOLICITADA --> FALLIDA_BANCO : timeout / error
-    RESERVADA --> CONFIRMADA : ítem entregado + confirmar(reservaId)
-    RESERVADA --> CANCELADA : falla la entrega -> liberar(reservaId)
-    RESERVADA --> EXPIRADA : TTL vencido -> liberar
-    CONFIRMADA --> [*]
-    RECHAZADA_SALDO --> [*]
-    FALLIDA_BANCO --> [*]
-    CANCELADA --> [*]
-    EXPIRADA --> [*]
+    [*] --> PENDING : Atomic reservation (availableStock - 1, TTL: 5m)
+    PENDING --> COMMITTED : Saga succeeded (HOLD_CONFIRMED in Bank)
+    PENDING --> RELEASED : Bank rejected funds or Inventory failed (availableStock + 1)
+    PENDING --> EXPIRED : TTL expired without resolution (reconciliation scheduler)
+    COMMITTED --> [*]
+    RELEASED --> [*]
+    EXPIRED --> [*]
 ```
 
----
-
-## 4. Máquina de estados — Subasta (RF-INT-05, RF-INT-06)
-
+### 3.2 Purchase Order State Machine (Two-Phase Hold Saga)
 ```mermaid
 stateDiagram-v2
-    [*] --> BORRADOR
-    BORRADOR --> PROGRAMADA : profesor define duración y puja mínima
-    PROGRAMADA --> ABIERTA : llega la fecha de inicio
-    ABIERTA --> EN_CIERRE : llega la fecha de fin
-    ABIERTA --> CANCELADA : profesor cancela (libera todas las pujas)
-    EN_CIERRE --> ADJUDICADA : hay pujas -> confirma la ganadora, libera el resto
-    EN_CIERRE --> DESIERTA : sin pujas -> asset sin asignar
-    ADJUDICADA --> [*]
-    DESIERTA --> [*]
-    CANCELADA --> [*]
-```
-
-`EN_CIERRE` no está en el PRD: lo agregamos porque el cierre no es instantáneo (hay que
-confirmar una reserva y liberar N). Sin ese estado intermedio, dos ejecuciones
-concurrentes del cierre pueden adjudicar dos veces.
-
----
-
-## 5. Máquina de estados — Puja
-
-```mermaid
-stateDiagram-v2
-    [*] --> ACTIVA : reserva de monedas OK
-    ACTIVA --> SUPERADA : el alumno aumenta su oferta (nueva puja)
-    ACTIVA --> GANADORA : cierre, es la mayor
-    ACTIVA --> LIBERADA : cierre sin ganar / cancelación
-    SUPERADA --> [*]
-    GANADORA --> [*]
-    LIBERADA --> [*]
-```
-
-Decisión pendiente con el Tema 08: cuando el alumno **aumenta** su oferta, ¿se reserva
-solo el delta (más eficiente, más difícil de razonar) o se libera la anterior y se
-reserva el total (más simple, con una ventana en la que el alumno podría gastar esas
-monedas en otro lado)?
-
----
-
-## 6. Máquina de estados — Ítem de inventario (RF-REC-05)
-
-```mermaid
-stateDiagram-v2
-    [*] --> DISPONIBLE : alta por compra / subasta / desafío
-    DISPONIBLE --> CONSUMIDO : consumo idempotente (uso único)
-    DISPONIBLE --> EXPIRADO : vencimiento de ítem (extra)
-    DISPONIBLE --> INACTIVO : curso archivado / desmatriculación (a definir)
-    CONSUMIDO --> [*]
-    EXPIRADO --> [*]
-    INACTIVO --> [*]
+    [*] --> CREATED : Student triggers purchase via REST
+    CREATED --> STOCK_HELD : Local StockHold created (if finite stock)
+    CREATED --> OUT_OF_STOCK : No available units (HTTP 409 Conflict)
+    
+    STOCK_HELD --> HOLD_REQUESTED : Emits HOLD_CREATE_REQUESTED to Bank
+    HOLD_REQUESTED --> PROVISIONING_ITEM : Receives HOLD_CREATED from Bank
+    HOLD_REQUESTED --> REJECTED_FUNDS : Receives HOLD_REJECTED -> Releases StockHold
+    
+    PROVISIONING_ITEM --> DEBIT_REQUESTED : Receives ITEM_PROVISIONED from Inventory
+    PROVISIONING_ITEM --> COMPENSATING : Receives ITEM_PROVISION_FAILED from Inventory
+    
+    COMPENSATING --> COMPENSATED_RELEASED : Releases Bank Hold & Releases StockHold
+    
+    DEBIT_REQUESTED --> CONFIRMED : Receives HOLD_CONFIRMED -> Commits StockHold
+    
+    CONFIRMED --> [*]
+    OUT_OF_STOCK --> [*]
+    REJECTED_FUNDS --> [*]
+    COMPENSATED_RELEASED --> [*]
 ```
 
 ---
 
-## 7. Secuencia — Compra directa (camino feliz)
+## 4. Sequence Diagram: Direct Purchase with Dual Holds (Stock Hold + Bank Hold)
 
 ```mermaid
 sequenceDiagram
-    actor A as Alumno
+    autonumber
+    actor Student as Student (Web Frontend)
     participant GW as API Gateway
-    participant M as Mercado (09)
-    participant B as Banco (08)
-    participant BUS as Bus de eventos
-    participant R as Roadmap (10)
+    participant Market as Market (Team 09)
+    participant BusKafka as Kafka Bus
+    participant Bank as Bank (Team 08)
+    participant Inventory as Inventory Service
 
-    A->>GW: POST /mercado/ordenes {ofertaId, idempotencyKey}
-    GW->>M: ruteo con token validado
-    M->>M: validar cohorte, oferta activa, precio vigente (PAR)
-    M->>GW: POST /banco/reservas {alumno, cohorte, monto, key}
-    GW->>B: ...
-    B-->>M: 201 {reservaId}
-    M->>M: crear ItemInventario / preparar entrega
-    M->>GW: POST /banco/reservas/{id}/confirmar
-    GW->>B: ...
-    B-->>M: 200 OK (ledger debitado)
-    M->>M: Orden = CONFIRMADA (+ outbox)
-    M-->>A: 201 orden confirmada
-    M->>BUS: mercado.compra.confirmada
-    BUS->>R: acreditar vida / registrar equipamiento
-```
+    Student->>GW: POST /api/v1/market/orders {offerId: "item-course-9912", courseId: "COURSE_PROG4_2026"}
+    GW->>Market: Forwards request with auth headers (X-User-Id, X-Roles)
 
-### Variantes que hay que dibujar también
+    %% Step 0: Local Stock Hold (Fail-Fast)
+    rect rgb(254, 242, 242)
+    Note over Market: Phase 0: Local Stock Hold (Fail-Fast in 2ms)
+    alt Finite Stock Configured & Available
+        Market->>Market: Atomic UPDATE: availableStock - 1<br/>Creates StockHold (status: PENDING, ttl: 5m)
+        Market-->>Student: 202 Accepted {orderId: "ord-88391a", status: "PROCESSING"}
+    else Stock Depleted (availableStock == 0)
+        Market-->>Student: 409 Conflict {error: "OUT_OF_STOCK", message: "Item is sold out"}
+    end
+    end
 
-- **Saldo insuficiente**: el Banco rechaza en el paso de reserva → orden
-  `RECHAZADA_SALDO`, nada que compensar.
-- **Falla la entrega después de reservar**: `liberar(reservaId)` → orden `CANCELADA`.
-- **Timeout al confirmar**: reintento con la misma clave de idempotencia; si persiste,
-  la reserva expira por TTL del lado del Banco y el job de reconciliación cierra la
-  orden.
-- **El Roadmap rechaza la vida (máximo alcanzado)**: por eso conviene validar **antes**
-  de reservar, o definir una compensación explícita (devolver monedas + notificar).
+    %% Phase 1: Coin Hold in Bank
+    rect rgb(245, 243, 255)
+    Note over Market,Bank: Phase 1: Reserve Coins in Bank (BalanceHold)
+    Market->>BusKafka: bank.holds.commands: HOLD_CREATE_REQUESTED {orderId, studentId, amount: 350}
+    
+    alt Insufficient Balance in Bank
+        Bank-->>BusKafka: bank.holds.events: HOLD_REJECTED {orderId, reason: "INSUFFICIENT_FUNDS"}
+        Market->>Market: Releases StockHold (status: RELEASED, availableStock + 1)
+        Market-->>Student: SSE: FAILED (INSUFFICIENT_FUNDS)
+    else Sufficient Balance in Bank
+        Bank->>Bank: Locks 350 coins (status: PENDING, holdId: "hld-99201")
+        Bank->>BusKafka: bank.holds.events: HOLD_CREATED {holdId: "hld-99201", status: "PENDING"}
+    end
+    end
 
----
+    %% Phase 2: Provision Item to Inventory
+    rect rgb(236, 253, 245)
+    Note over Market,Inventory: Phase 2: Deliver Item into Student Inventory
+    Market->>BusKafka: inventory.items.commands: ITEM_PROVISION_REQUESTED {orderId, holdId, itemPayload}
+    
+    alt Inventory Persistence Error
+        Inventory-->>BusKafka: inventory.items.events: ITEM_PROVISION_FAILED {orderId}
+        Market->>BusKafka: bank.holds.commands: HOLD_RELEASE_REQUESTED {holdId: "hld-99201"}
+        Bank->>Bank: Releases locked coins without charge
+        Market->>Market: Releases StockHold (status: RELEASED, availableStock + 1)
+        Market-->>Student: SSE: FAILED (DELIVERY_FAILED)
+    else Inventory Persisted OK
+        Inventory->>Inventory: Persists item in student_inventory (state: "AVAILABLE")
+        Inventory->>BusKafka: inventory.items.events: ITEM_PROVISIONED {orderId, inventoryItemId: "inv-8812"}
+    end
+    end
 
-## 8. Secuencia — Cierre de subasta
-
-```mermaid
-sequenceDiagram
-    participant S as Scheduler (Mercado)
-    participant M as Mercado (09)
-    participant GW as API Gateway
-    participant B as Banco (08)
-    participant BUS as Bus de eventos
-
-    S->>M: cerrar subastas con fin <= ahora
-    M->>M: lock optimista: ABIERTA -> EN_CIERRE
-    alt hay pujas
-        M->>M: determinar puja ganadora (mayor monto, desempate por fecha)
-        M->>GW: confirmar(reservaId de la ganadora)
-        GW->>B: ...
-        B-->>M: OK
-        loop por cada puja perdedora
-            M->>GW: liberar(reservaId)
-            GW->>B: ...
-        end
-        M->>M: crear ItemInventario para el ganador; estado ADJUDICADA
-        M->>BUS: mercado.subasta.cerrada {ganador}
-    else sin pujas
-        M->>M: estado DESIERTA
-        M->>BUS: mercado.subasta.cerrada {desierta}
+    %% Phase 3: Final Debit & Stock Commit
+    rect rgb(254, 243, 199)
+    Note over Market,Bank: Phase 3: Confirm Bank Hold & Commit Stock
+    Market->>BusKafka: bank.holds.commands: HOLD_CONFIRM_REQUESTED {holdId: "hld-99201"}
+    Bank->>Bank: Converts hold into final ledger debit
+    Bank->>BusKafka: bank.holds.events: HOLD_CONFIRMED {holdId: "hld-99201", status: "COMMITTED"}
+    
+    Market->>Market: Commits StockHold (status: COMMITTED)
+    Market->>Market: Confirms PurchaseOrder (status: CONFIRMED)
+    Market-->>Student: SSE Push: "Purchase confirmed! Item added to your inventory."
     end
 ```
 
-Puntos de diseño a resolver: idempotencia del cierre (si el scheduler corre en dos
-instancias), criterio de desempate ante montos iguales, y qué pasa si la confirmación
-de la ganadora falla (¿se adjudica al segundo?).
-
 ---
 
-## 9. Ciclo de vida de la cohorte visto desde el Mercado
+## 5. Sequence Diagram: Auction Closing & Asset Settlement
 
 ```mermaid
-stateDiagram-v2
-    direction LR
-    Creacion --> Configuracion
-    Configuracion --> Activacion : requiere calibración aprobada (Tema 07)
-    Activacion --> Dictado
-    Dictado --> Cierre
-    Cierre --> Archivado
+sequenceDiagram
+    autonumber
+    participant Scheduler as Cron Scheduler (Market)
+    participant Market as Market (Team 09)
+    participant BusKafka as Kafka Bus
+    participant Bank as Bank (Team 08)
+    participant Inventory as Inventory Service
 
-    note right of Configuracion
-        Mercado: se puede armar el catálogo
-        de la cohorte, sin operaciones de alumnos
-    end note
-    note right of Dictado
-        Mercado: compras, subastas, consumo
-    end note
-    note right of Archivado
-        Mercado: solo lectura (RF-CUR-09).
-        Cerrar subastas abiertas y liberar reservas.
-    end note
+    Scheduler->>Market: Triggers auction expiry evaluation
+    Market->>Market: Optimistic lock: OPEN -> CLOSING
+
+    alt Registered Bids Exist
+        Market->>Market: Identifies winning bid (highest amount)
+        
+        %% Phase 1: Deliver Asset to Winner
+        Market->>BusKafka: inventory.items.commands: ITEM_PROVISION_REQUESTED {studentId: winnerId, itemPayload}
+        Inventory->>BusKafka: inventory.items.events: ITEM_PROVISIONED {inventoryItemId: "inv-9921"}
+
+        %% Phase 2: Confirm Winner Hold & Release Losers
+        par Bank Settlement
+            Market->>BusKafka: bank.holds.commands: HOLD_CONFIRM_REQUESTED {holdId: winningHoldId}
+            Bank->>Bank: Commits ledger deduction
+            Bank->>BusKafka: bank.holds.events: HOLD_CONFIRMED {holdId: winningHoldId}
+        and Losers Hold Release
+            Market->>BusKafka: bank.holds.commands: HOLD_RELEASE_REQUESTED {holdId: losingHoldId}
+            Bank->>Bank: Releases funds without penalty
+            Bank->>BusKafka: bank.holds.events: HOLD_RELEASED {holdId: losingHoldId}
+        end
+
+        Market->>Market: Updates Auction -> ADJUDICATED
+    else No Bids Registered
+        Market->>Market: Updates Auction -> DESERTED
+    end
 ```

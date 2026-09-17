@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Open Catalog & Dual Holds Simulator — Team 09 Market</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-sub: #1a2234;
+      --panel-hover: #222d44;
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-dim: #64748b;
+      --border: #243048;
+      --border-bright: #3b4d74;
+      --accent: #38bdf8;
+      --gold: #fbbf24;
+      --green: #34d399;
+      --purple: #a78bfa;
+      --red: #f87171;
+      --radius: 12px;
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      line-height: 1.55;
+      padding-bottom: 80px;
+    }
+
+    .wrap { max-width: 1300px; margin: 0 auto; padding: 0 24px; }
+
+    /* Topbar */
+    .topbar {
+      background: rgba(9, 13, 22, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 0;
+    }
+    .topbar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-market {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      color: var(--ink-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Tabs */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      margin: 24px 0 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--ink-muted);
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      background: var(--panel-hover);
+      color: var(--ink);
+      border-color: var(--border-bright);
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Cards & Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-desc {
+      color: var(--ink-muted);
+      font-size: 0.88rem;
+      margin-bottom: 18px;
+    }
+
+    /* Notice Banner */
+    .banner-kiosk {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(167, 139, 250, 0.08));
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .banner-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+    .banner-text h4 {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .banner-text p {
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+      line-height: 1.5;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink-muted);
+      margin-bottom: 6px;
+    }
+    .form-control, select, input {
+      width: 100%;
+      background: var(--panel-sub);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus, select:focus, input:focus {
+      border-color: var(--accent);
+    }
+    .help-text {
+      font-size: 0.78rem;
+      color: var(--ink-dim);
+      margin-top: 4px;
+    }
+
+    /* Template Picker */
+    .template-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .template-card {
+      background: var(--panel-sub);
+      border: 1.5px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .template-card:hover {
+      border-color: var(--border-bright);
+      background: var(--panel-hover);
+    }
+    .template-card.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+    }
+    .tpl-icon {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+    }
+    .tpl-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .tpl-type {
+      font-size: 0.7rem;
+      color: var(--ink-muted);
+    }
+
+    /* Code Previewer */
+    pre {
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: #93c5fd;
+      overflow-x: auto;
+      max-height: 480px;
+    }
+
+    /* Badges */
+    .pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .pill-shield { background: rgba(56, 189, 248, 0.2); color: var(--accent); }
+    .pill-boost { background: rgba(167, 139, 250, 0.2); color: var(--purple); }
+    .pill-life { background: rgba(248, 113, 113, 0.2); color: var(--red); }
+    .pill-gold { background: rgba(251, 191, 36, 0.2); color: var(--gold); }
+    .pill-stock { background: rgba(52, 211, 153, 0.2); color: var(--green); }
+
+    .btn-action {
+      background: var(--accent);
+      color: #0b0f19;
+      font-weight: 700;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Steps Tracker */
+    .saga-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 900px) {
+      .saga-steps { grid-template-columns: 1fr 1fr; }
+    }
+    .saga-step-card {
+      background: var(--panel-sub);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      position: relative;
+    }
+    .saga-step-card.highlight {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .step-badge {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .step-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    .step-desc {
+      font-size: 0.72rem;
+      color: var(--ink-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <span class="badge-market">Team 09 · Market</span>
+        <div>
+          <h1 class="brand-title">Open Catalog & Dual Holds Simulator</h1>
+          <p class="brand-sub">Stock Hold (Market) → Balance Hold (Bank) → Provision (Inventory) → Commit Debit</p>
+        </div>
+      </div>
+      <div style="font-family: var(--mono); font-size: 0.8rem; color: var(--green);">
+        ● Fail-Fast Stock Hold Enabled
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- Navigation Tabs -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('simulator')">🛠️ Professor Catalog Curation</button>
+      <button class="tab-btn" onclick="switchTab('saga')">🔄 4-Phase Dual Hold Saga</button>
+      <button class="tab-btn" onclick="switchTab('inventory-payload')">📦 Inventory Microservice Contract</button>
+      <button class="tab-btn" onclick="switchTab('rest-api')">⚡ Spring Boot REST DTOs</button>
+    </div>
+
+    <!-- TAB 1: SIMULATOR -->
+    <section id="tab-simulator">
+      <div class="banner-kiosk">
+        <div class="banner-icon">🏪</div>
+        <div class="banner-text">
+          <h4>Open Catalog with Fail-Fast Local Stock Hold</h4>
+          <p>
+            Professors customize <code>coinPrice</code>, <code>charges</code>, <code>applicableChallenges</code>, and optional <code>stock</code>.
+            When finite stock is enabled, Market executes an <strong>atomic StockHold in 2ms</strong> before touching Bank or Kafka, immediately rejecting excess concurrent buyers with <code>409 Conflict (OUT_OF_STOCK)</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Left Panel: Form Controls -->
+        <div class="card">
+          <h2 class="card-title">1. Base Template Selection</h2>
+          <p class="card-desc">Select an official Market template to customize:</p>
+
+          <div class="template-selector">
+            <div class="template-card selected" id="tpl-shield" onclick="selectTemplate('SHIELD')">
+              <div class="tpl-icon">🛡️</div>
+              <div class="tpl-name">Defense Aegis</div>
+              <div class="tpl-type">Type: SHIELD</div>
+            </div>
+            <div class="template-card" id="tpl-boost" onclick="selectTemplate('BOOST')">
+              <div class="tpl-icon">⚡</div>
+              <div class="tpl-name">Experience Elixir</div>
+              <div class="tpl-type">Type: BOOST_XP / COINS</div>
+            </div>
+            <div class="template-card" id="tpl-life" onclick="selectTemplate('LIFE')">
+              <div class="tpl-icon">❤️</div>
+              <div class="tpl-name">Revive Flask</div>
+              <div class="tpl-type">Type: LIFE</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--accent);">
+            2. Professor Customization Parameters
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label">Custom Item Name</label>
+            <input type="text" id="itemName" value="Advanced Lab Shield" oninput="updateConfig()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Coin Price (Free Market Setting)</label>
+            <input type="number" id="itemPrice" value="350" min="1" oninput="updateConfig()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cohort Finite Stock (Fail-Fast Protection)</label>
+            <input type="number" id="itemStock" value="5" min="0" placeholder="Empty = Unlimited stock" oninput="updateConfig()">
+            <div class="help-text">If > 0, Market locks stock units via StockHold before calling Bank.</div>
+          </div>
+
+          <!-- SHIELD Fields -->
+          <div id="fields-shield">
+            <div class="form-group">
+              <label class="form-label">Charges (Absorbed test failures)</label>
+              <input type="number" id="shieldCharges" value="2" min="1" max="10" oninput="updateConfig()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Applicable Challenges Scope</label>
+              <select id="shieldScope" onchange="updateConfig()">
+                <option value="ALL">ALL (Theoretical, Practical & Exams)</option>
+                <option value="PRACTICAL_ONLY" selected>PRACTICAL_ONLY (IDE code runners)</option>
+                <option value="THEORETICAL_ONLY">THEORETICAL_ONLY (Conceptual quizzes)</option>
+                <option value="NO_EXAMS">NO_EXAMS (Regular coursework, disabled on exams)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- BOOST Fields -->
+          <div id="fields-boost" style="display: none;">
+            <div class="form-group">
+              <label class="form-label">Boost Category</label>
+              <select id="boostType" onchange="updateConfig()">
+                <option value="BOOST_XP">BOOST_XP (Experience Points)</option>
+                <option value="BOOST_COINS">BOOST_COINS (Gold Coins)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Multiplier Factor</label>
+              <input type="number" id="boostMultiplier" value="1.5" step="0.25" min="1.1" oninput="updateConfig()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Consumption Mode</label>
+              <select id="boostMode" onchange="toggleBoostMode()">
+                <option value="PER_EXAM" selected>PER_EXAM (Per challenge attempt pool)</option>
+                <option value="TTL">TTL (Real-time countdown timer)</option>
+              </select>
+            </div>
+            
+            <div id="boost-sub-ttl" style="display: none;" class="form-group">
+              <label class="form-label">Duration in Minutes (Active Timer)</label>
+              <input type="number" id="boostDuration" value="120" min="15" step="15" oninput="updateConfig()">
+            </div>
+
+            <div id="boost-sub-exam" class="form-group">
+              <label class="form-label">Covered Attempts</label>
+              <input type="number" id="boostAttempts" value="3" min="1" max="10" oninput="updateConfig()">
+              <label class="form-label" style="margin-top: 10px;">Consumption Rule</label>
+              <select id="boostConsumptionRule" onchange="updateConfig()">
+                <option value="CONSUME_ON_PASS_ONLY" selected>CONSUME_ON_PASS_ONLY (Deducts only on passing)</option>
+                <option value="ALWAYS_CONSUME">ALWAYS_CONSUME (Deducts even if failed)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- LIFE Fields -->
+          <div id="fields-life" style="display: none;">
+            <div class="form-group">
+              <label class="form-label">Lives Granted</label>
+              <input type="number" id="lifeCount" value="1" min="1" max="3" oninput="updateConfig()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel: Live JSON & Card Preview -->
+        <div class="card">
+          <h2 class="card-title">3. Student Storefront Preview</h2>
+          <p class="card-desc">Live rendering of the course offer card and CourseCatalogOffer entity:</p>
+
+          <!-- Storefront Card -->
+          <div style="background: var(--panel-sub); border: 1px solid var(--border-bright); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 14px; align-items: center;">
+              <div id="previewIcon" style="font-size: 2.4rem; background: var(--panel); border: 1px solid var(--border); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                🛡️
+              </div>
+              <div>
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                  <span id="previewPill" class="pill pill-shield">SHIELD</span>
+                  <span id="previewScope" class="pill" style="background: rgba(255,255,255,0.06); color: var(--ink-muted);">PRACTICAL_ONLY</span>
+                  <span id="previewStockPill" class="pill pill-stock">5 LEFT</span>
+                </div>
+                <h4 id="previewTitle" style="font-size: 1.05rem; font-weight: 700;">Advanced Lab Shield</h4>
+                <p id="previewSubtitle" style="font-size: 0.82rem; color: var(--ink-muted);">2 charges · Failure absorption</p>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 1.3rem; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                <span>🪙</span> <span id="previewPrice">350</span>
+              </div>
+              <button class="btn-action" style="padding: 6px 12px; font-size: 0.8rem; margin-top: 6px;">Buy in Storefront</button>
+            </div>
+          </div>
+
+          <h3 style="font-size: 0.85rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; margin-bottom: 8px;">
+            Market Persisted Entity (CourseCatalogOffer JSON)
+          </h3>
+          <pre id="jsonCatalogOffer"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SAGA WORKFLOW -->
+    <section id="tab-saga" style="display: none;">
+      <div class="card">
+        <h2 class="card-title">Dual-Hold Saga Choreography (PRD & E-Commerce Compliant)</h2>
+        <p class="card-desc">
+          Dual Hold protection: Market secures stock first, Bank secures coins second, Inventory delivers third, and Bank debits fourth:
+        </p>
+
+        <div class="saga-steps">
+          <div class="saga-step-card highlight">
+            <div class="step-badge">PHASE 0 (MARKET)</div>
+            <div class="step-title">0. Local Stock Hold</div>
+            <div class="step-desc">Atomic DB decrement. Rejects in 2ms if sold out (409 Conflict).</div>
+          </div>
+          <div class="saga-step-card highlight">
+            <div class="step-badge">PHASE 1 (BANK)</div>
+            <div class="step-title">1. Coin Balance Hold</div>
+            <div class="step-desc">Locks student coins on <code>bank.holds.commands</code>. Returns <code>holdId</code> (PENDING).</div>
+          </div>
+          <div class="saga-step-card highlight">
+            <div class="step-badge">PHASE 2 (INVENTORY)</div>
+            <div class="step-title">2. Asset Delivery</div>
+            <div class="step-desc">Transfers to <code>inventory.items.commands</code>. Confirmed as <code>ITEM_PROVISIONED</code>.</div>
+          </div>
+          <div class="saga-step-card highlight">
+            <div class="step-badge">PHASE 3 (SETTLEMENT)</div>
+            <div class="step-title">3. Final Debit & Stock Commit</div>
+            <div class="step-desc">Bank commits ledger deduction and Market commits StockHold (COMMITTED).</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--green); margin-bottom: 8px;">
+              Phase 0: Market Local Stock Hold Entity
+            </h3>
+            <pre id="jsonStockHold"></pre>
+          </div>
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 8px;">
+              Phase 1: HOLD_CREATE_REQUESTED (Market $\rightarrow$ Bank)
+            </h3>
+            <pre id="jsonHoldCreate"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INVENTORY PAYLOAD -->
+    <section id="tab-inventory-payload" style="display: none;">
+      <div class="card">
+        <h2 class="card-title">Phase 2: Inventory Microservice Provisioning Contract</h2>
+        <p class="card-desc">
+          Dispatched on Kafka topic <code>inventory.items.commands</code> with both <code>stockHoldId</code> and <code>bankHoldId</code>:
+        </p>
+
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--green); margin-bottom: 8px;">
+              Command: ITEM_PROVISION_REQUESTED
+            </h3>
+            <pre id="jsonInventoryProvision"></pre>
+          </div>
+          <div>
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--purple); margin-bottom: 8px;">
+              Reply Event: ITEM_PROVISIONED
+            </h3>
+            <pre id="jsonInventoryReply"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: REST API -->
+    <section id="tab-rest-api" style="display: none;">
+      <div class="card">
+        <h2 class="card-title">Spring Boot REST Endpoints & Contracts (English)</h2>
+        <p class="card-desc">Official OpenAPI / Controller definitions for Market with Stock Hold support:</p>
+
+        <div style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 4px;">POST /api/v1/market/orders</h3>
+          <p style="font-size: 0.8rem; color: var(--ink-muted);">Checkout initialization endpoint. Creates StockHold in 2ms. Returns 202 Accepted with orderId and stockHoldId, or 409 Conflict if out of stock.</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 4px;">GET /api/v1/market/templates</h3>
+          <p style="font-size: 0.8rem; color: var(--ink-muted);">Retrieves available base templates (SHIELD, BOOST_XP, BOOST_COINS, LIFE).</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 4px;">POST /api/v1/market/courses/{courseId}/catalog/items</h3>
+          <p style="font-size: 0.8rem; color: var(--ink-muted);">Allows professors to instantiate a template with custom coinPrice, stock limit, charges or mode.</p>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <h3 style="font-size: 0.9rem; color: var(--accent); margin-bottom: 4px;">GET /api/v1/market/courses/{courseId}/catalog</h3>
+          <p style="font-size: 0.8rem; color: var(--ink-muted);">Student storefront view displaying active offerings, prices, and remaining stock units for the cohort.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let currentType = 'SHIELD';
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('tab-simulator').style.display = tabId === 'simulator' ? 'block' : 'none';
+      document.getElementById('tab-saga').style.display = tabId === 'saga' ? 'block' : 'none';
+      document.getElementById('tab-inventory-payload').style.display = tabId === 'inventory-payload' ? 'block' : 'none';
+      document.getElementById('tab-rest-api').style.display = tabId === 'rest-api' ? 'block' : 'none';
+    }
+
+    function selectTemplate(type) {
+      currentType = type;
+      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+
+      document.getElementById('fields-shield').style.display = 'none';
+      document.getElementById('fields-boost').style.display = 'none';
+      document.getElementById('fields-life').style.display = 'none';
+
+      if (type === 'SHIELD') {
+        document.getElementById('tpl-shield').classList.add('selected');
+        document.getElementById('fields-shield').style.display = 'block';
+        document.getElementById('itemName').value = 'Advanced Lab Shield';
+        document.getElementById('itemPrice').value = '350';
+      } else if (type === 'BOOST') {
+        document.getElementById('tpl-boost').classList.add('selected');
+        document.getElementById('fields-boost').style.display = 'block';
+        document.getElementById('itemName').value = 'Hyper-XP Potion';
+        document.getElementById('itemPrice').value = '500';
+      } else if (type === 'LIFE') {
+        document.getElementById('tpl-life').classList.add('selected');
+        document.getElementById('fields-life').style.display = 'block';
+        document.getElementById('itemName').value = 'Revive Flask';
+        document.getElementById('itemPrice').value = '300';
+      }
+      updateConfig();
+    }
+
+    function toggleBoostMode() {
+      const mode = document.getElementById('boostMode').value;
+      document.getElementById('boost-sub-ttl').style.display = mode === 'TTL' ? 'block' : 'none';
+      document.getElementById('boost-sub-exam').style.display = mode === 'PER_EXAM' ? 'block' : 'none';
+      updateConfig();
+    }
+
+    function updateConfig() {
+      const name = document.getElementById('itemName').value;
+      const price = parseInt(document.getElementById('itemPrice').value) || 0;
+      const stock = document.getElementById('itemStock').value ? parseInt(document.getElementById('itemStock').value) : null;
+
+      let config = {};
+      let properties = {};
+      let previewSub = '';
+      let pillClass = 'pill-shield';
+      let icon = '🛡️';
+
+      if (currentType === 'SHIELD') {
+        icon = '🛡️';
+        pillClass = 'pill-shield';
+        const charges = parseInt(document.getElementById('shieldCharges').value) || 1;
+        const scope = document.getElementById('shieldScope').value;
+        config = {
+          itemType: 'SHIELD',
+          charges: charges,
+          applicableChallenges: scope
+        };
+        properties = {
+          chargesTotal: charges,
+          chargesRemaining: charges,
+          applicableChallenges: scope
+        };
+        previewSub = `${charges} charges · Scope: ${scope}`;
+      } else if (currentType === 'BOOST') {
+        icon = '⚡';
+        pillClass = 'pill-boost';
+        const boostType = document.getElementById('boostType').value;
+        const mult = parseFloat(document.getElementById('boostMultiplier').value) || 1.25;
+        const mode = document.getElementById('boostMode').value;
+
+        if (mode === 'TTL') {
+          const duration = parseInt(document.getElementById('boostDuration').value) || 60;
+          config = {
+            itemType: boostType,
+            multiplier: mult,
+            mode: 'TTL',
+            durationMinutes: duration
+          };
+          properties = {
+            multiplier: mult,
+            mode: 'TTL',
+            durationMinutes: duration
+          };
+          previewSub = `x${mult} ${boostType === 'BOOST_XP' ? 'XP' : 'Coins'} · ${duration} min`;
+        } else {
+          const attempts = parseInt(document.getElementById('boostAttempts').value) || 1;
+          const rule = document.getElementById('boostConsumptionRule').value;
+          config = {
+            itemType: boostType,
+            multiplier: mult,
+            mode: 'PER_EXAM',
+            attempts: attempts,
+            consumptionRule: rule
+          };
+          properties = {
+            multiplier: mult,
+            mode: 'PER_EXAM',
+            totalAttempts: attempts,
+            remainingAttempts: attempts,
+            consumptionRule: rule
+          };
+          previewSub = `x${mult} ${boostType === 'BOOST_XP' ? 'XP' : 'Coins'} · ${attempts} attempts (${rule})`;
+        }
+      } else if (currentType === 'LIFE') {
+        icon = '❤️';
+        pillClass = 'pill-life';
+        const lives = parseInt(document.getElementById('lifeCount').value) || 1;
+        config = {
+          itemType: 'LIFE',
+          livesGranted: lives
+        };
+        properties = {
+          livesGranted: lives
+        };
+        previewSub = `+${lives} Life provisioned to student inventory`;
+      }
+
+      // Live UI Preview
+      document.getElementById('previewIcon').textContent = icon;
+      document.getElementById('previewTitle').textContent = name;
+      document.getElementById('previewPrice').textContent = price;
+      document.getElementById('previewSubtitle').textContent = previewSub;
+      const pill = document.getElementById('previewPill');
+      pill.className = `pill ${pillClass}`;
+      pill.textContent = currentType;
+      document.getElementById('previewScope').textContent = currentType === 'SHIELD' ? config.applicableChallenges : (currentType === 'BOOST' ? config.mode : 'INSTANT_LIFE');
+      
+      const stockPill = document.getElementById('previewStockPill');
+      if (stock !== null) {
+        stockPill.textContent = `${stock} UNITS LEFT`;
+        stockPill.style.display = 'inline-block';
+      } else {
+        stockPill.textContent = 'UNLIMITED';
+        stockPill.style.display = 'inline-block';
+      }
+
+      // JSON Catalog Offer Preview
+      const catalogOfferObj = {
+        offerId: "item-course-9912",
+        courseCohortId: "COURSE_PROG4_2026",
+        templateId: currentType === 'SHIELD' ? 'tpl-shield-base' : (currentType === 'BOOST' ? 'tpl-boost-xp' : 'tpl-life-potion'),
+        customName: name,
+        coinPrice: price,
+        stock: stock,
+        availableStock: stock !== null ? stock - 1 : null,
+        active: true,
+        configuration: config
+      };
+      document.getElementById('jsonCatalogOffer').textContent = JSON.stringify(catalogOfferObj, null, 2);
+
+      // JSON Phase 0: StockHold Entity
+      const stockHoldObj = {
+        stockHoldId: "stk-hld-001",
+        catalogOfferId: "item-course-9912",
+        purchaseOrderId: "ord-88391a",
+        studentId: "usr-4821",
+        status: "PENDING",
+        expiresAt: new Date(Date.now() + 5 * 60000).toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      document.getElementById('jsonStockHold').textContent = JSON.stringify(stockHoldObj, null, 2);
+
+      // JSON Phase 1: HOLD_CREATE_REQUESTED
+      const holdCreateObj = {
+        eventId: "a10f92b4-7e18-4902-8c11-92b8d91c0001",
+        eventType: "HOLD_CREATE_REQUESTED",
+        timestamp: new Date().toISOString(),
+        producer: "team-09-market",
+        payload: {
+          orderId: "ord-88391a",
+          stockHoldId: "stk-hld-001",
+          studentId: "usr-4821",
+          courseId: "COURSE_PROG4_2026",
+          amount: price,
+          currency: "GOLD_COIN",
+          orderType: "DIRECT_PURCHASE"
+        }
+      };
+      document.getElementById('jsonHoldCreate').textContent = JSON.stringify(holdCreateObj, null, 2);
+
+      // JSON Phase 2: ITEM_PROVISION_REQUESTED
+      const provisionObj = {
+        eventId: "c32f94d6-9a30-4b24-ae33-14daf13e2203",
+        eventType: "ITEM_PROVISION_REQUESTED",
+        timestamp: new Date().toISOString(),
+        producer: "team-09-market",
+        payload: {
+          orderId: "ord-88391a",
+          stockHoldId: "stk-hld-001",
+          bankHoldId: "hld-99201",
+          studentId: "usr-4821",
+          courseId: "COURSE_PROG4_2026",
+          itemPayload: {
+            catalogItemId: "item-course-9912",
+            templateId: currentType === 'SHIELD' ? 'tpl-shield-base' : (currentType === 'BOOST' ? 'tpl-boost-xp' : 'tpl-life-potion'),
+            itemType: currentType,
+            name: name,
+            icon: icon,
+            properties: properties
+          }
+        }
+      };
+      document.getElementById('jsonInventoryProvision').textContent = JSON.stringify(provisionObj, null, 2);
+
+      // JSON Phase 2 Reply: ITEM_PROVISIONED
+      const replyObj = {
+        eventId: "d43a05e7-0b41-4c35-bf44-25eb024f3304",
+        eventType: "ITEM_PROVISIONED",
+        timestamp: new Date().toISOString(),
+        producer: "inventory-service",
+        payload: {
+          orderId: "ord-88391a",
+          stockHoldId: "stk-hld-001",
+          bankHoldId: "hld-99201",
+          studentId: "usr-4821",
+          courseId: "COURSE_PROG4_2026",
+          inventoryItemId: "inv-8812",
+          itemType: currentType,
+          state: "AVAILABLE"
+        }
+      };
+      document.getElementById('jsonInventoryReply').textContent = JSON.stringify(replyObj, null, 2);
+    }
+
+    // Initialize
+    updateConfig();
+  </script>
+</body>
+</html>

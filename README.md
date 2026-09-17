@@ -1,88 +1,84 @@
-# Documentación Técnica y Arquitectónica — Mercado (Tema 09)
-## Plataforma Gamificada Distribuida · Aula Quest (TUP)
+# Technical & Architectural Documentation — Market (Team 09)
+## Distributed Gamified Platform · Aula Quest (TUP UTN FRC)
 
-Este repositorio centraliza las especificaciones técnicas, protocolos de integración inter-microservicios, propuestas arquitectónicas y contratos de eventos del módulo de **Mercado (Tema 09)**.
+This repository maintains the technical specifications, domain models, **Open Catalog** design, **Auction Subsystem** architecture, and transactional saga protocols between **Market (Team 09)**, **Bank (Team 08)**, and the **Inventory Microservice**.
 
 ---
 
-## 🗂️ Estructura del Repositorio
+## 🏛️ Bounded Context & Platform Architecture Doctrine
+
+1. **Market as an Orchestrating Storefront / Kiosk:**
+   - Sole authority over **Course Catalog Offerings**, **Open Catalog Curation**, **Local Stock Holds**, **Purchase Orders**, and **Auctions**.
+   - **Does not** persist student backpacks (`student_inventory`).
+   - **Does not** manage coin balances (governed by Bank).
+   - **Does not** evaluate challenge effects or charge deductions (governed by Inventory).
+2. **Dual-Hold & Two-Phase Commit Saga (PRD Compliance):**
+   - **Money is never deducted before item delivery, and stock is never over-sold.**
+   - Sequence:
+     1. **Phase 0 (Stock Hold):** Market reserves local stock unit in 2ms (`StockHold` status: `PENDING`, TTL: 5m). Rejects with `409 Conflict` if sold out (Fail-Fast).
+     2. **Phase 1 (Coin Hold):** Market requests coin reservation $\rightarrow$ Bank locks coins (`HOLD_CREATE_REQUESTED` $\rightarrow$ `HOLD_CREATED`).
+     3. **Phase 2 (Provision):** Market orders the independent **Inventory Microservice** to credit the asset (`ITEM_PROVISION_REQUESTED` $\rightarrow$ `ITEM_PROVISIONED`).
+     4. **Phase 3 (Commit & Debit):** Market authorizes Bank to finalize the ledger deduction (`HOLD_CONFIRM_REQUESTED` $\rightarrow$ `HOLD_CONFIRMED`) and commits the stock hold (`StockHold` status: `COMMITTED`).
+3. **Open Catalog with Free Market Pricing:**
+   - Item prices and operational constraints are **not governed by Backoffice**.
+   - Market provides **Base Item Templates** (`SHIELD`, `BOOST_XP`, `BOOST_COINS`, `LIFE`). Professors freely configure `coinPrice`, `charges`, `applicableChallenges`, `multiplier`, `mode` (`TTL` vs `PER_EXAM`), and optional finite `stock` for their cohorts.
+4. **Everything is an Item Doctrine:**
+   - Shields, boosts, and **Lives** are uniformly modeled as items in the catalog and provisioned into the Inventory service.
+
+---
+
+## 🗂️ Repository Structure
 
 ```
 docs/
-├── Comunicacion/                             # Contratos y protocolos de comunicación inter-servicios
-│   ├── Grupo-01-Identidad-y-Gateway/        # Auth perimetral, JWT y propagación RBAC
-│   ├── Grupo-02-Cursos-y-Matricula/         # Validación síncrona y ciclo de vida de cohorte
-│   ├── Grupo-03-Motor-de-Desafios/          # HUD de equipamiento y consumo de desafíos resueltos
-│   ├── Grupo-08-Banco/                      # Transacciones de compra, HOLDs de subastas y eventos Kafka
-│   └── Grupo-12-Backoffice/                 # Parámetros económicos y analítica de ventas
+├── Comunicacion/
+│   └── Grupo-08-Banco/                      # Bank integration & Two-Phase Hold saga
+│       └── flujo-comunicacion-banco.md      # Complete English Kafka events & dual-hold saga contract
 │
-├── Propuestas/                              # Propuestas arquitectónicas presentadas a otros equipos
-│   └── Grupo-03-Motor-de-Desafios/          # Desacople total con patrón espía / observador
+├── Mercado/                                 # Market domain specifications
+│   ├── Catalogos/                           # Open Catalog & Stock Holds
+│   │   ├── README.md                        # Technical specification, stock management, DTOs & payloads
+│   │   └── catalogo-abierto-interactivo.html# Interactive simulator & dual-hold saga previewer
+│   │
+│   └── Subastas/                            # Auction subsystem (Epic E-07)
+│       ├── README.md                        # Architecture index
+│       ├── documento-arquitectura-subastas.html # Master document with embedded Archify viewer
+│       ├── 01-analisis-opciones-arquitectura.md # Architectural alternatives & trade-offs
+│       ├── 02-matriz-fallos-resiliencia-y-soluciones.md # Concurrency, locks & tie-breakers
+│       ├── 03-contratos-eventos-e-idempotencia.md       # Event idempotency & deduplication
+│       ├── flujo-subasta-archify.html       # Navigable Archify sequence diagram
+│       └── flujo-subasta-archify.json       # JSON specification
 │
-├── Mercado/                                 # Especificaciones internas del módulo Mercado
-│   ├── Subastas/                            # Arquitectura, resiliencia y contratos de subastas (E-07)
-│   ├── Catalogos/                           # Catálogo de consumibles y balance pedagógico
-│   └── Arquitectura-General/                # Flujos globales y mapa de integración de microservicios
+├── Workflow/                                # Development & Git workflow
+│   ├── README.md                            # Branching & Pull Request policies
+│   └── diagrama-git-workflow.png            # Visual branch lifecycle diagram
 │
-├── Workflow/                                # Guía de Git Workflow, política de ramas y convención de commits
-│   ├── README.md                            # Documento normativo y reglas de Pull Request
-│   └── diagrama-git-workflow.png            # Diagrama visual de ciclo de vida de ramas
-│
-└── [Documentos Iniciales]                   # Kickoff, spikes y presentaciones previas
+├── CONTEXTO-MERCADO-SPRINT1.md              # Consolidated team context for Sprint 1
+├── diagramas-mercado.md                     # Mermaid diagrams (Context, Domain, Saga Machines)
+├── PRD-Plataforma-Gamificada-TP.pdf         # Official product requirements document
+└── Sprint0_Propuesta_Mercado.pdf            # Sprint 0 initial team proposal
 ```
 
 ---
 
-## 📡 1. Comunicación e Integraciones Inter-Microservicios
+## 📡 Kafka Topics & Microservice Interconnects
 
-| Grupo / Microservicio | Documento | Formato / Tipo | Descripción |
+All topics, commands, and events adhere to standard English naming:
+
+| Topic Name | Message Semantics | Producers | Consumers |
 | :--- | :--- | :--- | :--- |
-| **Grupo 01 — Identidad y Gateway** | [flujo-comunicacion-usuarios.md](./Comunicacion/Grupo-01-Identidad-y-Gateway/flujo-comunicacion-usuarios.md) | Markdown | Seguridad perimetral, validación de JWT e inyección de cabeceras seguras (`X-User-Id`, `X-Roles`). |
-| **Grupo 02 — Cursos y Matrícula** | [flujo-comunicacion-cursos.md](./Comunicacion/Grupo-02-Cursos-y-Matricula/flujo-comunicacion-cursos.md) | Markdown | Validación síncrona de matrícula (`GET /enrollment-status`) y suscripción asíncrona a `cursos.ciclo-vida`. |
-| **Grupo 03 — Motor de Desafíos** | [flujo-comunicacion-motor-desafio.md](./Comunicacion/Grupo-03-Motor-de-Desafios/flujo-comunicacion-motor-desafio.md) | Markdown | Consulta síncrona de equipamiento en IDE web y suscripción a hechos en `desafios.resultados`. |
-| **Grupo 08 — Banco** | [flujo-comunicacion-banco.md](./Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) | Markdown | Coreografía Kafka con envoltura estándar, modelo HOLD/Saga compensatoria y streaming SSE. |
-| **Grupo 08 — Banco** | [Banco-T08_Mercado-T09_Documento-de-integracion.docx](./Comunicacion/Grupo-08-Banco/Banco-T08_Mercado-T09_Documento-de-integracion.docx) | Word (Docx) | Documento formal acordado entre los equipos de Banco y Mercado. |
-| **Grupo 08 — Banco** | [flujo-compra-corregido.html](./Comunicacion/Grupo-08-Banco/flujo-compra-corregido.html) | HTML Interactivo | Diagrama visual del flujo de compra y reserva de saldo. |
-| **Grupo 08 — Banco** | [flujo-subasta.html](./Comunicacion/Grupo-08-Banco/flujo-subasta.html) | HTML Interactivo | Diagrama visual de pujas y retención de fondos. |
-| **Grupo 12 — Backoffice** | [flujo-comunicacion-backoffice.md](./Comunicacion/Grupo-12-Backoffice/flujo-comunicacion-backoffice.md) | Markdown | Consumo asíncrono de `backoffice.parametros` (precios, tiers, vidas) y analítica de ventas. |
+| `bank.holds.commands` | Commands to create, confirm, or release coin balance holds | `team-09-market` | `team-08-bank` |
+| `bank.holds.events` | Factual lifecycle events of balance holds (`HOLD_CREATED`, `HOLD_CONFIRMED`, `HOLD_RELEASED`, `HOLD_REJECTED`) | `team-08-bank` | `team-09-market`, `team-11-notifications` |
+| `inventory.items.commands` | Commands to credit assets to student backpacks | `team-09-market` | `inventory-service` |
+| `inventory.items.events` | Factual events confirming asset delivery (`ITEM_PROVISIONED`, `ITEM_PROVISION_FAILED`) | `inventory-service` | `team-09-market` |
+| `market.orders.events` | Factual order lifecycle events | `team-09-market` | `team-11-notifications` |
 
 ---
 
-## 💡 2. Propuestas Arquitectónicas para Otros Equipos
+## 🏪 Key Deliverables & Interactive Tools
 
-| Destinatario | Documento | Formato / Tipo | Descripción |
-| :--- | :--- | :--- | :--- |
-| **Grupo 03 — Motor de Desafíos** | [propuesta-desacople-motor-desafios.html](./Propuestas/Grupo-03-Motor-de-Desafios/propuesta-desacople-motor-desafios.html) | HTML Interactivo | Análisis y propuesta de desacople arquitectónico del motor de desafíos. |
-| **Grupo 03 — Motor de Desafíos** | [propuesta-solucion-espias-desacople.html](./Propuestas/Grupo-03-Motor-de-Desafios/propuesta-solucion-espias-desacople.html) | HTML Interactivo | Solución técnica detallada basada en el patrón "Espía" / Observador. |
-| **Grupo 03 — Motor de Desafíos** | [Diagrama SVG](./Propuestas/Grupo-03-Motor-de-Desafios/propuesta-solucion-espias-desacople.svg) / [PNG](./Propuestas/Grupo-03-Motor-de-Desafios/propuesta-solucion-espias-desacople.png) | Gráfico Vectorial / Raster | Esquema visual del patrón espía. |
-
----
-
-## 🏛️ 3. Módulo Interno de Mercado (Tema 09)
-
-### 3.1 Subastas (Épica E-07)
-Directorio completo: [`Mercado/Subastas/`](./Mercado/Subastas/)
-* [**README de Subastas**](./Mercado/Subastas/README.md): Resumen e índice del subsistema.
-* [**Documento Maestro de Arquitectura (HTML)**](./Mercado/Subastas/documento-arquitectura-subastas.html): Documento interactivo con navegación por secciones, opciones de arquitectura y visor Archify embebido.
-* [**01 · Análisis de Opciones de Arquitectura**](./Mercado/Subastas/01-analisis-opciones-arquitectura.md): Evaluación de alternativas (Outbox/Saga, Redis, State Machine) y trade-offs.
-* [**02 · Matriz de Fallos, Errores y Resiliencia**](./Mercado/Subastas/02-matriz-fallos-resiliencia-y-soluciones.md): Prevención de desincronizaciones de TTL, concurrencia de pujas y mitigación de errores letales.
-* [**03 · Contratos de Eventos e Idempotencia**](./Mercado/Subastas/03-contratos-eventos-e-idempotencia.md): Envoltura oficial de eventos Kafka, claves de deduplicación y estrategias de idempotencia.
-* [**Flujo Interactivo Archify (HTML)**](./Mercado/Subastas/flujo-subasta-archify.html) & [Especificación JSON](./Mercado/Subastas/flujo-subasta-archify.json): Diagrama de secuencia navegable por vistas guiadas.
-
-### 3.2 Catálogos y Mecánicas de Juego
-Directorio: [`Mercado/Catalogos/`](./Mercado/Catalogos/)
-* [**Catálogo de Consumibles (HTML)**](./Mercado/Catalogos/catalogo-items-consumibles.html): Catálogo interactivo con catálogo de ítems, tiers de precios y reglas de consumo.
-* [**Evaluación de Ítems (HTML)**](./Mercado/Catalogos/evaluacion-items-1.html): Análisis pedagógico y balance de impacto en la experiencia del alumno.
-
-### 3.3 Arquitectura General
-Directorio: [`Mercado/Arquitectura-General/`](./Mercado/Arquitectura-General/)
-* [**Diagrama de Flujo Inter-Microservicios (HTML)**](./Mercado/Arquitectura-General/diagrama-flujo-microservicios.html): Mapa general de microservicios y posición de entrada de Mercado.
-* [**Flujos de Integración de Mercado (HTML)**](./Mercado/Arquitectura-General/flujos-integracion-mercado.html): Dashboard integral de integración de Mercado con el ecosistema Aula Quest.
-
----
-
-## 🛠️ 4. Metodología de Desarrollo y Workflow de Git
-
-Directorio: [`Workflow/`](./Workflow/)
-* [**Guía Oficial de Git Workflow & Commits**](./Workflow/README.md): Especificación de ramas (`main`, `develop`, `feature/*`, `bugfix/*`, `release/*`, `hotfix/*`), política obligatoria de Pull Requests hacia `main` y convención semántica de commits.
-* [**Diagrama Visual de Git Workflow**](./Workflow/diagrama-git-workflow.png): Esquema ilustrativo del ciclo de vida y ramificación del proyecto.
+* [**Open Catalog Technical Specification**](./Mercado/Catalogos/README.md): Definition of base templates, professor customization parameters, local stock hold logic, and REST DTOs.
+* [**Open Catalog & Dual-Hold Interactive Simulator**](./Mercado/Catalogos/catalogo-abierto-interactivo.html): Web-based visualizer for live template customization, finite stock limits, and 4-phase saga JSON payload inspection.
+* [**Bank & Inventory Saga Protocol**](./Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md): Complete specification of the dual-hold transaction.
+* [**Architectural Diagrams (Mermaid)**](./diagramas-mercado.md): C4 context, domain model with `StockHold`, state machines, and auction settlement sequence.
+* [**Sprint 1 Master Context**](./CONTEXTO-MERCADO-SPRINT1.md): Consolidated background, team decisions, and Sprint 1 planning notes.
