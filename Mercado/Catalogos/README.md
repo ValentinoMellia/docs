@@ -1,6 +1,10 @@
 # Technical Specification — Open Catalog by Templates (Team 09 Market)
 ## Configurable Item Templates & Professor Course Curation (No Stock Limit)
 
+> 🖥️ **Herramientas visuales interactivas disponibles:**
+> - [**Curación de Catálogo del Profesor (UI dedicada)**](file:///C:/Users/totok/Documents/TUP%20-%202026/Programacion/AulaQuest/docs/Mercado/Catalogos/curacion-catalogo-profesor.html) — Creador y gestor de ofertas de cohorte, configuración por plantillas, vista previa del alumno y generador de payloads REST.
+> - [**Simulador Integral de Saga y Holds**](file:///C:/Users/totok/Documents/TUP%20-%202026/Programacion/AulaQuest/docs/Mercado/Catalogos/catalogo-abierto-interactivo.html) — Flujo completo de compra, Dual-Hold (Stock + Banco) y contratos Kafka.
+
 ---
 
 ## 1. Domain Boundary & Architectural Principles
@@ -65,7 +69,7 @@ There is no `stock` parameter for any type (decision #6 — no stock limit, ever
   - `ALL`: Applies across all challenge modalities (quizzes, practicals, exams).
   - `THEORETICAL_ONLY`: Active only during conceptual quizzes.
   - `PRACTICAL_ONLY`: Active only during programming/IDE code challenges.
-  - `NO_EXAMS`: Active for daily coursework; automatically disabled during midterms or final exams.
+  - `NO_EXAMS`: Active for both theoretical quizzes and practical programming exercises; automatically disabled during midterms, finals, or exam mode (Teórico y Práctico, sin efecto en exámenes).
 
 #### B. Boosts (`BOOST_XP`, `BOOST_COINS`)
 * **`coinPrice`:** Integer $\ge 1$.
