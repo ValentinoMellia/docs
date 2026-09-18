@@ -8,16 +8,22 @@ Este documento define la metodología de trabajo, estrategia de ramificación (b
 
 Para garantizar la estabilidad, trazabilidad y calidad del código en producción y en entornos de prueba, se establecen las siguientes reglas obligatorias:
 
-1. **La rama `main` refleja fielmente el estado de producción**:
+1. **Gestión estricta mediante Pull Requests (Política oficial para `tpi-market` y módulos del proyecto)**:
+   - **Está estrictamente prohibido realizar *push* directo a las ramas principales (`main` y `develop`)**. Ningún desarrollador puede subir cambios directamente sin una revisión formal.
+   - La totalidad de las funcionalidades, refactorizaciones y correcciones deben integrarse exclusivamente a través de Pull Requests (PRs).
+2. **La rama `main` refleja fielmente el estado de producción**:
    - Está estrictamente protegida contra *push* directo (`git push origin main` está bloqueado).
-   - **La única forma de incorporar cambios a `main` es mediante una Pull Request (PR)** aprobada y con todas las pruebas y validaciones automatizadas superadas.
-2. **La rama `develop` es el núcleo de desarrollo e integración**:
+   - **La única forma de incorporar cambios a `main` es mediante una Pull Request (PR)** aprobada formalmente y con todas las validaciones automatizadas superadas.
+3. **La rama `develop` es el núcleo de desarrollo e integración**:
    - Todos los desarrollos activos, nuevas funcionalidades y correcciones no críticas se integran en `develop`.
-   - Ningún desarrollador debe realizar *push* directo a `develop`; todo cambio se somete a revisión vía Pull Request desde su respectiva rama de trabajo.
-3. **Desarrollo aislado en ramas específicas**:
-   - Cada tarea, historia de usuario o corrección se trabaja en una rama aislada creada con el prefijo y nomenclatura oficial.
-4. **Commits atómicos y estandarizados**:
+   - Ningún desarrollador debe realizar *push* directo a `develop`; todo cambio se somete a revisión vía Pull Request desde su respectiva rama de trabajo (`feature/` o `bugfix/`).
+4. **Desarrollo aislado en ramas específicas**:
+   - Cada tarea, historia de usuario o corrección se trabaja en una rama aislada creada con el prefijo y nomenclatura oficial (`feature/<nombre>`, `bugfix/<nombre>`).
+5. **Commits atómicos y estandarizados**:
    - Cada commit debe representar una unidad lógica de cambio y cumplir con la convención establecida.
+6. **Obligatoriedad estricta de documentación integral en Pull Requests**:
+   - **Es obligatorio (sí o sí) rellenar toda la información de los cambios realizados en cada PR.** 
+   - No se aceptarán bajo ningún concepto Pull Requests vacías, incompletas o que conserven los placeholders y comentarios por defecto de la plantilla. Toda PR debe detallar minuciosamente la descripción técnica, issues/HUs vinculadas, motivación, pruebas ejecutadas y checklist de calidad.
 
 ---
 
@@ -250,11 +256,49 @@ git commit -m "feat(auth): implementar validación de credenciales con BCrypt"
 git push -u origin feature/login-authentication
 ```
 - Desde la plataforma (GitHub) se crea la **Pull Request** apuntando a `develop` como rama base.
-- Se describe el objetivo del cambio, pruebas realizadas e issues asociados.
+- **En `tpi-market`, no se permite realizar *push* directo bajo ningún motivo.** Toda integración se gestiona mediante PR.
+- **Obligatoriedad estricta de completar la plantilla de PR**: Se debe utilizar y rellenar al 100% la plantilla oficial (`.github/pull_request_template.md`), eliminando cualquier comentario o placeholder (`<!--- ... -->`).
+
+#### 📋 Estructura Obligatoria de Información en la PR (`tpi-market`)
+
+Toda Pull Request debe contener sin excepción:
+
+1. **Título de la PR**:
+   - Respetando la convención de commits: `<tipo>(<alcance_opcional>): <descripción breve> (<HU / Tarea>)`.
+   - *Ejemplo*: `feat(storefront): vitrina de catálogo de ofertas para alumnos (US-094 / T-956)`.
+2. **Encabezado / Nombre (`# Name of Feature/Fix/Refactor`)**:
+   - Nombre claro y conciso del cambio.
+3. **Descripción Detallada (`## Description`)**:
+   - Detallar punto por punto todo lo realizado:
+     - Endpoints REST implementados o modificados (rutas, métodos HTTP, query params).
+     - Componentes de seguridad, autenticación o autorización (roles requeridos, validación de pertenencia al curso, excepciones como `403 Forbidden`).
+     - Entidades y persistencia (tablas, campos nuevos, relaciones, índices, stock y precios).
+     - Clases y capas intervenidas (controllers, services, repositories, DTOs, mappers).
+     - Configuración de entorno (perfiles Docker, propiedades, CORS).
+4. **Issue / Historia Relacionada (`## Related Issue`)**:
+   - Enlace directo a la Épica, Historia de Usuario (US) y Tarea en Taiga o GitHub Issues.
+   - *Ejemplo*: `US-094` (#94 / ID: 9535762) - *G11 — Consultar catálogo disponible* / `T-956`.
+5. **Motivación y Contexto (`## Motivation and Context`)**:
+   - Justificación técnica y de negocio: ¿por qué se hizo este cambio?, ¿qué necesidad o requerimiento del PRD resuelve?, ¿qué reglas de negocio hace cumplir?
+6. **Evidencia y Pruebas Realizadas (`## How Has This Been Tested?`)**:
+   - Especificar el entorno de ejecución (versión de Java, SO, base de datos).
+   - Detalle de tests unitarios y de integración ejecutados y sus resultados (nombres de las clases de test y escenarios probados).
+   - Verificación de herramientas de calidad (Checkstyle, PMD, Javadoc).
+7. **Checklist Completa (`# Checklist:`)**:
+   - Marcar con `[x]` todos los puntos comprobados en el código local:
+     - [x] Cumplimiento de guías de estilo del proyecto.
+     - [x] Auto-revisión de código realizada.
+     - [x] Código documentado en áreas complejas.
+     - [x] Documentación y contratos actualizados (OpenAPI/Swagger).
+     - [x] Tests unitarios y de integración agregados o actualizados.
+     - [x] Cobertura de pruebas superior al 80%.
+     - [x] Tests pasando en local sin errores.
+     - [x] Generación de Javadoc (`mvn javadoc:javadoc`).
 
 ### 4.4. Paso 4: Revisión de Código (Code Review)
 - Al menos un revisor debe aprobar el cambio.
 - Las suites automatizadas de CI deben finalizar en verde.
+- El revisor debe rechazar cualquier PR que no cuente con la información y checklist debidamente completadas.
 
 ### 4.5. Paso 5: Preparación de Release y Paso a `main`
 - Cuando `develop` contiene las características planificadas para un release, se genera la rama `release/vX.Y.Z`.
