@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Professor Catalog Curation — AulaQuest Market (Team 09)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #111827;
+      --panel-sub: #1a2234;
+      --panel-hover: #222d44;
+      --ink: #f1f5f9;
+      --ink-muted: #94a3b8;
+      --ink-dim: #64748b;
+      --border: #243048;
+      --border-bright: #3b4d74;
+      --accent: #38bdf8;
+      --gold: #fbbf24;
+      --green: #34d399;
+      --purple: #a78bfa;
+      --red: #f87171;
+      --cyan: #06b6d4;
+      --orange: #fb923c;
+      --radius: 12px;
+      --font: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      line-height: 1.55;
+      padding-bottom: 80px;
+    }
+
+    .wrap { max-width: 1360px; margin: 0 auto; padding: 0 24px; }
+
+    /* Topbar */
+    .topbar {
+      background: rgba(9, 13, 22, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 0;
+    }
+    .topbar-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge-market {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .brand-sub {
+      color: var(--ink-muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .course-badge {
+      background: var(--panel-sub);
+      border: 1px solid var(--border-bright);
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .role-badge {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--purple);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Page Header */
+    .page-header {
+      margin: 28px 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .header-titles h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-titles p {
+      color: var(--ink-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+      max-width: 800px;
+    }
+
+    /* Banner */
+    .banner-kiosk {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(167, 139, 250, 0.04));
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .banner-icon { font-size: 1.8rem; }
+    .banner-text h4 { font-size: 0.95rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+    .banner-text p { font-size: 0.84rem; color: var(--ink-muted); line-height: 1.45; }
+    .banner-text code { font-family: var(--mono); color: var(--gold); background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 4px; }
+
+    /* Layout Grids */
+    .grid-curation {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 1024px) {
+      .grid-curation { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+    .card-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-desc {
+      color: var(--ink-muted);
+      font-size: 0.84rem;
+      margin-bottom: 20px;
+    }
+
+    /* Template Cards Selector */
+    .template-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 640px) {
+      .template-selector { grid-template-columns: repeat(2, 1fr); }
+    }
+    .template-card {
+      background: var(--panel-sub);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      position: relative;
+    }
+    .template-card:hover {
+      border-color: var(--border-bright);
+      background: var(--panel-hover);
+      transform: translateY(-2px);
+    }
+    .template-card.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
+    }
+    .tpl-icon { font-size: 1.7rem; margin-bottom: 6px; }
+    .tpl-name { font-size: 0.82rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tpl-type { font-size: 0.68rem; color: var(--ink-muted); font-family: var(--mono); text-transform: uppercase; margin-top: 2px; }
+
+    /* Form Styles */
+    .form-section-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin: 18px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .form-label span.req { color: var(--red); }
+    .help-text {
+      font-size: 0.74rem;
+      color: var(--ink-dim);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      background: var(--panel-sub);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 0.88rem;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #141c2c;
+    }
+    select { cursor: pointer; }
+
+    /* Special Highlight Box for Scope */
+    .scope-highlight {
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--accent);
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    /* Buttons */
+    .btn-action {
+      background: var(--accent);
+      color: #04101e;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--ink-muted);
+      border: 1px solid var(--border-bright);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      color: var(--ink);
+      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Storefront Card Preview */
+    .preview-box {
+      background: var(--panel-sub);
+      border: 1.5px solid var(--border-bright);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .preview-left {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .preview-icon-wrap {
+      font-size: 2.3rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      width: 62px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .preview-meta { display: flex; flex-direction: column; gap: 4px; }
+    .badge-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .pill-shield { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .pill-boost { background: rgba(167, 139, 250, 0.15); color: var(--purple); border: 1px solid rgba(167, 139, 250, 0.3); }
+    .pill-life { background: rgba(248, 113, 113, 0.15); color: var(--red); border: 1px solid rgba(248, 113, 113, 0.3); }
+    .pill-chest { background: rgba(251, 191, 36, 0.15); color: var(--gold); border: 1px solid rgba(251, 191, 36, 0.3); }
+    .pill-freeze { background: rgba(6, 182, 212, 0.15); color: var(--cyan); border: 1px solid rgba(6, 182, 212, 0.3); }
+    .pill-stock { background: rgba(249, 115, 22, 0.15); color: var(--orange); border: 1px solid rgba(249, 115, 22, 0.3); }
+    .pill-unlimited { background: rgba(52, 211, 153, 0.15); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.3); }
+    
+    .preview-title { font-size: 1.08rem; font-weight: 700; color: var(--ink); }
+    .preview-desc { font-size: 0.82rem; color: var(--ink-muted); margin-top: 4px; line-height: 1.4; }
+    .preview-price-wrap {
+      text-align: right;
+    }
+    .preview-price {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+
+    /* JSON Box */
+    pre {
+      background: #050810;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      color: #7dd3fc;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      overflow-x: auto;
+      line-height: 1.5;
+      max-height: 380px;
+    }
+
+    /* Active Offerings Table */
+    .curated-list-wrap {
+      margin-top: 10px;
+    }
+    .table-curated {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.84rem;
+    }
+    .table-curated th {
+      background: var(--panel-sub);
+      color: var(--ink-muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-bright);
+    }
+    .table-curated td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .table-curated tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status-dot.active { background: var(--green); box-shadow: 0 0 8px rgba(52, 211, 153, 0.5); }
+    .status-dot.inactive { background: var(--ink-dim); }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1e293b;
+      border: 1px solid var(--accent);
+      color: var(--ink);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <div class="brand">
+        <span class="badge-market">Team 09 Market</span>
+        <div>
+          <div class="brand-title">AulaQuest Storefront Curation</div>
+          <div class="brand-sub">Curaduría de Catálogo y Ofertas por Curso-Cohorte</div>
+        </div>
+      </div>
+      <div class="user-info">
+        <div class="course-badge">
+          <span>📚</span>
+          <span>COURSE_PROG4_2026</span>
+        </div>
+        <div class="role-badge">ROLE_PROFESSOR</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Page Title -->
+    <div class="page-header">
+      <div class="header-titles">
+        <h1>🛠️ Professor Catalog Curation</h1>
+        <p>
+          Configura y publica las ofertas de tu curso-cohorte. Selecciona una plantilla base oficial de Mercado,
+          personaliza precios, stock finito (fail-fast) y alcance pedagógico específico para tus desafíos.
+        </p>
+      </div>
+      <div>
+        <button class="btn-action" onclick="publishItem()">
+          <span>➕</span> Publicar Oferta en Cohorte
+        </button>
+      </div>
+    </div>
+
+    <!-- Banner -->
+    <div class="banner-kiosk">
+      <div class="banner-icon">🏪</div>
+      <div class="banner-text">
+        <h4>Modelo de Catálogo Abierto por Plantillas (Decisión #5 & #14)</h4>
+        <p>
+          Mercado no impone tiers rígidos ni nombres fijos. El profesor define el nombre comercial, el precio en monedas, 
+          el stock del aula y el alcance de aplicación (ej: <code>NO_EXAMS</code> para proteger exámenes regulares pero no parciales).
+        </p>
+      </div>
+    </div>
+
+    <!-- Grid Curation -->
+    <div class="grid-curation">
+      
+      <!-- LEFT COLUMN: BUILDER FORM -->
+      <div class="card">
+        <h2 class="card-title">1. Selección de Plantilla Base</h2>
+        <p class="card-desc">Elige la mecánica base provista por la plataforma para tu nuevo ítem:</p>
+
+        <!-- Template Selector -->
+        <div class="template-selector">
+          <div class="template-card selected" id="tpl-shield" onclick="selectTemplate('SHIELD')">
+            <div class="tpl-icon">🛡️</div>
+            <div class="tpl-name">Escudo Aegis</div>
+            <div class="tpl-type">SHIELD</div>
+          </div>
+          <div class="template-card" id="tpl-boost-xp" onclick="selectTemplate('BOOST_XP')">
+            <div class="tpl-icon">⚡</div>
+            <div class="tpl-name">Elixir de XP</div>
+            <div class="tpl-type">BOOST_XP</div>
+          </div>
+          <div class="template-card" id="tpl-boost-coins" onclick="selectTemplate('BOOST_COINS')">
+            <div class="tpl-icon">🪙</div>
+            <div class="tpl-name">Imán Monedas</div>
+            <div class="tpl-type">BOOST_COINS</div>
+          </div>
+          <div class="template-card" id="tpl-life" onclick="selectTemplate('LIFE')">
+            <div class="tpl-icon">❤️</div>
+            <div class="tpl-name">Poción de Vida</div>
+            <div class="tpl-type">LIFE</div>
+          </div>
+          <div class="template-card" id="tpl-chest" onclick="selectTemplate('LOOT_CHEST')">
+            <div class="tpl-icon">🎁</div>
+            <div class="tpl-name">Cofre Sorpresa</div>
+            <div class="tpl-type">LOOT_CHEST</div>
+          </div>
+          <div class="template-card" id="tpl-freeze" onclick="selectTemplate('STREAK_FREEZE')">
+            <div class="tpl-icon">❄️</div>
+            <div class="tpl-name">Bloq. de Racha</div>
+            <div class="tpl-type">STREAK_FREEZE</div>
+          </div>
+        </div>
+
+        <div class="form-section-title">
+          <span>⚙️</span> Parámetros Comerciales del Curso
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre del Ítem para los Alumnos <span class="req">*</span></label>
+          <input type="text" id="itemName" value="Égida de Laboratorio y Quizzes" oninput="updateConfig()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción Pedagógica / Comercial</label>
+          <textarea id="itemDesc" rows="2" oninput="updateConfig()">Absorbe hasta 2 fallos en entregas de código y quizzes conceptuales. Queda inactivo en parciales.</textarea>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">Precio en Monedas (Gold Coins) <span class="req">*</span></label>
+            <input type="number" id="itemPrice" value="350" min="1" oninput="updateConfig()">
+            <div class="help-text">Fijado libremente por el profesor para la economía del curso.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock Limitado para la Cohorte</label>
+            <input type="number" id="itemStock" value="10" min="0" placeholder="Vacío = Ilimitado" oninput="updateConfig()">
+            <div class="help-text">Si > 0, activa el bloqueo atómico local <code>StockHold</code> (Fail-Fast).</div>
+          </div>
+        </div>
+
+        <div class="form-section-title">
+          <span>🎯</span> Parámetros Específicos del Efecto
+        </div>
+
+        <!-- SHIELD FIELDS -->
+        <div id="fields-shield">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Cargas Absorbibles (Fallos) <span class="req">*</span></label>
+              <input type="number" id="shieldCharges" value="2" min="1" max="10" oninput="updateConfig()">
+              <div class="help-text">Cantidad de pruebas o tests que puede neutralizar.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Alcance de Desafíos (Scope) <span class="req">*</span></label>
+              <select id="shieldScope" onchange="updateConfig()">
+                <option value="NO_EXAMS" selected>NO_EXAMS (Teórico y Práctico, excluye exámenes)</option>
+                <option value="ALL">ALL (Teórico, Práctico y Exámenes)</option>
+                <option value="PRACTICAL_ONLY">PRACTICAL_ONLY (Solo Runner de Código / IDE)</option>
+                <option value="THEORETICAL_ONLY">THEORETICAL_ONLY (Solo Quizzes Conceptuales)</option>
+              </select>
+            </div>
+          </div>
+          <div class="scope-highlight" id="shieldScopeDesc">
+            <span>ℹ️</span>
+            <div><strong>Alcance Seleccionado (NO_EXAMS):</strong> El escudo protege al alumno durante los cuestionarios teóricos y prácticas de programación diarias, pero <strong>se desactiva automáticamente en exámenes parciales y finales</strong> para no alterar la evaluación formal.</div>
+          </div>
+        </div>
+
+        <!-- BOOST XP / COINS FIELDS -->
+        <div id="fields-boost" style="display: none;">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Factor Multiplicador <span class="req">*</span></label>
+              <input type="number" id="boostMultiplier" value="1.5" step="0.25" min="1.1" oninput="updateConfig()">
+              <div class="help-text">Ej: 1.5 = +50% extra de ganancia.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Modalidad de Consumo <span class="req">*</span></label>
+              <select id="boostMode" onchange="toggleBoostMode()">
+                <option value="PER_EXAM" selected>PER_EXAM (Pool de intentos de desafío)</option>
+                <option value="TTL">TTL (Cuenta regresiva en tiempo real)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="boost-sub-ttl" style="display: none;" class="form-group">
+            <label class="form-label">Duración en Minutos (Ventana Activa)</label>
+            <input type="number" id="boostDuration" value="120" min="15" step="15" oninput="updateConfig()">
+          </div>
+
+          <div id="boost-sub-exam" class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Intentos Cubiertos</label>
+              <input type="number" id="boostAttempts" value="3" min="1" max="10" oninput="updateConfig()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Regla de Descuento</label>
+              <select id="boostConsumptionRule" onchange="updateConfig()">
+                <option value="CONSUME_ON_PASS_ONLY" selected>CONSUME_ON_PASS_ONLY (Solo descuenta si aprueba)</option>
+                <option value="ALWAYS_CONSUME">ALWAYS_CONSUME (Descuenta siempre)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIFE FIELDS -->
+        <div id="fields-life" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">Vidas Otorgadas <span class="req">*</span></label>
+            <input type="number" id="lifeCount" value="1" min="1" max="3" oninput="updateConfig()">
+            <div class="help-text">Se acredita en el Ranking (Tema 10) respetando el tope de 3 vidas (PAR-12).</div>
+          </div>
+        </div>
+
+        <!-- LOOT CHEST FIELDS -->
+        <div id="fields-chest" style="display: none;">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Clasificación / Rareza <span class="req">*</span></label>
+              <select id="chestTier" onchange="updateConfig()">
+                <option value="BRONZE">Bronce (Común)</option>
+                <option value="SILVER">Plata (Raro)</option>
+                <option value="GOLD" selected>Oro (Épico)</option>
+                <option value="DIAMOND">Diamante (Legendario)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Premios por Apertura (Drops)</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="number" id="chestMinDrops" value="2" min="1" max="5" placeholder="Min" oninput="updateConfig()">
+                <input type="number" id="chestMaxDrops" value="3" min="1" max="5" placeholder="Max" oninput="updateConfig()">
+              </div>
+            </div>
+          </div>
+          <div class="help-text">
+            Este cofre otorga de 2 a 3 recompensas aleatorias ponderadas entre XP, Monedas, Vidas y Consumibles de cursada.
+          </div>
+        </div>
+
+        <!-- STREAK FREEZE FIELDS -->
+        <div id="fields-freeze" style="display: none;">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">Días Protegidos por Uso <span class="req">*</span></label>
+              <input type="number" id="freezeDays" value="1" min="1" max="3" oninput="updateConfig()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tope Máximo en Mochila (Anti-abuso) <span class="req">*</span></label>
+              <input type="number" id="freezeMax" value="2" min="1" max="5" oninput="updateConfig()">
+            </div>
+          </div>
+          <div class="help-text">
+            Protege automáticamente la racha del alumno ante un día sin actividad. Se limita a máx 2 unidades simultáneas.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: LIVE PREVIEW & JSON -->
+      <div>
+        <!-- Storefront Card Preview -->
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 class="card-title">2. Vista Previa para el Alumno</h2>
+          <p class="card-desc">Así verá el alumno esta tarjeta en el catálogo de su cohorte:</p>
+
+          <div class="preview-box">
+            <div class="preview-header">
+              <div class="preview-left">
+                <div class="preview-icon-wrap" id="previewIcon">🛡️</div>
+                <div class="preview-meta">
+                  <div class="badge-row">
+                    <span id="previewPill" class="pill pill-shield">SHIELD</span>
+                    <span id="previewScopePill" class="pill" style="background: rgba(255,255,255,0.06); color: var(--accent);">NO_EXAMS</span>
+                    <span id="previewStockPill" class="pill pill-stock">10 DISPONIBLES</span>
+                  </div>
+                  <div class="preview-title" id="previewTitle">Égida de Laboratorio y Quizzes</div>
+                </div>
+              </div>
+              <div class="preview-price-wrap">
+                <div class="preview-price">
+                  <span>🪙</span> <span id="previewPrice">350</span>
+                </div>
+                <span style="font-size: 0.72rem; color: var(--ink-dim);">monedas de cohorte</span>
+              </div>
+            </div>
+            <div class="preview-desc" id="previewDescription">
+              Absorbe hasta 2 fallos en entregas de código y quizzes conceptuales. Queda inactivo en parciales.
+            </div>
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+              <span id="previewSubtext" style="font-size: 0.76rem; color: var(--green); font-weight: 600;">
+                ⚡ 2 cargas · Protege teóricos y prácticos
+              </span>
+              <button class="btn-action" style="padding: 6px 14px; font-size: 0.78rem;" disabled>
+                Comprar (Vista Alumno)
+              </button>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="font-size: 0.8rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase;">
+              Payload REST (POST /api/v1/market/courses/{courseId}/catalog/items)
+            </h3>
+            <button class="btn-outline" onclick="copyJson()">📋 Copiar JSON</button>
+          </div>
+          <pre id="jsonPayload"></pre>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Active Offers in Cohort Table -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h2 class="card-title">3. Catálogo Activo de la Cohorte (COURSE_PROG4_2026)</h2>
+          <p class="card-desc" style="margin-bottom: 0;">Ofertas vigentes que los alumnos pueden comprar en este curso actualmente:</p>
+        </div>
+        <span class="badge-market" id="offersCount">4 Ofertas Curadas</span>
+      </div>
+
+      <div class="curated-list-wrap">
+        <table class="table-curated">
+          <thead>
+            <tr>
+              <th>Ítem & Mecánica</th>
+              <th>Tipo</th>
+              <th>Detalle del Efecto</th>
+              <th>Precio</th>
+              <th>Stock Cohorte</th>
+              <th>Estado</th>
+              <th style="text-align: right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="cohortItemsTable">
+            <!-- Sample Rows Preloaded -->
+            <tr id="row-1">
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.4rem;">🛡️</span>
+                  <div>
+                    <strong style="color: var(--ink);">Égida de Laboratorio</strong>
+                    <div style="font-size: 0.74rem; color: var(--ink-muted);">Absorbe 2 fallos en código y quizzes</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="pill pill-shield">SHIELD</span></td>
+              <td><code>NO_EXAMS (2 cargas)</code></td>
+              <td><strong style="color: var(--gold);">🪙 350</strong></td>
+              <td><span class="pill pill-stock">10 un.</span></td>
+              <td><span class="status-dot active"></span> Activo</td>
+              <td style="text-align: right;">
+                <button class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" onclick="toggleRowStatus('row-1')">Pausar</button>
+              </td>
+            </tr>
+            <tr id="row-2">
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.4rem;">⚡</span>
+                  <div>
+                    <strong style="color: var(--ink);">Elixir del Programador</strong>
+                    <div style="font-size: 0.74rem; color: var(--ink-muted);">XP x1.5 en entregas aprobadas</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="pill pill-boost">BOOST_XP</span></td>
+              <td><code>PER_EXAM (3 entregas)</code></td>
+              <td><strong style="color: var(--gold);">🪙 400</strong></td>
+              <td><span class="pill pill-unlimited">Ilimitado</span></td>
+              <td><span class="status-dot active"></span> Activo</td>
+              <td style="text-align: right;">
+                <button class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" onclick="toggleRowStatus('row-2')">Pausar</button>
+              </td>
+            </tr>
+            <tr id="row-3">
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.4rem;">❤️</span>
+                  <div>
+                    <strong style="color: var(--ink);">Frasco de Reanimación</strong>
+                    <div style="font-size: 0.74rem; color: var(--ink-muted);">Restaura 1 vida en Ranking (PAR-12)</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="pill pill-life">LIFE</span></td>
+              <td><code>+1 Vida (Tope máx 3)</code></td>
+              <td><strong style="color: var(--gold);">🪙 300</strong></td>
+              <td><span class="pill pill-unlimited">Ilimitado</span></td>
+              <td><span class="status-dot active"></span> Activo</td>
+              <td style="text-align: right;">
+                <button class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" onclick="toggleRowStatus('row-3')">Pausar</button>
+              </td>
+            </tr>
+            <tr id="row-4">
+              <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.4rem;">❄️</span>
+                  <div>
+                    <strong style="color: var(--ink);">Poción de Hielo de Racha</strong>
+                    <div style="font-size: 0.74rem; color: var(--ink-muted);">Protege 1 día de ausencia sin perder racha</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="pill pill-freeze">STREAK_FREEZE</span></td>
+              <td><code>1 día (Tope máx 2)</code></td>
+              <td><strong style="color: var(--gold);">🪙 250</strong></td>
+              <td><span class="pill pill-stock">15 un.</span></td>
+              <td><span class="status-dot active"></span> Activo</td>
+              <td style="text-align: right;">
+                <button class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" onclick="toggleRowStatus('row-4')">Pausar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <span>✅</span>
+    <span id="toastMsg">Oferta publicada con éxito en la cohorte.</span>
+  </div>
+
+  <script>
+    let currentType = 'SHIELD';
+    let publishedCount = 4;
+
+    const templates = {
+      SHIELD: {
+        id: 'tpl-shield-base',
+        name: 'Égida de Laboratorio y Quizzes',
+        desc: 'Absorbe hasta 2 fallos en entregas de código y quizzes conceptuales. Queda inactivo en parciales.',
+        price: 350,
+        stock: 10,
+        icon: '🛡️',
+        pillClass: 'pill-shield'
+      },
+      BOOST_XP: {
+        id: 'tpl-boost-xp',
+        name: 'Elixir de Experiencia Acelerada',
+        desc: 'Otorga un 50% extra de XP en las próximas entregas aprobadas.',
+        price: 400,
+        stock: null,
+        icon: '⚡',
+        pillClass: 'pill-boost'
+      },
+      BOOST_COINS: {
+        id: 'tpl-boost-coins',
+        name: 'Imán de Monedas de Oro',
+        desc: 'Duplica las monedas recibidas por resolver ejercicios.',
+        price: 280,
+        stock: null,
+        icon: '🪙',
+        pillClass: 'pill-boost'
+      },
+      LIFE: {
+        id: 'tpl-life-potion',
+        name: 'Frasco de Reanimación',
+        desc: 'Restaura una vida perdida para continuar resolviendo desafíos en el roadmap.',
+        price: 300,
+        stock: null,
+        icon: '❤️',
+        pillClass: 'pill-life'
+      },
+      LOOT_CHEST: {
+        id: 'tpl-loot-chest',
+        name: 'Cofre Dorado de Programación IV',
+        desc: 'Contiene de 2 a 3 recompensas épicas: XP, monedas, vidas o equipamiento.',
+        price: 600,
+        stock: 25,
+        icon: '🎁',
+        pillClass: 'pill-chest'
+      },
+      STREAK_FREEZE: {
+        id: 'tpl-streak-freeze',
+        name: 'Poción de Hielo Protector',
+        desc: 'Protege tu racha de días consecutivos si no puedes ingresar hoy.',
+        price: 250,
+        stock: 20,
+        icon: '❄️',
+        pillClass: 'pill-freeze'
+      }
+    };
+
+    function selectTemplate(type) {
+      currentType = type;
+      document.querySelectorAll('.template-card').forEach(el => el.classList.remove('selected'));
+
+      // Hide all dynamic fields
+      document.getElementById('fields-shield').style.display = 'none';
+      document.getElementById('fields-boost').style.display = 'none';
+      document.getElementById('fields-life').style.display = 'none';
+      document.getElementById('fields-chest').style.display = 'none';
+      document.getElementById('fields-freeze').style.display = 'none';
+
+      const tpl = templates[type];
+      document.getElementById('itemName').value = tpl.name;
+      document.getElementById('itemDesc').value = tpl.desc;
+      document.getElementById('itemPrice').value = tpl.price;
+      document.getElementById('itemStock').value = tpl.stock !== null ? tpl.stock : '';
+
+      if (type === 'SHIELD') {
+        document.getElementById('tpl-shield').classList.add('selected');
+        document.getElementById('fields-shield').style.display = 'block';
+      } else if (type === 'BOOST_XP' || type === 'BOOST_COINS') {
+        document.getElementById(type === 'BOOST_XP' ? 'tpl-boost-xp' : 'tpl-boost-coins').classList.add('selected');
+        document.getElementById('fields-boost').style.display = 'block';
+      } else if (type === 'LIFE') {
+        document.getElementById('tpl-life').classList.add('selected');
+        document.getElementById('fields-life').style.display = 'block';
+      } else if (type === 'LOOT_CHEST') {
+        document.getElementById('tpl-chest').classList.add('selected');
+        document.getElementById('fields-chest').style.display = 'block';
+      } else if (type === 'STREAK_FREEZE') {
+        document.getElementById('tpl-freeze').classList.add('selected');
+        document.getElementById('fields-freeze').style.display = 'block';
+      }
+
+      updateConfig();
+    }
+
+    function toggleBoostMode() {
+      const mode = document.getElementById('boostMode').value;
+      document.getElementById('boost-sub-ttl').style.display = mode === 'TTL' ? 'block' : 'none';
+      document.getElementById('boost-sub-exam').style.display = mode === 'PER_EXAM' ? 'grid' : 'none';
+      updateConfig();
+    }
+
+    function updateConfig() {
+      const tpl = templates[currentType];
+      const name = document.getElementById('itemName').value || 'Ítem sin nombre';
+      const desc = document.getElementById('itemDesc').value || '';
+      const price = parseInt(document.getElementById('itemPrice').value) || 0;
+      const stockVal = document.getElementById('itemStock').value;
+      const stock = stockVal ? parseInt(stockVal) : null;
+
+      let config = { itemType: currentType };
+      let previewSubtext = '';
+      let scopeLabel = currentType;
+
+      if (currentType === 'SHIELD') {
+        const charges = parseInt(document.getElementById('shieldCharges').value) || 1;
+        const scope = document.getElementById('shieldScope').value;
+        config.charges = charges;
+        config.applicableChallenges = scope;
+        scopeLabel = scope;
+
+        const scopeDesc = document.getElementById('shieldScopeDesc');
+        if (scope === 'NO_EXAMS') {
+          scopeDesc.innerHTML = '<span>ℹ️</span><div><strong>Alcance Seleccionado (NO_EXAMS):</strong> El escudo protege al alumno durante los cuestionarios teóricos y prácticas de programación diarias, pero <strong>se desactiva automáticamente en exámenes parciales y finales</strong> para no alterar la evaluación formal.</div>';
+          previewSubtext = `⚡ ${charges} cargas · Protege teóricos y prácticos (sin exámenes)`;
+        } else if (scope === 'ALL') {
+          scopeDesc.innerHTML = '<span>ℹ️</span><div><strong>Alcance Seleccionado (ALL):</strong> Protege en cualquier entrega: teóricos, prácticos y exámenes oficiales.</div>';
+          previewSubtext = `⚡ ${charges} cargas · Protege en todas las evaluaciones`;
+        } else if (scope === 'PRACTICAL_ONLY') {
+          scopeDesc.innerHTML = '<span>ℹ️</span><div><strong>Alcance Seleccionado (PRACTICAL_ONLY):</strong> Activo únicamente en el Runner de Código / IDE.</div>';
+          previewSubtext = `⚡ ${charges} cargas · Solo desafíos prácticos de código`;
+        } else {
+          scopeDesc.innerHTML = '<span>ℹ️</span><div><strong>Alcance Seleccionado (THEORETICAL_ONLY):</strong> Activo únicamente en cuestionarios teóricos y preguntas de opción múltiple.</div>';
+          previewSubtext = `⚡ ${charges} cargas · Solo quizzes conceptuales`;
+        }
+      } else if (currentType === 'BOOST_XP' || currentType === 'BOOST_COINS') {
+        const mult = parseFloat(document.getElementById('boostMultiplier').value) || 1.25;
+        const mode = document.getElementById('boostMode').value;
+        config.multiplier = mult;
+        config.mode = mode;
+        scopeLabel = `${mode} (${mult}x)`;
+
+        if (mode === 'TTL') {
+          const duration = parseInt(document.getElementById('boostDuration').value) || 60;
+          config.durationMinutes = duration;
+          previewSubtext = `⚡ Multiplicador ${mult}x activo durante ${duration} minutos`;
+        } else {
+          const attempts = parseInt(document.getElementById('boostAttempts').value) || 3;
+          const rule = document.getElementById('boostConsumptionRule').value;
+          config.attempts = attempts;
+          config.consumptionRule = rule;
+          previewSubtext = `⚡ Multiplicador ${mult}x para ${attempts} entregas (${rule === 'CONSUME_ON_PASS_ONLY' ? 'Solo al aprobar' : 'Siempre'})`;
+        }
+      } else if (currentType === 'LIFE') {
+        const lives = parseInt(document.getElementById('lifeCount').value) || 1;
+        config.livesGranted = lives;
+        scopeLabel = `+${lives} VIDA(S)`;
+        previewSubtext = `❤️ Acredita ${lives} vida(s) directa(s) en Ranking (PAR-12)`;
+      } else if (currentType === 'LOOT_CHEST') {
+        const tier = document.getElementById('chestTier').value;
+        const minDrops = parseInt(document.getElementById('chestMinDrops').value) || 2;
+        const maxDrops = parseInt(document.getElementById('chestMaxDrops').value) || 3;
+        config.tier = tier;
+        config.dropCount = { min: minDrops, max: maxDrops };
+        config.lootTable = [
+          { rewardType: 'XP', dropPercentage: 35.0, range: '100-300' },
+          { rewardType: 'COINS', dropPercentage: 30.0, range: '150-500' },
+          { rewardType: 'ITEM', dropPercentage: 20.0, template: 'tpl-shield-base' },
+          { rewardType: 'LIFE', dropPercentage: 10.0, quantity: 1 },
+          { rewardType: 'COSMETIC', dropPercentage: 5.0, title: 'Bug Hunter' }
+        ];
+        scopeLabel = `TIER: ${tier}`;
+        previewSubtext = `🎁 Otorga de ${minDrops} a ${maxDrops} premios ponderados`;
+      } else if (currentType === 'STREAK_FREEZE') {
+        const days = parseInt(document.getElementById('freezeDays').value) || 1;
+        const max = parseInt(document.getElementById('freezeMax').value) || 2;
+        config.daysProtectedPerUse = days;
+        config.maxEquippedCapacity = max;
+        scopeLabel = `PROTEGE ${days} DÍA`;
+        previewSubtext = `❄️ Salva la racha diaria automáticamente (Máx ${max} en mochila)`;
+      }
+
+      // Update Preview Card
+      document.getElementById('previewIcon').textContent = tpl.icon;
+      document.getElementById('previewTitle').textContent = name;
+      document.getElementById('previewDescription').textContent = desc;
+      document.getElementById('previewPrice').textContent = price;
+      document.getElementById('previewPill').className = `pill ${tpl.pillClass}`;
+      document.getElementById('previewPill').textContent = currentType;
+      document.getElementById('previewScopePill').textContent = scopeLabel;
+      document.getElementById('previewSubtext').textContent = previewSubtext;
+
+      const stockPill = document.getElementById('previewStockPill');
+      if (stock !== null && stock > 0) {
+        stockPill.className = 'pill pill-stock';
+        stockPill.textContent = `${stock} DISPONIBLES`;
+      } else {
+        stockPill.className = 'pill pill-unlimited';
+        stockPill.textContent = 'ILIMITADO';
+      }
+
+      // Generate Clean Spring Boot Request Payload
+      const requestPayload = {
+        templateId: tpl.id,
+        customName: name,
+        customDescription: desc,
+        coinPrice: price,
+        stock: stock,
+        active: true,
+        configuration: config
+      };
+
+      document.getElementById('jsonPayload').textContent = JSON.stringify(requestPayload, null, 2);
+    }
+
+    function copyJson() {
+      const text = document.getElementById('jsonPayload').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('JSON del payload copiado al portapapeles.');
+      });
+    }
+
+    function publishItem() {
+      const name = document.getElementById('itemName').value || 'Nuevo Ítem';
+      const desc = document.getElementById('itemDesc').value || '';
+      const price = document.getElementById('itemPrice').value || '100';
+      const stockVal = document.getElementById('itemStock').value;
+      const tpl = templates[currentType];
+      publishedCount++;
+
+      const tbody = document.getElementById('cohortItemsTable');
+      const tr = document.createElement('tr');
+      const rowId = `row-${publishedCount}`;
+      tr.id = rowId;
+
+      tr.innerHTML = `
+        <td>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.4rem;">${tpl.icon}</span>
+            <div>
+              <strong style="color: var(--ink);">${name}</strong>
+              <div style="font-size: 0.74rem; color: var(--ink-muted);">${desc}</div>
+            </div>
+          </div>
+        </td>
+        <td><span class="pill ${tpl.pillClass}">${currentType}</span></td>
+        <td><code>Configurado por Profesor</code></td>
+        <td><strong style="color: var(--gold);">🪙 ${price}</strong></td>
+        <td>${stockVal ? `<span class="pill pill-stock">${stockVal} un.</span>` : `<span class="pill pill-unlimited">Ilimitado</span>`}</td>
+        <td><span class="status-dot active"></span> Activo</td>
+        <td style="text-align: right;">
+          <button class="btn-outline" style="padding: 4px 8px; font-size: 0.72rem;" onclick="toggleRowStatus('${rowId}')">Pausar</button>
+        </td>
+      `;
+
+      tbody.insertBefore(tr, tbody.firstChild);
+      document.getElementById('offersCount').textContent = `${publishedCount} Ofertas Curadas`;
+      showToast(`¡"${name}" publicado con éxito en COURSE_PROG4_2026!`);
+    }
+
+    function toggleRowStatus(rowId) {
+      const row = document.getElementById(rowId);
+      const dot = row.querySelector('.status-dot');
+      const btn = row.querySelector('button');
+      
+      if (dot.classList.contains('active')) {
+        dot.classList.remove('active');
+        dot.classList.add('inactive');
+        dot.nextSibling.textContent = ' En Pausa';
+        btn.textContent = 'Activar';
+        showToast('Oferta pausada en el catálogo.');
+      } else {
+        dot.classList.remove('inactive');
+        dot.classList.add('active');
+        dot.nextSibling.textContent = ' Activo';
+        btn.textContent = 'Pausar';
+        showToast('Oferta reactivada para los alumnos.');
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Initialize on load
+    selectTemplate('SHIELD');
+  </script>
+</body>
+</html>
