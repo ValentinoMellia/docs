@@ -1,78 +1,58 @@
-# Technical Specification — Open Catalog & Stock Holds (Team 09 Market)
-## Base Item Templates, Professor Course Curation & Local Stock Hold (Fail-Fast)
+# Technical Specification — Open Catalog by Templates (Team 09 Market)
+## Configurable Item Templates & Professor Course Curation (No Stock Limit)
 
 ---
 
 ## 1. Domain Boundary & Architectural Principles
 
 1. **Market as an Orchestrating Storefront / Kiosk:**
-   - Market manages **Base Item Templates**, **Course Cohort Offerings**, and **Local Stock Holds**.
-   - Market **never** persists `student_inventory` (managed exclusively by the **Inventory Microservice**).
+   - Market manages **Item Templates**, **Course Cohort Offerings**, and **Purchase Orders**. Catalog offers have **no stock limit** — availability is always unlimited while an offer is active (decision #6).
+   - Market **never** persists `student_inventory` (managed exclusively by **Grupo 12**, Bank's own team, since decision #13 — this is not a separate microservice).
    - Market **never** holds coin balances (managed exclusively by **Bank / Team 08**).
-2. **Open Catalog with Professor-Driven Pricing & Optional Stock:**
+2. **Open Catalog with Professor-Driven Configuration (Templates, Not Fixed Items):**
    - Pricing and operational constraints are **not governed by Backoffice**.
-   - Professors select a base template and customize all attributes: `coinPrice`, `charges`, `applicableChallenges`, `multiplier`, `mode` (`TTL` vs `PER_EXAM`), and optional finite cohort **`stock`**.
-3. **Local Stock Hold (Fail-Fast Pattern):**
-   - If an offer has limited stock (`stock > 0`), Market executes an **atomic stock reservation (`StockHold`) locally before touching Kafka or Bank**.
-   - If stock is exhausted, Market immediately rejects the request in 2ms with `HTTP 409 Conflict (OUT_OF_STOCK)`. This prevents over-selling and protects Kafka and Bank from processing unfulfillable orders.
-4. **Two-Phase Hold Saga Compliance:**
-   - **Phase 0 (Stock Hold):** Market locks local stock unit (`StockHold` status: `PENDING`, TTL: 5 min).
+   - Professors select an **item template TYPE** (`SHIELD`, `BOOST_XP`, `BOOST_COINS`, `LIFE` — a closed set of types, decision #5) and configure its parameters per cohort: `coinPrice` (within the template's allowed range), `charges`, `applicableChallenges`, `multiplier`, `mode` (`TTL` vs `PER_EXAM`). There are **no fixed tiers and no fixed concrete items** — the professor's configuration *is* the offer (decision #14).
+3. **Reserve → Provision → Confirm Saga Compliance:**
    - **Phase 1 (Bank Balance Hold):** Market requests coin reservation $\rightarrow$ Bank locks coins (`HOLD_CREATE_REQUESTED` $\rightarrow$ `HOLD_CREATED`).
-   - **Phase 2 (Inventory Provisioning):** Market orders the **Inventory Microservice** to credit the asset (`ITEM_PROVISION_REQUESTED` $\rightarrow$ `ITEM_PROVISIONED`).
-   - **Phase 3 (Commit & Settlement):** Market orders Bank to finalize the ledger deduction (`HOLD_CONFIRM_REQUESTED` $\rightarrow$ `HOLD_CONFIRMED`) and commits the stock hold (`StockHold` status: `COMMITTED`).
-   - **Mirrored Compensation:** If Bank rejects funds or Inventory crashes, both holds (the coin hold in Bank and the stock hold in Market) are released simultaneously.
+   - **Phase 2 (Item Provisioning via Grupo 12):** Market requests acreditación of the asset from **Grupo 12** (`ITEM_PROVISION_REQUESTED` $\rightarrow$ `ITEM_PROVISIONED`).
+   - **Phase 3 (Commit & Settlement):** Market orders Bank to finalize the ledger deduction (`HOLD_CONFIRM_REQUESTED` $\rightarrow$ `HOLD_CONFIRMED`) only once item provisioning has been corroborated (decision #8).
+   - **Compensation:** If Bank rejects funds or Grupo 12 fails to provision the item, the coin hold is released (`HOLD_RELEASE_REQUESTED`) and the order is marked `CANCELADA` — no stock to restore.
 
 ---
 
-## 2. Stock Management & Concurrency Strategy
+## 2. Availability & Concurrency Strategy
 
-### 2.1 Optional Stock Modalities
+### 2.1 No Stock Limit (Decision #6)
 
-* **Unlimited Availability (`stock IS NULL`):**
-  - Common consumables (e.g. basic potions, apprentice shields).
-  - Bypasses stock locks completely to avoid database contention.
-* **Finite Cohort Pool (`stock > 0`):**
-  - Rare items, high-tier buffs, or exam-specific limited equipment.
-  - Enforces strict concurrency control.
+Catalog offers have **unlimited availability while active** — there is no `stock`/`availableStock` field, no atomic decrement, and no `stock_holds` table. Concurrency control for a purchase is entirely about the student's **coin balance**, which is Bank's responsibility, not Market's:
 
-### 2.2 Atomic Concurrency at Database Level
+* Under 120 concurrent sessions, the only race condition that matters is over-committing an alumno's balance across simultaneous purchases — Bank's `BalanceHold` mechanism already handles that (Section 4 and `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`).
+* Market's only remaining validation before requesting a hold is that the offer itself is **active** (not deactivated/archived); there is no concept of "sold out."
 
-To prevent race conditions and over-selling under 120 concurrent sessions:
+### 2.2 When Market Still Returns 409
 
-```sql
--- Atomic Decrement Execution in PostgreSQL
-UPDATE course_catalog_offers 
-SET available_stock = available_stock - 1, 
-    updated_at = NOW()
-WHERE id = :offerId 
-  AND available_stock > 0;
-```
-* If affected rows == `1`: Stock was secured. Market inserts a `StockHold` record:
-  ```sql
-  INSERT INTO stock_holds (id, catalog_offer_id, purchase_order_id, student_id, status, expires_at, created_at)
-  VALUES (:holdId, :offerId, :orderId, :studentId, 'PENDING', NOW() + INTERVAL '5 minutes', NOW());
-  ```
-* If affected rows == `0`: Sold out. Returns immediate `HTTP 409 Conflict`.
+`409 Conflict` is only returned for **offer-state** reasons, never for stock exhaustion:
 
-### 2.3 Stock Hold Lifecycle & States
-
-* **`PENDING`:** Temporary reservation active while the Kafka saga runs (TTL: 5 minutes).
-* **`COMMITTED`:** Bank confirmed debit (`HOLD_CONFIRMED`). Stock unit permanently consumed.
-* **`RELEASED`:** Bank rejected funds or Inventory provisioning failed. Stock unit returned to catalog (`available_stock = available_stock + 1`).
-* **`EXPIRED`:** Saga did not complete within the 5-minute TTL. An asynchronous `@Scheduled` reconciliation job releases the hold automatically.
+* Offer is inactive or was deleted (logical deletion, RF-NFR-01).
+* Offer does not belong to the requested course-cohort.
+* Cohort is archived or the student is unenrolled (decision #10 — same treatment as archived).
 
 ---
 
 ## 3. Open Catalog Parameter Matrix
 
-### 3.1 Base Templates (Supplied by Market)
+### 3.1 Item Template Types (Configured by the Professor, Not Fixed by Market)
 
-| Template ID | Item Type | Default Name | Description | Default Icon | Professor-Configurable Parameters |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `tpl-shield-base` | `SHIELD` | Defense Aegis | Absorbs failed test attempts in code/challenges. | `shield-rune` | `coinPrice`, `stock`, `charges`, `applicableChallenges` |
-| `tpl-boost-xp` | `BOOST_XP` | Experience Elixir | Multiplies XP gained upon approved challenges. | `potion-violet` | `coinPrice`, `stock`, `multiplier`, `mode`, `durationMinutes`, `attempts`, `consumptionRule` |
-| `tpl-boost-coins` | `BOOST_COINS` | Coin Magnet | Multiplies coin rewards earned from deliveries. | `coin-magnet` | `coinPrice`, `stock`, `multiplier`, `mode`, `durationMinutes`, `attempts`, `consumptionRule` |
-| `tpl-life-potion` | `LIFE` | Revive Flask | Restores additional student life attempts. | `heart-flask` | `coinPrice`, `stock`, `livesGranted` (default 1) |
+Market defines a **closed set of template TYPES** (decision #5); it does **not** supply fixed concrete items with a default name/description/icon/tier. Each professor instantiates a `CourseCatalogOffer` from a template type and configures its parameters within the allowed ranges for their cohort (decision #14) — there is no `tpl-shield-base`-style catalog of pre-built items:
+
+| Item Type | What It Does | Professor-Configurable Parameters |
+| :--- | :--- | :--- |
+| `SHIELD` | Absorbs failed test attempts in code/challenges. | `coinPrice` (within configurable range), `charges`, `applicableChallenges` |
+| `BOOST_XP` | Multiplies XP gained upon approved challenges. | `coinPrice`, `multiplier`, `mode`, `durationMinutes`, `attempts`, `consumptionRule` |
+| `BOOST_COINS` | Multiplies coin rewards earned from deliveries. | `coinPrice`, `multiplier`, `mode`, `durationMinutes`, `attempts`, `consumptionRule` |
+| `LIFE` | Restores additional student life attempts. | `coinPrice`, `livesGranted` (default 1) |
+
+There is no `stock` parameter for any type (decision #6 — no stock limit, ever).
 
 ---
 
@@ -80,7 +60,6 @@ WHERE id = :offerId
 
 #### A. Shields (`SHIELD`)
 * **`coinPrice`:** Integer $\ge 1$.
-* **`stock`:** Optional integer (null = unlimited, $>0$ = finite pool).
 * **`charges`:** Integer $\ge 1$ (absorbs up to $N$ failed test attempts before depletion).
 * **`applicableChallenges`:**
   - `ALL`: Applies across all challenge modalities (quizzes, practicals, exams).
@@ -90,7 +69,6 @@ WHERE id = :offerId
 
 #### B. Boosts (`BOOST_XP`, `BOOST_COINS`)
 * **`coinPrice`:** Integer $\ge 1$.
-* **`stock`:** Optional integer.
 * **`multiplier`:** Decimal scale factor (e.g., `1.25` for +25%, `1.50` for +50%, `2.00` for 2x reward).
 * **`mode`:**
   - `TTL` (Time-To-Live countdown):
@@ -103,8 +81,7 @@ WHERE id = :offerId
 
 #### C. Lives (`LIFE`)
 * **`coinPrice`:** Integer $\ge 1$.
-* **`stock`:** Optional integer.
-* **`livesGranted`:** Integer (default: 1). Provisioned into student inventory.
+* **`livesGranted`:** Integer (default: 1). Provisioned into the student's backpack via Grupo 12.
 
 ---
 
@@ -112,11 +89,12 @@ WHERE id = :offerId
 
 ### 4.1 Professor Management Endpoints (`ROLE_PROFESSOR`)
 
-#### 1. Retrieve Base Templates
+#### 1. List Available Template Types
 ```http
 GET /api/v1/market/templates
 Authorization: Bearer <JWT>
 ```
+Returns the closed set of item template **types** (`SHIELD`, `BOOST_XP`, `BOOST_COINS`, `LIFE`) and each type's configurable parameter ranges — not a list of fixed concrete items (decision #14).
 
 #### 2. Get Cohort Catalog Configuration
 ```http
@@ -135,7 +113,6 @@ Content-Type: application/json
   "customName": "Advanced Lab Shield",
   "customDescription": "Absorbs up to 2 test failures in practical programming exercises.",
   "coinPrice": 350,
-  "stock": 10,
   "active": true,
   "configuration": {
     "itemType": "SHIELD",
@@ -153,7 +130,6 @@ Content-Type: application/json
 {
   "customName": "Advanced Lab Shield v2",
   "coinPrice": 400,
-  "stock": 5,
   "active": true,
   "configuration": {
     "itemType": "SHIELD",
@@ -189,14 +165,14 @@ Content-Type: application/json
   "courseId": "COURSE_PROG4_2026"
 }
 ```
-* **Success:** `202 Accepted { "orderId": "ord-88391a", "status": "PROCESSING", "stockHoldId": "stk-hld-001" }`
-* **Out of Stock:** `409 Conflict { "error": "OUT_OF_STOCK", "message": "The selected item is no longer available in this cohort." }`
+* **Success:** `202 Accepted { "orderId": "ord-88391a", "status": "PROCESSING" }`
+* **Offer Not Available:** `409 Conflict { "error": "OFFER_NOT_AVAILABLE", "message": "The selected offer is inactive or does not belong to this cohort." }` (no longer stock-related — decision #6; offers are never sold out)
 
 ---
 
-## 5. Kafka Provisioning Payload Transferred to Inventory Microservice
+## 5. Kafka Provisioning Payload Transferred to Grupo 12
 
-Once Bank confirms the coin hold on `bank.holds.events` (`HOLD_CREATED`), Market dispatches the provisioning command to **Inventory** on `inventory.items.commands`:
+Once Bank confirms the coin hold on `bank.holds.events` (`HOLD_CREATED`), Market dispatches the provisioning command to **Grupo 12** on `inventory.items.commands`:
 
 ```json
 {
@@ -206,8 +182,7 @@ Once Bank confirms the coin hold on `bank.holds.events` (`HOLD_CREATED`), Market
   "producer": "team-09-market",
   "payload": {
     "orderId": "ord-88391a",
-    "stockHoldId": "stk-hld-001",
-    "bankHoldId": "hld-99201",
+    "holdId": "hld-99201",
     "studentId": "usr-4821",
     "courseId": "COURSE_PROG4_2026",
     "itemPayload": {

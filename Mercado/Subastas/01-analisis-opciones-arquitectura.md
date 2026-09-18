@@ -123,17 +123,19 @@ sequenceDiagram
 | **Carga en Ledger de Banco**           | Alta ($N$ holds vivos de larga data)     | **Óptima (1 hold vivo por subasta)**        | Media (Holds de fianza estáticos) |
 | **Complejidad del Cierre (**$T=0$**)** | $O(N)$ (1 confirmación + $N-1$ releases) | $O(1)$ **(1 sola confirmación)**            | Compleja (Cascada ante impagos)   |
 | **Tolerancia a Concurrencia Móvil**    | Media (Riesgo de desincronización)       | **Alta (Feedback claro de líder/superado)** | Baja (Incertidumbre post-cierre)  |
-| **Alineación con Épica E-07**          | Alta (Es el modelo asumido en E-07)      | **Evolución Recomendada de E-07**           | Divergente de los criterios E-07  |
+| **Alineación con Épica E-07**          | Alta (Es el modelo asumido en E-07)      | Mejor en el papel — evaluada y descartada (ver Sección 6) | Divergente de los criterios E-07  |
 
 
 ---
 
 ### 6. Dictamen y Recomendación del Analista Senior
 
-Como analista senior con 15 años de experiencia en sistemas distribuidos bancarios y de e-commerce, mi recomendación inequívoca es:
+**Actualización 18/09/2026 — decisión #3 del equipo:** la Opción 1 (Hold Escrow Total) queda confirmada como arquitectura **final y definitiva**, no como un paso intermedio hacia la Opción 2. Lo que sigue reemplaza el dictamen original de este documento.
 
-1. **Arquitectura Objetivo: Opción 2 (Hold Exclusivo al Líder / Floating Hold).**
- Es la solución más elegante, escalable y respetuosa de la experiencia de usuario. En los sistemas de subastas de alta concurrencia (como eBay o plataformas de subastas financieras), nunca se bloquea el capital de todos los participantes durante semanas; se bloquea únicamente al tomador de la mejor postura o se utiliza una línea de crédito pre-autorizada. La Opción 2 elimina de raíz el problema más temido de la Épica E-07: el pico de concurrencia al cierre donde 120 sesiones saturan el sistema y hay que despachar decenas de liberaciones concurrentes que pueden fallar y dejar saldos colgados.
-2. **Compatibilidad con el estado actual del equipo:**
- Dado que el equipo de Banco (Tema 08) ya documentó preliminarmente el soporte para `HOLD_INCREASE_REQUESTED` en `flujo-subasta (1).html`, nuestro diseño en Mercado debe ser capaz de soportar la **Opción 1 como base mínima de lanzamiento (MVP)** garantizando que no se rompa nada, pero incorporando en el motor de subastas la transición hacia la **Opción 2** desacoplando a los perdedores tempranos para optimizar el rendimiento.
+1. **Arquitectura definitiva: Opción 1 (Hold Escrow Total).**
+ Se prioriza la compatibilidad con el contrato de holds ya construido por Banco (Tema 08) sobre las ventajas teóricas de liquidez y velocidad de cierre de la Opción 2. Banco ya implementa `BalanceHold`, `HOLD_CREATE_REQUESTED`/`HOLD_CREATED`, `HOLD_INCREASE_REQUESTED`/`HOLD_INCREASED`, `HOLD_CONFIRM_REQUESTED`/`HOLD_CONFIRMED` y `HOLD_RELEASE_REQUESTED`/`HOLD_RELEASED` sobre el modelo de la Opción 1. Reimplementar el flujo de "líder único" de la Opción 2 exigiría renegociar ese contrato bilateral, lo cual no está planeado ni es necesario para Sprint 1.
+2. **Opción 2 (Hold Exclusivo al Líder / Floating Hold): analizada en profundidad y explícitamente descartada.**
+ La Sección 3 de este documento se conserva como registro histórico de por qué se evaluó — sus ventajas de liquidez y su complejidad $O(1)$ en el cierre son reales y quedan documentadas para referencia — pero **no** forma parte del roadmap de Mercado. No hay plan de "evolucionar" hacia ella; los payloads SSE específicos de Opción 2 (`{status:"LEADER"}`/`{status:"OUTBID"}`) quedan huérfanos y no deben implementarse.
+3. **Compatibilidad con el estado actual del equipo:**
+ Dado que el equipo de Banco (Tema 08) ya documentó el soporte para `HOLD_INCREASE_REQUESTED` sobre el modelo de la Opción 1, el diseño de Mercado usa ese contrato tal cual está, sin capas de compatibilidad adicionales pensadas para una eventual migración a la Opción 2.
 

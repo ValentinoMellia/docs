@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propuesta D · Mercado como enriquecedor de eventos</title>
+<style>
+:root{--bg:#131722;--panel:#171c29;--edge:#242b3b;--ink:#e7ebf3;--dim:#8b93a7;--faint:#5d667c;
+ --mer:#2fd071;--des:#f2517e;--road:#22d3ee;--banco:#f5a524;--bus:#a06bf0;--acc:#38a3f1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.55}
+.w{max-width:1120px;margin:0 auto;padding:32px 20px 70px}
+h1{font-size:23px;margin:0 0 6px;font-weight:650}
+.lead{color:var(--dim);font-size:13.6px;margin:0 0 8px;max-width:84ch}
+nav{display:flex;gap:7px;flex-wrap:wrap;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge);padding:13px 0;margin:20px 0 24px}
+button.t{background:var(--panel);border:1px solid var(--edge);color:var(--ink);font:inherit;font-size:12.6px;padding:7px 13px;border-radius:6px;cursor:pointer}
+button.t:hover{border-color:#46536f}
+button.t[aria-selected="true"]{background:#1f2839;border-color:#46536f;color:#fff}
+section{display:none} section.on{display:block}
+h2{font-size:17.5px;margin:26px 0 10px}
+h3{font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);margin:24px 0 9px;font-weight:600}
+p{margin:0 0 11px;font-size:13.6px}
+code{font-family:ui-monospace,monospace;font-size:11.6px;background:#1b2130;padding:1px 5px;border-radius:4px;color:#cfe3ff}
+pre{background:#10151f;border:1px solid var(--edge);border-radius:7px;padding:12px 14px;overflow-x:auto;
+ font-family:ui-monospace,monospace;font-size:11.3px;line-height:1.62;color:#cfe0f5;margin:0 0 12px}
+pre .c{color:#5f6b82} pre .k{color:#7fd3ff} pre .s{color:#a5e6a0} pre .n{color:#f0b36b} pre .add{color:#8ef0bb}
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.8px}
+th{text-align:left;font-size:10.8px;text-transform:uppercase;letter-spacing:.05em;color:var(--dim);padding:9px 10px;border-bottom:1px solid var(--edge);vertical-align:bottom}
+td{padding:9px 10px;border-bottom:1px solid #1e2534;vertical-align:top}
+ul{margin:0 0 11px;padding-left:17px} li{margin-bottom:5px;font-size:13.3px}
+ol{padding-left:20px} ol li{margin-bottom:7px;font-size:13.4px}
+.box{border-left:3px solid var(--edge);padding:3px 0 3px 13px;margin:0 0 15px;font-size:13.3px;color:var(--dim)}
+.box.ok{border-color:var(--mer)} .box.warn{border-color:var(--banco)} .box.bad{border-color:var(--des)}
+.box.key{border-color:var(--acc)} .box b{color:var(--ink)}
+.topo{background:var(--panel);border:1px solid var(--edge);border-radius:9px;padding:18px 20px;margin:14px 0 18px;
+ font-family:ui-monospace,monospace;font-size:11.6px;line-height:2;color:var(--dim);overflow-x:auto}
+.topo b{color:var(--ink);font-weight:600}
+.topo .m{color:var(--mer)} .topo .d{color:var(--des)} .topo .r{color:var(--road)} .topo .b{color:var(--banco)} .topo .k{color:var(--bus)}
+.v{display:inline-block;font-size:10.4px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.v.ok{background:#0f3d28;color:var(--mer)} .v.no{background:#451325;color:var(--des)} .v.mid{background:#43310f;color:var(--banco)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:9px;padding:15px 17px}
+.card h4{margin:0 0 8px;font-size:14px}
+footer{margin-top:34px;border-top:1px solid var(--edge);padding-top:13px;color:var(--faint);font-size:11.5px}
+</style></head><body><div class="w">
+
+<h1>Propuesta D · Mercado como enriquecedor de eventos</h1>
+<p class="lead">Todo hecho pedagógico pasa por Mercado antes de llegar a Roadmap y a Banco. Mercado no decide la consecuencia: la <b>enriquece</b> con los efectos del inventario del alumno y la vuelve a publicar. Roadmap y Banco siguen decidiendo sobre su propio dominio, pero ya con la información completa.</p>
+<p class="lead">Basada en el catálogo reducido del MVP: 15 ítems, 3 familias, 3 verbos.</p>
+
+<nav>
+  <button class="t" data-s="s1" aria-selected="true">1 · La idea</button>
+  <button class="t" data-s="s2" aria-selected="false">2 · Topología y contratos</button>
+  <button class="t" data-s="s3" aria-selected="false">3 · Por qué encaja con este catálogo</button>
+  <button class="t" data-s="s4" aria-selected="false">4 · Alcance del intermediario</button>
+  <button class="t" data-s="s45" aria-selected="false">5 · Modos de falla</button>
+  <button class="t" data-s="s5" aria-selected="false">6 · Contra las otras propuestas</button>
+  <button class="t" data-s="s6" aria-selected="false">7 · Qué hay que acordar</button>
+</nav>
+
+<!-- 1 -->
+<section id="s1" class="on">
+<h2>La idea en una frase</h2>
+<p>Mercado se ubica <b>en el medio del flujo</b>, no al costado. Consume el hecho crudo que publica Desafíos, le agrega qué efectos del inventario aplican, y publica el hecho resuelto. Roadmap y Banco consumen únicamente el resuelto.</p>
+<div class="box key"><b>Es un patrón con nombre:</b> <i>Content Enricher</i> de los patrones de integración empresarial. Un componente intermedio que toma un mensaje, le agrega información que el emisor no tenía, y lo reenvía sin cambiar su naturaleza. Sirve nombrarlo en la defensa: no es una invención del equipo, es un patrón estándar para exactamente este problema.</div>
+
+<h3>La regla que lo mantiene sano</h3>
+<p>Un enriquecedor <b>agrega campos, no reemplaza decisiones</b>. Esa es la línea que separa esta propuesta de una donde Mercado manda:</p>
+<div class="grid">
+<div class="card"><h4 style="color:var(--mer)">Así sí</h4>
+<pre><span class="k">"xpBase"</span>: <span class="n">100</span>,
+<span class="add">"effects"</span>: [{ <span class="k">"verb"</span>: <span class="s">"XP_MULTIPLIER"</span>,
+              <span class="k">"factor"</span>: <span class="n">2.0</span>,
+              <span class="k">"itemCode"</span>: <span class="s">"XP_BOOST_T3"</span> }],
+<span class="add">"xpFinal"</span>: <span class="n">200</span></pre>
+<p style="font-size:12.6px;margin:0">Roadmap ve la base, ve el efecto y ve el total. Puede usar el total, auditarlo o recalcularlo. La decisión sigue siendo suya.</p></div>
+<div class="card"><h4 style="color:var(--des)">Así no</h4>
+<pre><span class="k">"tipoPenalizacion"</span>: <span class="s">"DESCONTAR_VIDA"</span>,
+<span class="k">"cantidadVidas"</span>: <span class="n">1</span></pre>
+<p style="font-size:12.6px;margin:0">Eso es Mercado ordenándole a Roadmap qué hacer con su contador. Rompe dueño único y es lo que hay que evitar.</p></div>
+</div>
+<p>Con esa regla, Mercado nunca necesita saber cuántas vidas cuesta un fallo ni cuánto XP vale una dificultad. Solo necesita saber multiplicar y decir qué ítem se consumió.</p>
+</section>
+
+<!-- 2 -->
+<section id="s2">
+<h2>Topología</h2>
+<div class="topo">
+<b class="d">Desafíos (03)</b> ──▶ <b class="k">desafios.evaluaciones.raw</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b class="m">Mercado (09)</b> · único consumidor del tópico crudo<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;resuelve inventario · consume ítems · enriquece<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b class="k">desafios.evaluaciones.resolved</b><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──▶ <b class="r">Roadmap (10)</b> &nbsp;vidas, XP, racha<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──▶ <b class="b">Banco (08)</b> &nbsp;&nbsp;&nbsp;monedas<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──▶ <b>Notificaciones (11)</b> · Backoffice (12)
+</div>
+<p>Dos tópicos y un sufijo que hace evidente cuál es cuál. <code>.raw</code> es el hecho crudo, <code>.resolved</code> es el hecho con los efectos aplicados. Roadmap y Banco <b>solo se suscriben al segundo</b>.</p>
+
+<h3>Entrada: lo que publica Desafíos</h3>
+<pre><span class="c">// tópico: desafios.evaluaciones.raw</span>
+{
+  <span class="k">"eventId"</span>: <span class="s">"evt-df-8921a"</span>,
+  <span class="k">"eventType"</span>: <span class="s">"CHALLENGE_FAILED"</span>,     <span class="c">// o CHALLENGE_PASSED</span>
+  <span class="k">"timestamp"</span>: <span class="s">"2026-09-09T18:50:00Z"</span>,
+  <span class="k">"producer"</span>: <span class="s">"tema-03-desafios"</span>,
+  <span class="k">"payload"</span>: {
+    <span class="k">"studentId"</span>: <span class="s">"alm-441"</span>,
+    <span class="k">"courseId"</span>: <span class="s">"coh-2026-1c"</span>,
+    <span class="k">"challengeId"</span>: <span class="s">"des-302"</span>,
+    <span class="k">"attemptId"</span>: <span class="s">"att-9911"</span>,
+    <span class="k">"mandatory"</span>: <span class="n">true</span>,
+    <span class="k">"reason"</span>: <span class="s">"RETRIES_EXHAUSTED"</span>,
+    <span class="k">"xpBase"</span>: <span class="n">0</span>,          <span class="c">// en PASSED: el XP que corresponde por regla</span>
+    <span class="k">"coinsBase"</span>: <span class="n">0</span>        <span class="c">// en PASSED: las monedas que corresponden</span>
+  }
+}</pre>
+<div class="box warn"><b>Pedido concreto para el Tema 03:</b> que el evento traiga <code>xpBase</code> y <code>coinsBase</code> ya calculados. Sin eso, Mercado no puede multiplicar: recibir solo <code>dificultad: "MEDIO"</code> lo obligaría a replicar la tabla de puntos, que es una regla de negocio de Roadmap. Es el único cambio que esta propuesta le pide a Desafíos.</div>
+
+<h3>Salida: fallo con escudo equipado</h3>
+<pre><span class="c">// tópico: desafios.evaluaciones.resolved</span>
+{
+  <span class="k">"eventId"</span>: <span class="s">"evt-mc-4491k"</span>,
+  <span class="k">"eventType"</span>: <span class="s">"CHALLENGE_FAILED"</span>,       <span class="c">// el tipo NO cambia</span>
+  <span class="k">"correlationId"</span>: <span class="s">"evt-df-8921a"</span>,     <span class="c">// el eventId original</span>
+  <span class="k">"producer"</span>: <span class="s">"tema-09-mercado"</span>,
+  <span class="k">"payload"</span>: {
+    <span class="c">// ... todo el payload original, sin tocar ...</span>
+    <span class="add">"enrichment"</span>: {
+      <span class="k">"status"</span>: <span class="s">"APPLIED"</span>,
+      <span class="k">"effects"</span>: [
+        { <span class="k">"verb"</span>: <span class="s">"ABSORB_FAILURE"</span>,
+          <span class="k">"itemCode"</span>: <span class="s">"SHIELD_T2"</span>,
+          <span class="k">"inventoryItemId"</span>: <span class="s">"inv-109"</span>,
+          <span class="k">"chargesLeft"</span>: <span class="n">1</span> }
+      ],
+      <span class="k">"studentMessage"</span>: <span class="s">"Tu Escudo Reforzado absorbió el fallo."</span>
+    }
+  }
+}</pre>
+<p>Roadmap lee <code>effects</code>, encuentra <code>ABSORB_FAILURE</code> y aplica <b>su propia regla</b>: un fallo absorbido no descuenta vida. Mercado no le dijo qué hacer, le dijo qué pasó en el inventario.</p>
+
+<h3>Salida: aprobado con multiplicadores</h3>
+<pre><span class="add">"enrichment"</span>: {
+  <span class="k">"status"</span>: <span class="s">"APPLIED"</span>,
+  <span class="k">"effects"</span>: [
+    { <span class="k">"verb"</span>: <span class="s">"XP_MULTIPLIER"</span>,   <span class="k">"itemCode"</span>: <span class="s">"XP_BOOST_T3"</span>,   <span class="k">"factor"</span>: <span class="n">2.0</span> },
+    { <span class="k">"verb"</span>: <span class="s">"COIN_MULTIPLIER"</span>, <span class="k">"itemCode"</span>: <span class="s">"COIN_BOOST_T2"</span>, <span class="k">"factor"</span>: <span class="n">1.5</span>,
+      <span class="k">"remainingChallenges"</span>: <span class="n">4</span> }
+  ],
+  <span class="k">"xpFinal"</span>: <span class="n">200</span>,      <span class="c">// xpBase 100 x 2.0</span>
+  <span class="k">"coinsFinal"</span>: <span class="n">150</span>     <span class="c">// coinsBase 100 x 1.5</span>
+}</pre>
+<p>La base sigue en el payload original y el total viene calculado. Roadmap y Banco pueden usar el total directamente o verificarlo. Nada queda oculto.</p>
+</section>
+
+<!-- 3 -->
+<section id="s3">
+<h2>Por qué este patrón encaja bien con el catálogo reducido</h2>
+<p>No es una coincidencia: el catálogo de 15 ítems tiene una propiedad que hace que el enriquecedor sea el patrón natural.</p>
+<table>
+<tr><th style="width:20%">Familia</th><th style="width:16%">Verbo</th><th style="width:16%">Cuándo actúa</th><th>Por qué el enriquecedor le viene bien</th></tr>
+<tr><td><b>Escudos</b><br>SHIELD_T1..T5</td><td><code>ABSORB_FAILURE</code></td><td>Al fallar</td><td>Mercado ya recibe el evento de fallo. No hace falta ninguna llamada extra: la resolución ocurre en el mismo paso en que llega el hecho.</td></tr>
+<tr><td><b>Boost de XP</b><br>XP_BOOST_T1..T5</td><td><code>XP_MULTIPLIER</code></td><td>Al aprobar, durante una ventana de tiempo</td><td>La vigencia se evalúa contra el <code>timestamp</code> del evento. Mercado no necesita que nadie le pregunte "¿está activo?": lo chequea cuando pasa el hecho.</td></tr>
+<tr><td><b>Boost de monedas</b><br>COIN_BOOST_T1..T5</td><td><code>COIN_MULTIPLIER</code></td><td>En las próximas N entregas aprobadas</td><td><b>Acá está la ganancia grande.</b> El contador necesita ver cada aprobación. En el enriquecedor, Mercado las ve todas por construcción.</td></tr>
+</table>
+<div class="box ok"><b>El Imán de Monedas deja de ser un problema.</b> Con la propuesta sincrónica, <code>COIN_MULTIPLIER</code> obligaba al Tema 03 a llamar a Mercado <b>en cada entrega aprobada</b>, que es el camino frecuente: era el ítem más caro del catálogo. Con el enriquecedor, Mercado está en el camino de todos los eventos por diseño, así que el contador de las 3, 5 o 10 entregas se lleva sin pedirle nada a nadie. Los tres verbos del MVP usan la misma tubería.</div>
+<p>Y hay un beneficio de orden que no es obvio: como Mercado es el <b>único</b> consumidor del tópico crudo y publica en el resuelto, no existe carrera entre dos consumidores que quieran actuar sobre el mismo hecho. El orden queda garantizado por la partición, y con clave <code>studentId:courseId</code> los eventos de un mismo alumno se procesan en secuencia.</p>
+</section>
+
+<!-- 4 -->
+<section id="s4">
+<h2>Qué pasa por Mercado y qué no</h2>
+<p>La propuesta es que Mercado sea el único intermediario, pero el alcance tiene un límite preciso y conviene escribirlo: <b>pasan por Mercado los hechos de Desafíos que un ítem del inventario puede modificar</b>. Nada más.</p>
+<table>
+<tr><th style="width:34%">Hecho</th><th style="width:18%">¿Pasa por Mercado?</th><th>Por qué</th></tr>
+<tr><td>Entrega reprobada</td><td><span class="v ok">Sí</span></td><td>Un escudo puede absorberla.</td></tr>
+<tr><td>Entrega aprobada</td><td><span class="v ok">Sí</span></td><td>Un boost puede multiplicar el XP o las monedas.</td></tr>
+<tr><td>Matrícula, login, roles</td><td><span class="v no">No</span></td><td>Ningún ítem del catálogo los afecta. Van directo a quien corresponda.</td></tr>
+<tr><td>Archivado de cohorte</td><td><span class="v no">No</span></td><td>Mercado lo consume para cerrar su catálogo, pero no lo intermedia para nadie.</td></tr>
+<tr><td>Avance de módulo sin ítems</td><td><span class="v no">No</span></td><td>Si mañana un ítem lo afecta, se agrega. Hoy no.</td></tr>
+</table>
+<div class="box key"><b>Por qué importa dejarlo escrito.</b> Si en la reunión alguien entiende que Mercado quiere intermediar toda la plataforma, la propuesta se vuelve indefendible por una razón que no es la real. El criterio es objetivo y se puede verificar contra el catálogo: si ningún ítem afecta ese tipo de evento, ese evento no pasa por nosotros.</div>
+<p>El corolario es que el alcance del intermediario está atado al catálogo. Con los 15 ítems del MVP y sus 3 verbos, son exactamente dos tipos de evento.</p>
+</section>
+
+<!-- 5 -->
+<section id="s45">
+<h2>Modos de falla</h2>
+<p>Es la sección que van a preguntar en la defensa. Hay dos fallas distintas y se resuelven de manera distinta; mezclarlas es el error más común al discutir esto.</p>
+
+<h3>Falla parcial: Mercado vivo pero no puede resolver</h3>
+<p>El proceso está corriendo y consume el evento, pero su base no responde, o el ítem quedó en un estado inesperado. <b>Republica el evento igual, sin enriquecer:</b></p>
+<pre><span class="add">"enrichment"</span>: { <span class="k">"status"</span>: <span class="s">"SKIPPED"</span>, <span class="k">"reason"</span>: <span class="s">"RESOLVER_UNAVAILABLE"</span>, <span class="k">"effects"</span>: [] }</pre>
+<p>Roadmap aplica la regla base y el flujo sigue en tiempo real. El alumno pierde el beneficio del ítem, no la cursada. Y como el ítem no se consumió, se le puede compensar después.</p>
+<div class="box key">Esta es la diferencia entre un intermediario y un cuello de botella: <b>un intermediario que falla deja pasar el mensaje.</b> Es una decisión interna nuestra y no requiere que ningún otro equipo haga nada.</div>
+
+<h3>Falla total: Mercado no está</h3>
+<p>Acá el fail-open <b>no aplica</b>, porque es código nuestro y un proceso muerto no ejecuta código. Lo que salva la situación es el bus:</p>
+<ul>
+<li><b>El flujo no se corta, se atrasa.</b> Desafíos sigue publicando y los mensajes quedan en el tópico. Nada se pierde. Cuando Mercado vuelve, retoma desde donde quedó y procesa el atraso completo.</li>
+<li>Es la diferencia con una llamada HTTP: ahí el mensaje se pierde si el otro no está; en el bus, espera.</li>
+<li>El costo es de latencia: un alumno que falló a las 18:00 ve el contador actualizado cuando Mercado vuelva.</li>
+</ul>
+
+<h3>Qué ve el alumno mientras tanto</h3>
+<p>Conviene separar dos cosas que se confunden:</p>
+<ul>
+<li><b>Que falló el desafío lo sabe al instante.</b> Eso lo determina Desafíos y no pasa por nadie. El bloqueo del desafío también es de ellos.</li>
+<li><b>Lo que queda pendiente es el contador de vidas.</b> La pantalla no debe asumir el resultado: si asume que perdió la vida, le miente al que tenía escudo. Se muestra como pendiente y se resuelve cuando llega el hecho.</li>
+</ul>
+<div class="box ok"><b>La ventaja de esto sobre restituir después:</b> el estado del sistema nunca queda objetivamente incorrecto. Si Roadmap descontara primero y restituyera después, esa pérdida queda asentada en el histórico, y RF-RNK-05 usa el histórico para decidir quién promociona. Una pérdida fantasma le arruinaría la elegibilidad justo al alumno que compró un escudo para evitarla. Con el enriquecedor, Roadmap escribe una sola vez y con la información completa.</div>
+
+<h3>Cómo se mide, y por qué no con un healthcheck</h3>
+<p>Un healthcheck responde "¿estoy vivo?". La pregunta que importa es <b>"¿estoy al día?"</b>, y son distintas: Mercado puede responder 200 y tener cinco mil mensajes de atraso porque arrancó hace dos minutos.</p>
+<p>Eso ya lo mide el bus y se llama <b>consumer lag</b>: cuántos mensajes hay entre el último publicado y el último procesado por nuestro grupo. Se observa desde afuera, sin preguntarle nada a Mercado, y no hay que construir nada.</p>
+<div class="box warn"><b>Y hay una razón de arquitectura para no usar el healthcheck como coordinación:</b> ¿quién lo miraría? Si la respuesta es Roadmap, acabamos de reacoplar los servicios, porque Roadmap tendría que saber que Mercado existe y decidir en función de su estado. Eso es justamente lo que la arquitectura por eventos evita. El healthcheck sirve para el registro dinámico de servicios y para que el orquestador reinicie el contenedor, no para coordinar equipos.</div>
+
+<h3>La válvula de escape, y su trampa</h3>
+<p>Si el atraso supera lo aceptable, se puede apuntar temporalmente a Roadmap y Banco al tópico crudo. Es configuración, no código. Pero tiene un riesgo que hay que resolver antes de usarla:</p>
+<div class="box bad"><b>Doble aplicación.</b> Roadmap procesa los eventos crudos; después Mercado vuelve, procesa el mismo atraso y publica los resueltos; Roadmap los recibe otra vez y descuenta la vida dos veces. Se evita con lo que ya está pedido en el contrato: <b>deduplicar por el <code>eventId</code> original</b>, que viaja como <code>correlationId</code>. Si Roadmap dedupe por ese id, no importa por qué camino le llegó el hecho. Sin eso, el bypass es peor que la caída.</div>
+
+<h3>Recomendación para el TP</h3>
+<p><b>No automatizar nada.</b> Fail-open interno para la falla parcial, el log del bus para la total, y el lag como métrica con un umbral de alerta. Que la decisión de activar el bypass la tome una persona mirando el tablero, no un automatismo: un mecanismo automático de conmutación tiene más casos de borde que la falla que intenta resolver, y no hay tiempo en un cuatrimestre para probarlos todos.</p>
+<p>El número a medir en el Sprint 1 es <b>cuánto tarda el consumidor de punta a punta</b>. Si son un par de cientos de milisegundos, la espera es invisible y no hay discusión que tener.</p>
+</section>
+
+<!-- 5 -->
+<section id="s5">
+<h2>Contra las otras propuestas</h2>
+<table>
+<tr><th style="width:26%">Criterio</th><th>A · consulta sincrónica</th><th>B · Mercado resuelve y ordena</th><th>D · enriquecedor</th></tr>
+<tr><td>Desafíos espera</td><td><span class="v mid">Sí</span></td><td><span class="v ok">No</span></td><td><span class="v ok">No</span></td></tr>
+<tr><td>Desafíos conoce verbos</td><td><span class="v mid">Sí</span></td><td><span class="v ok">No</span></td><td><span class="v ok">No</span></td></tr>
+<tr><td>Mercado ordena sobre dominio ajeno</td><td><span class="v ok">No</span></td><td><span class="v no">Sí</span></td><td><span class="v ok">No</span></td></tr>
+<tr><td>Si Mercado se cae, la cursada sigue</td><td><span class="v ok">Sí</span></td><td><span class="v no">No</span></td><td><span class="v ok">Sí, con fail-open</span></td></tr>
+<tr><td>Base y bonus auditables por separado</td><td><span class="v no">No</span></td><td><span class="v ok">Sí</span></td><td><span class="v ok">Sí</span></td></tr>
+<tr><td>Auditoría explícita del efecto</td><td><span class="v no">Silencio</span></td><td><span class="v ok">Evento</span></td><td><span class="v ok">Campo en el evento</span></td></tr>
+<tr><td>Costo de <code>COIN_MULTIPLIER</code></td><td><span class="v no">Alto</span><br>llamada en cada aprobación</td><td><span class="v ok">Bajo</span></td><td><span class="v ok">Nulo</span><br>ya está en el camino</td></tr>
+<tr><td>Carrera entre consumidores</td><td><span class="v ok">No hay</span></td><td><span class="v no">Posible</span></td><td><span class="v ok">Imposible</span></td></tr>
+<tr><td>Parpadeo en la UI del alumno</td><td><span class="v ok">No</span></td><td><span class="v ok">No</span></td><td><span class="v ok">No</span></td></tr>
+<tr><td>Tópicos y tipos a mantener</td><td><span class="v ok">2 endpoints</span></td><td><span class="v mid">2 tópicos, 5 tipos</span></td><td><span class="v ok">2 tópicos, mismos tipos</span></td></tr>
+</table>
+<div class="box ok"><b>Es la más sólida de las cuatro,</b> y conviene decir por qué con precisión: conserva todo lo que B ganaba (nadie espera, Desafíos no conoce nada, base y bonus separados, auditoría explícita), corrige lo que B rompía (ya no ordena sobre dominio ajeno, y con fail-open sale del camino crítico), y encima elimina el único ítem que en A era caro de integrar.</div>
+<p>La opción C que habíamos planteado —que Roadmap descuente y después restituya— queda superada: pedía un endpoint de restitución que hoy no existe, generaba parpadeo visual y abría un caso de reconciliación si la restitución fallaba. El enriquecedor no necesita nada de eso porque resuelve antes de que Roadmap actúe.</p>
+</section>
+
+<!-- 6 -->
+<section id="s6">
+<h2>Qué hay que acordar y con quién</h2>
+<table>
+<tr><th style="width:15%">Equipo</th><th>Qué se les pide</th><th style="width:16%">Peso</th></tr>
+<tr><td><b>03</b> Desafíos</td><td>Publicar en <code>.raw</code> con <code>xpBase</code> y <code>coinsBase</code> ya calculados. Es el único cambio que se les pide, y a cambio dejan de conocer el inventario y de esperar a nadie.</td><td>Chico</td></tr>
+<tr><td><b>10</b> Roadmap</td><td>Suscribirse a <code>.resolved</code> y no a <code>.raw</code>. Leer <code>effects</code> y aplicar su propia regla ante <code>ABSORB_FAILURE</code>. Usar <code>xpFinal</code> cuando venga. Deduplicar por <code>correlationId</code>.</td><td>Medio</td></tr>
+<tr><td><b>08</b> Banco</td><td>Lo mismo con <code>coinsFinal</code>. Acreditar por bus, no por REST, que es lo que ya hacen.</td><td>Chico</td></tr>
+<tr><td><b>11</b> Bus</td><td>Crear los dos tópicos con el sufijo. Confirmar la política de retención y, si el broker lo permite, restringir quién puede consumir <code>.raw</code>.</td><td>Chico</td></tr>
+</table>
+
+<h3>Lo que hay que definir dentro del equipo</h3>
+<ul>
+<li><b>Precedencia de efectos:</b> si el alumno tiene dos boosts de XP activos, ¿se apilan, gana el mayor o se rechaza el segundo al activarlo? El catálogo dice <code>stackable: false</code>, así que probablemente gane el mayor, pero hay que escribirlo.</li>
+<li><b>Orden de consumo:</b> con dos escudos equipados de distinto tier, cuál se gasta primero. Propuesta: el de menor tier, para que el alumno conserve el más valioso.</li>
+<li><b>Qué cuenta como entrega para <code>COIN_MULTIPLIER</code>:</b> cualquier desafío aprobado o solo los obligatorios. El evento trae <code>mandatory</code>, así que la información está; falta la regla.</li>
+<li><b>Umbral de la válvula de escape:</b> a partir de qué retraso se considera que hay que apuntar a los consumidores al tópico crudo.</li>
+</ul>
+<div class="box warn"><b>Una pregunta para el curso, no para nosotros:</b> ¿hay otros equipos que quieran enriquecer estos mismos eventos? Si mañana un segundo servicio necesita hacer lo mismo, la cadena de dos saltos se vuelve de tres y el orden empieza a importar. Conviene saber ahora si el Mercado es el único enriquecedor previsto.</div>
+</section>
+
+<footer>Equipo Mercado · Tema 09 — propuesta para la reunión con Desafíos (03), Roadmap (10), Banco (08) y Bus (11). Catálogo de referencia: 15 ítems, 3 verbos.</footer>
+</div>
+<script>
+document.querySelectorAll('button.t').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('button.t').forEach(function(x){ x.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('section').forEach(function(s){ s.classList.remove('on'); });
+    b.setAttribute('aria-selected','true');
+    document.getElementById(b.dataset.s).classList.add('on');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+</script></body></html>

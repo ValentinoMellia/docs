@@ -1,23 +1,22 @@
 # Integration Protocol & Transactional Flow — Market (Tema 09) & Bank (Tema 08)
-## Asynchronous Saga Choreography (Kafka) with Dual Holds (Stock & Coins), Inventory Provisioning & SSE Streaming
+## Asynchronous Saga Choreography (Kafka) with Coin Holds, Item Provisioning (Grupo 12) & SSE Streaming
 
 ---
 
-## 1. Architectural Doctrine: Dual Holds & Two-Phase Commit Saga
+## 1. Architectural Doctrine: Reserve → Provision → Confirm Saga
 
 Per the Aula Quest Product Requirements Document (PRD) and e-commerce resilience standards:
-> **1) Fail-Fast Local Stock Hold $\rightarrow$ 2) Coin Balance Hold in Bank $\rightarrow$ 3) Provision item in Inventory $\rightarrow$ 4) Commit final debit in Bank & commit Stock.**
+> **1) Coin Balance Hold in Bank $\rightarrow$ 2) Request item provisioning from Grupo 12 $\rightarrow$ 3) Commit final debit in Bank once provisioning is confirmed.**
 
 1. **Market (Tema 09) as the Orchestrating Kiosk / Storefront:**
-   - Exposes the Open Catalog configured by professors per cohort with optional finite stock (`stock > 0`).
-   - Executes an **atomic local stock reservation (`StockHold`) in 2ms** before dispatching network calls to Bank. If stock is 0, fails immediately (`409 Conflict`), protecting Kafka and Bank from overload.
-   - Orchestrates the purchase saga: requests funds reservation from Bank, dispatches the item configuration to the **Inventory microservice**, and requests the final debit once item delivery is confirmed.
+   - Exposes the Open Catalog configured by professors per cohort — offers always have unlimited availability while active (decision #6: no stock limit, ever).
+   - Orchestrates the purchase saga: requests funds reservation from Bank, requests item provisioning from **Grupo 12**, and requests the final debit once item provisioning is confirmed.
 2. **Bank (Tema 08) as the Ledger & Coin Hold Infrastructure:**
    - Manages student coin balances per cohort.
    - Creates temporary reservations (`BalanceHold`), freezing coins so they cannot be double-spent.
-   - Waits for Market to notify that the asset was accredited in Inventory before executing the final ledger deduction.
-3. **Inventory as an Independent Microservice:**
-   - Operates as a distinct microservice responsible for the student's backpack (`student_inventory`), active slots, charges, and runtime effect evaluation.
+   - Waits for Market to notify that the asset was accredited by Grupo 12 before executing the final ledger deduction.
+3. **Grupo 12 (Bank's own team) as owner of the student backpack:**
+   - Since decision #13, item provisioning and the student's backpack (`student_inventory`) — its lifecycle, active slots, charges, and runtime effect evaluation — are Grupo 12's responsibility, not Market's. This is not a separate "Inventory microservice"; Grupo 12 is Bank's own Taiga team (Tema 08).
    - Receives the rich item metadata from Market only after Bank has confirmed the coin Hold.
 4. **Standard 5-Field English Event Wrapper:**
    - Every Kafka event adheres to the official JSON schema:
@@ -44,23 +43,17 @@ sequenceDiagram
     participant Market as Market (Tema 09)
     participant BusKafka as Kafka Event Bus
     participant Bank as Bank (Tema 08)
-    participant Inventory as Inventory Microservice
+    participant Grupo12 as Grupo 12 (Bank's Team)
     participant Notif as Notifications (Tema 11)
 
-    %% Step 1: Synchronous Entry Point & Stock Hold
+    %% Step 1: Synchronous Entry Point
     rect rgb(254, 242, 242)
-    Note over Student,Market: 1. Synchronous REST Request & Local Stock Hold (Fail-Fast)
+    Note over Student,Market: 1. Synchronous REST Request (no stock check — unlimited availability, decision #6)
     Student->>GW: POST /api/v1/market/orders {offerId: "item-course-9912", courseId: "COURSE_PROG4_2026"}
     GW->>Market: Injects verified identity headers (X-User-Id, X-Roles)
-    
-    alt Finite Stock Configured & Available
-        Market->>Market: Atomic UPDATE: availableStock - 1<br/>Creates StockHold (status: PENDING, ttl: 5m)
-        Market-->>Student: 202 Accepted { orderId: "ord-88391a", stockHoldId: "stk-hld-001", status: "PROCESSING", sseStreamUrl }
-        Student->>Market: GET /api/v1/market/orders/stream/ord-88391a (SSE Stream)
-        Market-->>Student: SSE: { step: 1, status: "PROCESSING", message: "STOCK_RESERVED" }
-    else Stock Depleted (availableStock == 0)
-        Market-->>Student: 409 Conflict { error: "OUT_OF_STOCK" }
-    end
+    Market->>Market: Validates cohort active, offer active
+    Market-->>Student: 202 Accepted { orderId: "ord-88391a", status: "PROCESSING", sseStreamUrl }
+    Student->>Market: GET /api/v1/market/orders/stream/ord-88391a (SSE Stream)
     end
 
     %% Step 2: Hold Reservation in Bank
@@ -72,7 +65,6 @@ sequenceDiagram
     alt Insufficient Balance in Course Account
         Bank->>BusKafka: Topic: bank.holds.events<br/>Event: HOLD_REJECTED (reason: "INSUFFICIENT_FUNDS")
         Market->>BusKafka: Consumes from bank.holds.events (groupId: "market-holds-group")
-        Market->>Market: Releases StockHold (status: RELEASED, availableStock + 1)
         Market->>Market: Updates order -> status: "FAILED"
         Market-->>Student: SSE: { step: 2, status: "FAILED", reason: "INSUFFICIENT_FUNDS" }
     else Sufficient Balance (Hold Created)
@@ -81,30 +73,29 @@ sequenceDiagram
         Market->>BusKafka: Consumes from bank.holds.events (groupId: "market-holds-group")
         Market-->>Student: SSE: { step: 2, status: "PROCESSING", message: "FUNDS_HELD_SUCCESSFULLY" }
 
-        %% Step 3: Item Delivery to Inventory Service
+        %% Step 3: Item Provisioning Request to Grupo 12
         rect rgb(236, 253, 245)
-        Note over Market,Inventory: 3. Phase 2: Provision Item to Inventory Microservice
+        Note over Market,Grupo12: 3. Phase 2: Mercado solicita acreditación del ítem a Grupo 12
         Market->>BusKafka: Topic: inventory.items.commands<br/>Event: ITEM_PROVISION_REQUESTED (producer: team-09-market)
-        Inventory->>BusKafka: Consumes from inventory.items.commands (groupId: "inventory-provision-group")
+        Grupo12->>BusKafka: Consumes from inventory.items.commands (groupId: "bank-provision-group")
         
-        alt Inventory Database Failure
-            Inventory->>BusKafka: Topic: inventory.items.events<br/>Event: ITEM_PROVISION_FAILED (producer: inventory-service)
-            Market->>BusKafka: Consumes from inventory.items.events (groupId: "market-inventory-group")
+        alt Provisioning Failure at Grupo 12
+            Grupo12->>BusKafka: Topic: inventory.items.events<br/>Event: ITEM_PROVISION_FAILED (producer: team-08-bank)
+            Market->>BusKafka: Consumes from inventory.items.events (groupId: "market-provisioning-group")
             Market->>BusKafka: Topic: bank.holds.commands<br/>Event: HOLD_RELEASE_REQUESTED (holdId: "hld-99201", reason: "DELIVERY_FAILED")
             Bank->>Bank: Unlocks coins and releases hold (status: RELEASED)
             Bank->>BusKafka: Topic: bank.holds.events<br/>Event: HOLD_RELEASED (producer: team-08-bank)
-            Market->>Market: Releases StockHold (status: RELEASED, availableStock + 1)
-            Market->>Market: Updates order -> status: "COMPENSATED_FAILED"
+            Market->>Market: Updates order -> status: "CANCELADA"
             Market-->>Student: SSE: { step: 3, status: "FAILED", message: "ITEM_PROVISION_FAILED_FUNDS_RELEASED" }
         else Item Provisioned Successfully
-            Inventory->>Inventory: Persists item in student_inventory (state: 'AVAILABLE')
-            Inventory->>BusKafka: Topic: inventory.items.events<br/>Event: ITEM_PROVISIONED (producer: inventory-service)
-            Market->>BusKafka: Consumes from inventory.items.events (groupId: "market-inventory-group")
+            Grupo12->>Grupo12: Persists item in student_inventory (state: 'AVAILABLE') — Grupo 12 owns this table, not Market
+            Grupo12->>BusKafka: Topic: inventory.items.events<br/>Event: ITEM_PROVISIONED (producer: team-08-bank)
+            Market->>BusKafka: Consumes from inventory.items.events (groupId: "market-provisioning-group")
             Market-->>Student: SSE: { step: 3, status: "PROCESSING", message: "ITEM_ACCREDITED_IN_BACKPACK" }
 
-            %% Step 4: Final Debit Confirmation in Bank & Stock Commit
+            %% Step 4: Final Debit Confirmation in Bank
             rect rgb(254, 243, 199)
-            Note over Market,Bank: 4. Phase 3: Confirm Hold, Commit Debit & Commit Stock
+            Note over Market,Bank: 4. Phase 3: Confirm Hold & Commit Debit (recién ahora que la acreditación se corroboró — decisión #8)
             Market->>BusKafka: Topic: bank.holds.commands<br/>Event: HOLD_CONFIRM_REQUESTED (holdId: "hld-99201", orderId: "ord-88391a")
             Bank->>BusKafka: Consumes from bank.holds.commands (groupId: "bank-holds-command-group")
             Bank->>Bank: Commits ledger entry: destroys hold, final balance deducted
@@ -112,7 +103,6 @@ sequenceDiagram
             
             par Parallel Actions
                 Market->>BusKafka: Consumes from bank.holds.events (groupId: "market-holds-group")
-                Market->>Market: Commits StockHold (status: COMMITTED)
                 Market->>Market: Updates order -> status: "CONFIRMED"
                 Market-->>Student: SSE: { step: 4, status: "CONFIRMED", message: "PURCHASE_COMPLETED_SUCCESSFULLY", inventoryItemId: "inv-8812" }
             and Notifications Dispatch
@@ -136,8 +126,8 @@ sequenceDiagram
 | :--- | :--- | :--- | :--- |
 | `bank.holds.commands` | Commands to create, confirm, or release coin balance holds | `team-09-market` | `team-08-bank` |
 | `bank.holds.events` | Factual events published by Bank regarding hold lifecycle | `team-08-bank` | `team-09-market`, `team-11-notifications` |
-| `inventory.items.commands` | Commands sent to Inventory to provision purchased items | `team-09-market` | `inventory-service` |
-| `inventory.items.events` | Factual events emitted by Inventory upon item creation | `inventory-service` | `team-09-market` |
+| `inventory.items.commands` | Commands sent to Grupo 12 to provision purchased items | `team-09-market` | `team-08-bank` (Grupo 12) |
+| `inventory.items.events` | Factual events emitted by Grupo 12 upon item creation | `team-08-bank` (Grupo 12) | `team-09-market` |
 | `market.orders.events` | Factual events on order lifecycle updates | `team-09-market` | `team-11-notifications` |
 
 ---
@@ -162,7 +152,6 @@ sequenceDiagram
   ```json
   {
     "orderId": "ord-88391a",
-    "stockHoldId": "stk-hld-001",
     "status": "PROCESSING",
     "sseStreamUrl": "/api/v1/market/orders/stream/ord-88391a",
     "createdAt": "2026-09-16T22:40:00Z"
@@ -172,7 +161,7 @@ sequenceDiagram
 ---
 
 #### Step 2: Request Coin Hold (`HOLD_CREATE_REQUESTED`)
-Market reserves local stock, then publishes command to Bank to lock student coins:
+Market validates the offer (no stock check — decision #6), then publishes command to Bank to lock student coins:
 
 * **Topic:** `bank.holds.commands`
 * **Partition Key:** `usr-4821`
@@ -185,7 +174,6 @@ Market reserves local stock, then publishes command to Bank to lock student coin
     "producer": "team-09-market",
     "payload": {
       "orderId": "ord-88391a",
-      "stockHoldId": "stk-hld-001",
       "studentId": "usr-4821",
       "courseId": "COURSE_PROG4_2026",
       "amount": 350,
@@ -224,8 +212,8 @@ Bank consumes command, verifies balance $\ge 350$, locks funds and replies:
 
 ---
 
-#### Step 4: Provision Item in Inventory (`ITEM_PROVISION_REQUESTED`)
-Having secured both local stock and student funds in Bank, Market orders the **Inventory Microservice** to accredit the asset:
+#### Step 4: Provision Item via Grupo 12 (`ITEM_PROVISION_REQUESTED`)
+Having secured student funds in Bank, Market requests **Grupo 12** to accredit the asset in the student's backpack:
 
 * **Topic:** `inventory.items.commands`
 * **Partition Key:** `usr-4821`
@@ -238,7 +226,6 @@ Having secured both local stock and student funds in Bank, Market orders the **I
     "producer": "team-09-market",
     "payload": {
       "orderId": "ord-88391a",
-      "stockHoldId": "stk-hld-001",
       "holdId": "hld-99201",
       "studentId": "usr-4821",
       "courseId": "COURSE_PROG4_2026",
@@ -260,8 +247,8 @@ Having secured both local stock and student funds in Bank, Market orders the **I
 
 ---
 
-#### Step 5: Inventory Acknowledges Delivery (`ITEM_PROVISIONED`)
-The Inventory Microservice persists the item into `student_inventory` in state `AVAILABLE`:
+#### Step 5: Grupo 12 Acknowledges Delivery (`ITEM_PROVISIONED`)
+Grupo 12 persists the item into its own `student_inventory` in state `AVAILABLE` (decision #13 — this table is no longer Market's):
 
 * **Topic:** `inventory.items.events`
 * **Partition Key:** `usr-4821`
@@ -271,10 +258,9 @@ The Inventory Microservice persists the item into `student_inventory` in state `
     "eventId": "d43a05e7-0b41-4c35-bf44-25eb024f3304",
     "eventType": "ITEM_PROVISIONED",
     "timestamp": "2026-09-16T22:40:04Z",
-    "producer": "inventory-service",
+    "producer": "team-08-bank",
     "payload": {
       "orderId": "ord-88391a",
-      "stockHoldId": "stk-hld-001",
       "holdId": "hld-99201",
       "studentId": "usr-4821",
       "courseId": "COURSE_PROG4_2026",
@@ -335,13 +321,12 @@ Bank commits the debit in the ledger, closes the coin hold as `COMMITTED`:
   ```
 
 #### Terminal Action in Market:
-Market marks the `StockHold` as `COMMITTED`, the `PurchaseOrder` as `CONFIRMED`, and closes the SSE stream:
+Market marks the `PurchaseOrder` as `CONFIRMED` and closes the SSE stream:
 ```json
 {
   "step": 4,
   "status": "CONFIRMED",
   "orderId": "ord-88391a",
-  "stockHoldId": "stk-hld-001",
   "inventoryItemId": "inv-8812",
   "message": "PURCHASE_COMPLETED_SUCCESSFULLY"
 }
@@ -349,14 +334,12 @@ Market marks the `StockHold` as `COMMITTED`, the `PurchaseOrder` as `CONFIRMED`,
 
 ---
 
-### 3.3 Mirrored Compensating Transactions: Release of Both Holds
+### 3.3 Compensating Transactions: Release of the Coin Hold
 
-If either Bank or Inventory encounters a failure, **both holds are released in mirror**:
+If either Bank or Grupo 12 encounters a failure, the coin hold is released — there is no stock to restore (decision #6):
 
 1. **Bank Rejects Coin Hold (`HOLD_REJECTED`):**
-   - Market sets `StockHold` to `RELEASED` $\rightarrow$ `available_stock = available_stock + 1`.
-   - Order marked as `FAILED`.
-2. **Inventory Persistence Fails (`ITEM_PROVISION_FAILED`):**
+   - Order marked as `FAILED`. Nothing to release — the hold was never created.
+2. **Item Provisioning Fails at Grupo 12 (`ITEM_PROVISION_FAILED`):**
    - Market publishes `HOLD_RELEASE_REQUESTED` to `bank.holds.commands` $\rightarrow$ Bank releases coin hold (`HOLD_RELEASED`).
-   - Market sets `StockHold` to `RELEASED` $\rightarrow$ `available_stock = available_stock + 1`.
    - Order marked as `COMPENSATED_FAILED`.

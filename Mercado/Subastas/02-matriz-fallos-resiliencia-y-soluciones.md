@@ -60,8 +60,8 @@ mindmap
 * **El Error:** Iterar en un `for` síncrono en memoria enviando 100 comandos `HOLD_RELEASE_REQUESTED` individuales por Kafka, esperando respuesta bloqueante o colapsando el pool de conexiones.
 * **La Consecuencia:** Timeout en el hilo de cierre, saturación de la partición de Kafka y sobrecarga en la base de datos de Banco. Si el proceso se interrumpe a la mitad, la mitad de los alumnos queda con monedas atrapadas indefinidamente.
 * **Solución de Arquitectura:**
-  1. **Operación en Lote (Batch Release):** Mercado emite un único evento de dominio consolidado: `SUBASTA_CERRADA` con la lista de `holdIds` perdedores, o Banco expone el comando `HOLD_RELEASE_BATCH_REQUESTED(auctionId)`.
-  2. **Transición a Opción 2 (Hold al Líder):** Como se detalló en el análisis de arquitectura, si solo el líder retiene fondos, hay **cero liberaciones al cierre** ($O(1)$).
+  1. **Operación en Lote (Batch Release):** Mercado emite un único evento de dominio consolidado: `AUCTION_CLOSED` con la lista de `holdIds` perdedores, o Banco expone el comando `HOLD_RELEASE_BATCH_REQUESTED(auctionId)`.
+  2. **Confirmado (decisión #3): la Opción 1 (Hold Escrow Total) es la arquitectura final, no transicional.** El Batch Release de arriba es la solución definitiva para este error — no hay plan de migrar a la Opción 2 (Hold al Líder), que fue evaluada y descartada (ver `01-analisis-opciones-arquitectura.md`, Sección 6).
 
 ---
 
@@ -83,7 +83,7 @@ mindmap
 | **Banco (Tema 08)** | Durante la Liberación (`HOLD_RELEASE`) | El ganador pagó, pero las monedas de los perdedores no se desbloquean. | Excepciones en el listener de liberaciones o timeout. | **Sweeper Reconciliador Automático:** Las liberaciones fallidas se encolan en una tabla local `market_pending_refunds`. Un cronjob de Mercado re-emite los comandos periódicamente hasta recibir el ACK de Banco. Alerta visual en Backoffice (Tema 12) si un hold lleva > 15 min sin liberar. |
 | **Mercado (Tema 09)** | Crash del pod en pleno proceso de cierre | El cron murió tras elegir al ganador pero antes de enviar los comandos a Kafka. | Liveness/Readiness probe de Kubernetes reinicia el contenedor. | **Recuperación al Arranque (Self-Healing):** Al levantar una instancia de Mercado, un `AuctionRecoveryService` busca subastas cuya `end_datetime < NOW()` y su estado sea `OPEN` o `CLOSING_IN_PROGRESS`. Reanuda el cierre idempotentemente gracias a la clave `orderId = auctionId`. |
 | **Apache Kafka (Bus)** | Caída del clúster o partición de red | Los comandos emitidos no pueden ser entregados a los tópicos. | `KafkaProducerException` / Buffer local lleno. | **Transactional Outbox Pattern:** Ningún microservicio escribe directamente a Kafka dentro de su hilo HTTP/transaccional. Los eventos se guardan en la tabla `market_outbox` en la misma transacción ACID de PostgreSQL. Un hilo relay independiente los lee y despacha cuando Kafka restablece conexión. |
-| **Inventario (Tema 09/02)**| Fallo de persistencia al acreditar ítem | El ganador pagó en Banco (`HOLD_CONFIRMED`), pero el ítem no se pudo insertar en `student_inventory` (falla de disco/BD). | `DataAccessException` en Mercado al persistir el ítem. | **Transacción Compensatoria (Saga Reversal):** Mercado emite `COMPENSATION_REFUND_REQUESTED` hacia Banco. Banco toma el `ledgerEntryId`, anula el débito contable y devuelve el 100% de las monedas al alumno. La subasta se marca como `FAILED_COMPENSATED` para auditoría. |
+| **Grupo 12 (antes "Inventario")** | Fallo al acreditar el ítem del ganador (`CREDITING_ITEM`) | Con el orden corregido (decisión #8 y Sección 6 de `CONTEXTO-MERCADO-SPRINT1.md`), la acreditación del ítem ocurre **antes** de confirmar el débito — el hold del ganador sigue en `PENDING`, sin confirmar. | `ITEM_PROVISION_FAILED` recibido de Grupo 12, o timeout sin `ITEM_PROVISIONED`. | **Caso normal, sin compensación necesaria:** la subasta pasa a `FAILED_SETTLEMENT` (`AWAITING_MANUAL_OR_CRON_RETRY`) y reintenta la acreditación; como el hold del ganador nunca se confirmó, no hay nada que revertir. **Fallback poco frecuente** (solo si el hold ya llegó a confirmarse y luego se detecta que el ítem no puede acreditarse): Mercado emite `COMPENSATION_REFUND_REQUESTED` hacia Banco para revertir el débito — ya no es el camino feliz esperado, solo una salvaguarda residual. |
 
 ---
 
@@ -108,10 +108,10 @@ stateDiagram-v2
 
     state CLOSING_IN_PROGRESS {
         [*] --> EVALUATING_WINNER
-        EVALUATING_WINNER --> CONFIRMING_LEDGER : Hay postor valido
+        EVALUATING_WINNER --> CREDITING_ITEM : Hay postor valido
         EVALUATING_WINNER --> MARKED_DESERTED : Sin ofertas registradas
-        CONFIRMING_LEDGER --> CREDITING_INVENTORY : HOLD_CONFIRMED recibido
-        CREDITING_INVENTORY --> RELEASING_LOSERS : Item persistido con exito
+        CREDITING_ITEM --> CONFIRMING_LEDGER : ITEM_PROVISIONED recibido de Grupo 12
+        CONFIRMING_LEDGER --> RELEASING_LOSERS : HOLD_CONFIRMED recibido
     }
 
     RELEASING_LOSERS --> CLOSED : Todas las liberaciones despachadas
@@ -123,6 +123,8 @@ stateDiagram-v2
     CLOSING_IN_PROGRESS --> FAILED_SETTLEMENT : Fallo critico de Banco / Timeout prolongado
     FAILED_SETTLEMENT --> CLOSING_IN_PROGRESS : Reintento automatico exitoso
 ```
+
+> **Nota de orden (corrección aplicada):** `CREDITING_ITEM` va **antes** que `CONFIRMING_LEDGER`, no al revés — este documento tenía el orden invertido (confirmaba el débito antes de acreditar el ítem), lo cual contradecía la decisión #8. El orden correcto es: corroborar que el ítem se puede acreditar en Grupo 12 → recién ahí confirmar el débito. Así "el ganador pagó pero no recibió el ítem" deja de ser un escenario normal a compensar — solo ocurre por falla técnica genuina después de corroborar.
 
 ---
 

@@ -11,7 +11,7 @@ Para lograr un sistema desacoplado, escalable y tolerante a fallas, se aplica un
 flowchart LR
     subgraph Sincronico_HTTP ["1. Canal Sincrónico (REST / JSON)"]
         direction TB
-        Client[Frontend Web / Móvil] -->|1. POST /bids<br/>Idempotency-Key| GW[API Gateway - Tema 01]
+        Client[Frontend Web / Móvil] -->|1. POST /api/v1/market/auctions/{id}/bids<br/>Idempotency-Key| GW[API Gateway - Tema 01]
         GW -->|2. Inyecta X-User-Id, X-Roles| Mercado[Mercado Core - Tema 09]
         Mercado -->|3. 202 Accepted + sseUrl| Client
     end
@@ -25,10 +25,10 @@ flowchart LR
     subgraph Asincronico_Kafka ["3. Canal Asincrónico (Apache Kafka)"]
         direction TB
         Mercado -->|Tópico: bank.holds.commands| Kafka[(Kafka Cluster)]
-        Kafka -->|Consumer Group: banco-holds-group| Banco[Banco Ledger - Tema 08]
+        Kafka -->|Consumer Group: bank-holds-group| Banco[Banco Ledger - Tema 08]
         Banco -->|Tópico: bank.holds.events| Kafka
-        Kafka -->|Consumer Group: mercado-subastas-group| Mercado
-        Kafka -->|Consumer Group: notificaciones-group| Notif[Notificaciones - Tema 11]
+        Kafka -->|Consumer Group: market-auctions-group| Mercado
+        Kafka -->|Consumer Group: notifications-group| Notif[Notificaciones - Tema 11]
     end
 ```
 
@@ -88,7 +88,11 @@ public class MarketAuction {
     private Long version;
     
     @Enumerated(EnumType.STRING)
-    private AuctionStatus status; // OPEN, CLOSING_IN_PROGRESS, CLOSED
+    private AuctionStatus status;
+    // Enum unificado (ver CONTEXTO-MERCADO-SPRINT1.md, Sección 6):
+    // DRAFT, SCHEDULED, OPEN (NO_BIDS / ACTIVE_BIDS), CANCELLED,
+    // CLOSING_IN_PROGRESS (EVALUATING_WINNER / CREDITING_ITEM / CONFIRMING_LEDGER / RELEASING_LOSERS / MARKED_DESERTED),
+    // FAILED_SETTLEMENT, CLOSED
     // ...
 }
 ```
@@ -116,8 +120,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.1 `HOLD_CREATE_REQUESTED` (Mercado → Kafka → Banco)
 * **Tópico:** `bank.holds.commands`
-* **Emisor:** `tema-09-mercado`
-* **Receptor:** `tema-08-banco` (`groupId: banco-holds-group`)
+* **Emisor:** `team-09-market`
+* **Receptor:** `team-08-bank` (`groupId: bank-holds-group`)
 * **Propósito:** Solicitar el bloqueo contable inicial de monedas para respaldar la primera oferta de un alumno.
 * **Payload JSON:**
 ```json
@@ -125,7 +129,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
   "eventType": "HOLD_CREATE_REQUESTED",
   "timestamp": "2026-09-12T18:00:00.120Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "commandId": "cmd-auct-8821-usr-104-seq-1",
     "auctionId": "auct-8821",
@@ -144,8 +148,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.2 `HOLD_CREATED` (Banco → Kafka → Mercado)
 * **Tópico:** `bank.holds.events`
-* **Emisor:** `tema-08-banco`
-* **Receptor:** `tema-09-mercado` (`groupId: mercado-holds-group`)
+* **Emisor:** `team-08-bank`
+* **Receptor:** `team-09-market` (`groupId: market-holds-group`)
 * **Propósito:** Confirmar que las monedas fueron bloqueadas exitosamente en el ledger del alumno.
 * **Payload JSON:**
 ```json
@@ -153,7 +157,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
   "eventType": "HOLD_CREATED",
   "timestamp": "2026-09-12T18:00:00.350Z",
-  "producer": "tema-08-banco",
+  "producer": "team-08-bank",
   "payload": {
     "commandId": "cmd-auct-8821-usr-104-seq-1",
     "holdId": "hld-99401",
@@ -170,8 +174,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.3 `HOLD_INCREASE_REQUESTED` (Mercado → Kafka → Banco)
 * **Tópico:** `bank.holds.commands`
-* **Emisor:** `tema-09-mercado`
-* **Receptor:** `tema-08-banco`
+* **Emisor:** `team-09-market`
+* **Receptor:** `team-08-bank`
 * **Propósito:** El alumno incrementa su puja previa en la misma subasta; se incrementa el hold existente.
 * **Payload JSON:**
 ```json
@@ -179,7 +183,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
   "eventType": "HOLD_INCREASE_REQUESTED",
   "timestamp": "2026-09-12T19:15:22.010Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "commandId": "cmd-auct-8821-usr-104-seq-2",
     "holdId": "hld-99401",
@@ -196,8 +200,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.4 `HOLD_INCREASED` (Banco → Kafka → Mercado)
 * **Tópico:** `bank.holds.events`
-* **Emisor:** `tema-08-banco`
-* **Receptor:** `tema-09-mercado`
+* **Emisor:** `team-08-bank`
+* **Receptor:** `team-09-market`
 * **Propósito:** Banco confirma que la cuenta disponía de las 300 monedas adicionales y actualizó el hold.
 * **Payload JSON:**
 ```json
@@ -205,7 +209,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
   "eventType": "HOLD_INCREASED",
   "timestamp": "2026-09-12T19:15:22.215Z",
-  "producer": "tema-08-banco",
+  "producer": "team-08-bank",
   "payload": {
     "commandId": "cmd-auct-8821-usr-104-seq-2",
     "holdId": "hld-99401",
@@ -221,8 +225,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.5 `HOLD_CONFIRM_REQUESTED` (Mercado → Kafka → Banco)
 * **Tópico:** `bank.holds.commands`
-* **Emisor:** `tema-09-mercado`
-* **Receptor:** `tema-08-banco`
+* **Emisor:** `team-09-market`
+* **Receptor:** `team-08-bank`
 * **Propósito:** Confirmar definitivamente el cobro de la postura ganadora tras el martillazo de la subasta.
 * **Payload JSON:**
 ```json
@@ -230,7 +234,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
   "eventType": "HOLD_CONFIRM_REQUESTED",
   "timestamp": "2026-09-13T18:00:01.050Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "commandId": "cmd-auct-8821-settle-winner",
     "holdId": "hld-99401",
@@ -246,8 +250,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.6 `HOLD_CONFIRMED` (Banco → Kafka → Mercado)
 * **Tópico:** `bank.holds.events`
-* **Emisor:** `tema-08-banco`
-* **Receptor:** `tema-09-mercado`
+* **Emisor:** `team-08-bank`
+* **Receptor:** `team-09-market`
 * **Propósito:** Banco informa que el débito contable definitivo fue asentado en el Ledger bajo un asiento formal.
 * **Payload JSON:**
 ```json
@@ -255,7 +259,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9a0b1c",
   "eventType": "HOLD_CONFIRMED",
   "timestamp": "2026-09-13T18:00:01.320Z",
-  "producer": "tema-08-banco",
+  "producer": "team-08-bank",
   "payload": {
     "commandId": "cmd-auct-8821-settle-winner",
     "holdId": "hld-99401",
@@ -272,8 +276,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.7 `HOLD_RELEASE_REQUESTED` (Mercado → Kafka → Banco)
 * **Tópico:** `bank.holds.commands`
-* **Emisor:** `tema-09-mercado`
-* **Receptor:** `tema-08-banco`
+* **Emisor:** `team-09-market`
+* **Receptor:** `team-08-bank`
 * **Propósito:** Liberar íntegramente las monedas retenidas a un participante perdedor (o a todos si se cancela).
 * **Payload JSON:**
 ```json
@@ -281,7 +285,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "07b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d",
   "eventType": "HOLD_RELEASE_REQUESTED",
   "timestamp": "2026-09-13T18:00:02.100Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "commandId": "cmd-auct-8821-release-usr-209",
     "holdId": "hld-99388",
@@ -296,8 +300,8 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 #### 4.8 `HOLD_RELEASED` (Banco → Kafka → Mercado)
 * **Tópico:** `bank.holds.events`
-* **Emisor:** `tema-08-banco`
-* **Receptor:** `tema-09-mercado`
+* **Emisor:** `team-08-bank`
+* **Receptor:** `team-09-market`
 * **Propósito:** Banco confirma que el saldo retenido fue reintegrado intacto al `available_balance` del alumno.
 * **Payload JSON:**
 ```json
@@ -305,7 +309,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
   "eventId": "18c9d0e1-f2a3-4b5c-6d7e-8f9a0b1c2d3e",
   "eventType": "HOLD_RELEASED",
   "timestamp": "2026-09-13T18:00:02.310Z",
-  "producer": "tema-08-banco",
+  "producer": "team-08-bank",
   "payload": {
     "commandId": "cmd-auct-8821-release-usr-209",
     "holdId": "hld-99388",
@@ -320,18 +324,41 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 ---
 
-#### 4.9 `SUBASTA_ADJUDICADA` (Mercado → Kafka → Notificaciones / Backoffice)
-* **Tópico:** `mercado.subastas`
-* **Emisor:** `tema-09-mercado`
-* **Receptores:** `tema-11-notificaciones`, `tema-12-backoffice`, `tema-02-cursos`
+#### 4.9 `HOLD_REJECTED` (Banco → Kafka → Mercado)
+* **Tópico:** `bank.holds.events`
+* **Emisor:** `team-08-bank`
+* **Receptor:** `team-09-market`
+* **Propósito:** Banco rechaza la creación del hold inicial (saldo insuficiente u otra regla de negocio de Banco). Antes referenciado en otras secciones pero nunca especificado formalmente aquí.
+* **Payload JSON:**
+```json
+{
+  "eventId": "a9b8c7d6-e5f4-3a2b-1c0d-9e8f7a6b5c4d",
+  "eventType": "HOLD_REJECTED",
+  "timestamp": "2026-09-12T18:00:00.300Z",
+  "producer": "team-08-bank",
+  "payload": {
+    "commandId": "cmd-auct-8821-usr-104-seq-1",
+    "auctionId": "auct-8821",
+    "studentId": "usr-104",
+    "reason": "INSUFFICIENT_FUNDS"
+  }
+}
+```
+
+---
+
+#### 4.10 `AUCTION_AWARDED` (Mercado → Kafka → Notificaciones / Backoffice) — renombrado desde `SUBASTA_ADJUDICADA`
+* **Tópico:** `market.auctions.events`
+* **Emisor:** `team-09-market`
+* **Receptores:** `team-11-notifications`, `team-12-backoffice`, `team-02-courses`
 * **Propósito:** Hecho consumado de cierre de subasta con ganador formal.
 * **Payload JSON:**
 ```json
 {
   "eventId": "29d0e1f2-a3b4-5c6d-7e8f-9a0b1c2d3e4f",
-  "eventType": "SUBASTA_ADJUDICADA",
+  "eventType": "AUCTION_AWARDED",
   "timestamp": "2026-09-13T18:00:03.000Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "auctionId": "auct-8821",
     "courseId": "CURSO_PROG4_2026",
@@ -347,18 +374,18 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 
 ---
 
-#### 4.10 `OFERTA_SUPERADA` (Mercado → SSE / Notificaciones)
-* **Tópico:** `notificaciones.alertas` / Canal SSE
-* **Emisor:** `tema-09-mercado`
-* **Receptor:** `tema-11-notificaciones` / Web & Móvil
+#### 4.11 `BID_OUTBID` (Mercado → SSE / Notificaciones) — renombrado desde `OFERTA_SUPERADA`
+* **Tópico:** `notifications.alerts` / Canal SSE
+* **Emisor:** `team-09-market`
+* **Receptor:** `team-11-notifications` / Web & Móvil
 * **Propósito:** Alertar al alumno que acaba de perder el liderazgo para que pueda ingresar a contraofertar.
 * **Payload JSON:**
 ```json
 {
   "eventId": "3ae1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a",
-  "eventType": "OFERTA_SUPERADA",
+  "eventType": "BID_OUTBID",
   "timestamp": "2026-09-12T19:15:23.000Z",
-  "producer": "tema-09-mercado",
+  "producer": "team-09-market",
   "payload": {
     "auctionId": "auct-8821",
     "outbidStudentId": "usr-209",
@@ -366,6 +393,76 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
     "newHighestBid": 1500.00,
     "timeRemainingSeconds": 82800,
     "ctaUrl": "/market/auctions/auct-8821"
+  }
+}
+```
+
+---
+
+### 5. Contrato de Acreditación del Ítem al Ganador (Mercado ↔ Grupo 12)
+
+**Nuevo — antes sin especificar formalmente en este documento.** Con el orden corregido de la máquina de estados (`CREDITING_ITEM` antes de `CONFIRMING_LEDGER`, decisión #8), Mercado solicita la acreditación del ítem al ganador **antes** de confirmar el débito final en Banco.
+
+#### 5.1 `ITEM_PROVISION_REQUESTED` (Mercado → Grupo 12)
+* **Emisor:** `team-09-market`
+* **Receptor:** Grupo 12
+* **Propósito:** Solicitar la acreditación del ítem ganado en el inventario del alumno.
+* **Payload JSON:**
+```json
+{
+  "eventId": "4bf2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
+  "eventType": "ITEM_PROVISION_REQUESTED",
+  "timestamp": "2026-09-13T18:00:03.100Z",
+  "producer": "team-09-market",
+  "payload": {
+    "auctionId": "auct-8821",
+    "winnerStudentId": "usr-104",
+    "courseId": "CURSO_PROG4_2026",
+    "itemPayload": {
+      "itemType": "SHIELD",
+      "name": "Sword of Valor"
+    }
+  }
+}
+```
+
+#### 5.2 `ITEM_PROVISIONED` (Grupo 12 → Mercado)
+* **Emisor:** Grupo 12
+* **Receptor:** `team-09-market`
+* **Propósito:** Confirmar que el ítem fue acreditado en el inventario del alumno. Solo tras este evento Mercado emite `HOLD_CONFIRM_REQUESTED`.
+* **Payload JSON:**
+```json
+{
+  "eventId": "5c03b4c5-d6e7-8f9a-0b1c-2d3e4f5a6b7c",
+  "eventType": "ITEM_PROVISIONED",
+  "timestamp": "2026-09-13T18:00:03.400Z",
+  "producer": "grupo-12",
+  "payload": {
+    "auctionId": "auct-8821",
+    "winnerStudentId": "usr-104",
+    "courseId": "CURSO_PROG4_2026",
+    "inventoryItemId": "inv-9921",
+    "itemType": "SHIELD",
+    "state": "AVAILABLE"
+  }
+}
+```
+
+#### 5.3 `ITEM_PROVISION_FAILED` (Grupo 12 → Mercado)
+* **Emisor:** Grupo 12
+* **Receptor:** `team-09-market`
+* **Propósito:** Informar que la acreditación falló. Como el hold del ganador todavía no fue confirmado (orden corregido, decisión #8), no hace falta compensación — la subasta pasa a `FAILED_SETTLEMENT` y reintenta.
+* **Payload JSON:**
+```json
+{
+  "eventId": "6d14c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d",
+  "eventType": "ITEM_PROVISION_FAILED",
+  "timestamp": "2026-09-13T18:00:03.400Z",
+  "producer": "grupo-12",
+  "payload": {
+    "auctionId": "auct-8821",
+    "winnerStudentId": "usr-104",
+    "reason": "PROVISIONING_ERROR"
   }
 }
 ```
