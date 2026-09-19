@@ -60,7 +60,7 @@ Que el PROFESOR pueda ponerles fecha de vencimiento a ciertos ítems de su curso
 | Ref | Título | Estado | Puntos | Archivo |
 | :---: | :--- | :---: | :---: | :--- |
 | **#778** | G11 — Configurar el vencimiento de un ítem del curso | New | — | [US-778-configurar-el-vencimiento-de-un-item-del-curso.md](../users/US-778-configurar-el-vencimiento-de-un-item-del-curso.md) |
-| **#785** | G11 — Ver cuándo vencen mis ítems | New | — | [US-785-ver-cuando-vencen-mis-items.md](../users/US-785-ver-cuando-vencen-mis-items.md) |
+| **#785** | G11 — Saber cuánto dura un ítem antes de comprarlo | New | 2 | [US-785-ver-cuando-vencen-mis-items.md](../users/US-785-ver-cuando-vencen-mis-items.md) |
 | **#786** | G11 — Recibir un aviso antes de que venza un ítem | New | — | [US-786-recibir-un-aviso-antes-de-que-venza-un-item.md](../users/US-786-recibir-un-aviso-antes-de-que-venza-un-item.md) |
 | **#787** | G11 — Vencer automáticamente los ítems no usados | New | — | [US-787-vencer-automaticamente-los-items-no-usados.md](../users/US-787-vencer-automaticamente-los-items-no-usados.md) |
 | **#788** | G11 — Consultar los ítems vencidos del curso | New | — | [US-788-consultar-los-items-vencidos-del-curso.md](../users/US-788-consultar-los-items-vencidos-del-curso.md) |

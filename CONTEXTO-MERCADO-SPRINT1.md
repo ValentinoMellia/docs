@@ -22,7 +22,7 @@ Este archivo es un **mapa de navegación con profundidad técnica real**, no un 
 3. Modelo de holds en subastas = **Opción 1 (Hold Escrow Total)**, confirmada como arquitectura **definitiva**, no como paso intermedio hacia la Opción 2.
 4. Nomenclatura de eventos propios de Mercado = **MAYÚSCULAS_SNAKE_CASE, en inglés**, sin excepción.
 5. El equipamiento con efecto mecánico lo define **el profesor, por curso-cohorte** (curaduría, no catálogo global fijo de ítems concretos).
-6. **Sin límite de stock** en la oferta de catálogo.
+6. **Stock por oferta: opcional y configurable por el profesor** — *revisada el 19/09/2026, ver Sección 12-E*. Si no se especifica, la disponibilidad es ilimitada; si se especifica, es un tope finito por curso-cohorte que sí puede agotarse.
 7. Cursos (Tema 02) debe **bloquear el archivado** de un curso mientras tenga subastas activas.
 8. Validaciones de negocio se resuelven **reservando → corroborando la acreditación → confirmando el débito recién si la acreditación se corroboró**.
 
@@ -171,7 +171,7 @@ Entidades candidatas, todas con `cursoCohorteId` obligatorio y baja lógica (RF-
 | Entidad | Atributos clave |
 |---|---|
 | **ItemTemplate** | `id`, `tipo` (SHIELD \| BOOST_XP \| BOOST_COINS \| LIFE), `parametrosConfigurables` (rango de precio, magnitud del efecto, cargas, etc.), `efecto` (contrato de nombre con Tema 10/Grupo 12). Set cerrado de tipos, **no de ítems concretos** (decisión #14). |
-| **OfertaCatalogo** | `id`, `cursoCohorteId`, `itemTemplateId`, `precioMonedas` (elegido por el profesor dentro del rango del template), `configuracion` (magnitud, cargas, desafíos aplicables), `estado` — **sin campo de stock** (decisión #6: disponibilidad siempre ilimitada mientras esté activa). Ya no existen tiers fijos: el tier es el resultado de la configuración que elige el profesor. |
+| **OfertaCatalogo** | `id`, `cursoCohorteId`, `itemTemplateId`, `precioMonedas` (elegido por el profesor dentro del rango del template), `configuracion` (magnitud, cargas, desafíos aplicables), `stock` (opcional; vacío/null = ilimitado, entero > 0 = tope finito), `availableStock` (si `stock` está definido), `estado` (decisión #6, revisada 19/09 — ver Sección 12-E). Ya no existen tiers fijos: el tier es el resultado de la configuración que elige el profesor. |
 | **Orden** | `id`, `cursoCohorteId`, `alumnoId`, `ofertaId`, `precioAplicado` (snapshot, RF-CFG-06), `holdId` (nombre de campo unificado — ver Sección 12-D, contrato #3), `idempotencyKey`, `estado`, `creadaEn` |
 | **Subasta** | `id`, `cursoCohorteId`, `itemTemplateId`, `profesorId`, `inicio`, `fin`, `pujaMinima`, `estado`, `version` (bloqueo optimista) |
 | **Puja** | `id`, `subastaId`, `alumnoId`, `monto`, `holdId`, `estado`, `creadaEn` |
@@ -468,7 +468,7 @@ Estado: **resuelto**. Reservar→confirmar/liberar (Sección 9.1), idempotencia 
   - Escenario 2 (falla técnica en la acreditación del ítem): el hold se libera, no se confirma el débito, alumno recupera saldo.
   - Escenario 3 (monedas de otro curso): rechazo, se informa que las monedas no pertenecen a ese curso.
 - **HU-02.2**: feedback visual durante la compra (botón deshabilitado + spinner) para evitar doble clic.
-- Tareas: flujo hold→acreditación(Grupo 12)→confirmación contra Banco; validar en orden disponibilidad→pertenencia al curso→saldo→moneda del curso correcto; reintentos automáticos con compensación (falla técnica); pruebas de concurrencia sobre compras simultáneas del mismo ítem (ya no hay condición de carrera de stock, decisión #6, pero sí de saldo).
+- Tareas: flujo hold→acreditación(Grupo 12)→confirmación contra Banco; validar en orden disponibilidad→pertenencia al curso→saldo→moneda del curso correcto; reintentos automáticos con compensación (falla técnica); pruebas de concurrencia sobre compras simultáneas del mismo ítem (decisión #6 revisada: si la oferta tiene `stock` finito, sí hay condición de carrera de stock a probar, además de la de saldo).
 
 ---
 
@@ -481,7 +481,7 @@ Estado: **resuelto**. Reservar→confirmar/liberar (Sección 9.1), idempotencia 
 3. Modelo de hold en subastas = Opción 1 (Hold Escrow Total), **definitiva, no transicional**.
 4. Nomenclatura de eventos propios de Mercado: MAYÚSCULAS_SNAKE_CASE, en inglés, sin excepción.
 5. Origen del equipamiento con efecto mecánico: lo define el profesor, por curso-cohorte.
-6. Sin límite de stock: la oferta de catálogo tiene disponibilidad ilimitada mientras esté activa.
+6. Stock de la oferta de catálogo: **revisada el 19/09/2026** (ver Sección 12-E) — ya no es "sin límite de stock" sin excepción; el profesor puede configurar un stock finito opcional por oferta.
 7. Archivado de curso con subasta abierta: Cursos debe bloquear el archivado — pendiente de comunicación formal con ese equipo.
 8. Validación de reglas de negocio sin compensación: reservar → corroborar → confirmar el débito solo si se corroboró.
 
@@ -518,6 +518,16 @@ La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, 
 8. **Nombres de campo inconsistentes** entre contratos: `holdId` vs `bankHoldId` (se adopta `holdId`), `amountDebited` vs `debitedAmount` (se adopta `amountDebited` para compra directa, `debitedAmount` es el que ya usaba el contrato de subastas — **queda como pendiente menor unificar uno solo, ver 12-C**), `reason` vs `releaseReason` (se adopta `releaseReason`), `COMPENSATED_RELEASED` vs `COMPENSATED_FAILED` (se adopta `CANCELADA` como estado de Orden en este documento, ver Sección 6).
 
 **Pendiente de trabajo aparte (no bloquea Sprint 1):** aplicar estas correcciones físicamente en los 6 archivos fuente listados arriba, o marcarlos explícitamente como superados por este documento. Mientras tanto, este documento es la autoridad para los 22 puntos de las Secciones 12-A, 12-B y 12-D.
+
+### 12-E. Revisión del 19/09/2026 — decisión #6 (stock) corregida
+
+**La decisión #6 tal como quedó redactada el 16/09 ("sin límite de stock, nunca") queda revisada: el stock por oferta sí se va a implementar, como campo opcional configurable por el profesor.** Esto se confirmó al detectar que la épica #90 y la historia #92, ya reescritas en Taiga por el PO el 18/09 con el modelo de catálogo por plantillas, incluían `stock` opcional (`vacío = ilimitado, > 0 = tope finito`) — contradiciendo la redacción original de la decisión #6 de este documento. Consultado el equipo, se confirmó que el stock finito es la regla de negocio real; este documento es el que estaba desactualizado en ese punto puntual, no Taiga.
+
+**Impacto:**
+- `OfertaCatalogo` (Sección 5) recupera los campos `stock` y `availableStock`, ambos opcionales.
+- El flujo de compra directa (Sección 7) y las tareas de M-02 (Sección 11) vuelven a considerar la condición de carrera de stock en compras concurrentes de una misma oferta, además de la de saldo.
+- El resto de la decisión #6 original (no hay tiers fijos, el catálogo es por plantillas configurables) **no cambia** — solo se revierte la afirmación de "nunca hay stock".
+- Esta revisión no afecta subastas (Sección 8): las subastas no tienen stock, son por ítem único.
 
 ---
 

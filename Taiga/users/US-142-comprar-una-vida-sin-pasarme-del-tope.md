@@ -1,89 +1,76 @@
 # [G11 — Comprar una vida sin pasarme del tope]
 
 > **Taiga Ref:** #142 | **ID:** 9539965
-> **Épica:** [#137 — G11 — Compra Directa de Ítems del Mercado](../epics/EPIC-137-compra-directa-de-items-del-mercado.md)
-> **Estado:** New | **Puntos:** —
+> **Épica:** [#137 — G11 — Compra Directa con Doble Reserva](../epics/EPIC-137-compra-directa-de-items-del-mercado.md)
+> **Estado:** New | **Puntos:** 5
 > **Asignado a:** Sin asignar | **Propietario:** Melina Yain Medina
 
 ## Detalle / Especificación (Taiga)
 
-Descripción (Como / Quiero / Para)
-----------------------------------
+### Descripción (Como / Quiero / Para)
 
 *   **Como:** ALUMNO
-*   **Quiero:** comprar una vida solo cuando tengo lugar para ella
-*   **Para:** no gastar monedas en algo que el sistema después me va a rechazar
+*   **Quiero:** que no me dejen comprar una vida si ya llegué al máximo permitido
+*   **Para:** no gastar monedas en algo que no voy a poder recibir
 
-Notas / Observaciones
----------------------
+### Notas / Observaciones
 
-*   **Reglas de negocio:** existe un máximo de vidas vigentes por curso, simulado con el valor de referencia PAR-12 del PRD (3 vidas) mientras Roadmap no exista.
-*   **Validaciones:** la comprobación del tope ocurre **antes** de mover monedas.
-*   **Datos obligatorios:** ID del ALUMNO, curso/cohorte, cantidad de vidas vigentes (simulada), tope vigente.
-*   **Performance (tiempos, volumen, límites):** agrega una verificación al camino de compra; debe resolverse rápido al ser un valor simulado en esta etapa.
-*   **Seguridad (roles, permisos, datos sensibles):** la verificación de vidas es sobre el propio ALUMNO.
-*   **Accesibilidad (WCAG/teclado/lectores):** el motivo del rechazo por tope debe distinguirse claramente del rechazo por saldo.
-*   **Otros:** cuando Roadmap exista, esta verificación pasa de un valor simulado a una consulta real — mismo patrón de puerto y adaptador que el resto del proyecto.
+*   **Reglas de negocio:** las vidas viven en el inventario de Banco, así que el tope lo valida Banco al momento de acreditar. Mercado reacciona al rechazo liberando las reservas, sin cobrar nada.
+*   **Validaciones:** el motivo del rechazo tiene que llegar diferenciado, para poder explicarle al alumno que fue por el tope y no por saldo.
+*   **Datos obligatorios:** alumno, curso-cohorte, oferta de tipo vida y motivo del rechazo.
+*   **Performance (tiempos, volumen, límites):** sin exigencias particulares; es un paso más de la saga de compra.
+*   **Seguridad (roles, permisos, datos sensibles):** la verificación es siempre sobre el propio ALUMNO.
+*   **Accesibilidad (WCAG/teclado/lectores):** el mensaje de rechazo por tope se distingue claramente del de saldo insuficiente.
+*   **Otros:** **a acordar con Banco** el motivo de rechazo específico cuando el alumno está en el tope.
 
-Criterios de Aceptación (CA)
-----------------------------
+### Criterios de Aceptación (CA)
 
-*   **CA1:** si el ALUMNO está por debajo del máximo simulado de vidas, al comprar una vida se le acredita y su contador sube en uno.
-*   **CA2:** si el ALUMNO ya alcanzó el máximo, la operación se rechaza antes de mover monedas, indicando que es por el tope.
-*   **CA3:** el motivo de rechazo por tope se distingue explícitamente del motivo de rechazo por saldo insuficiente.
-*   **Extras (opcional):** el catálogo muestra el ítem de vida atenuado cuando el ALUMNO ya está en el tope.
+*   **CA1:** si el ALUMNO está por debajo del tope, la compra de una vida se completa normalmente.
+*   **CA2:** si ya está en el tope, la compra se rechaza, se liberan las reservas y no se le cobra nada.
+*   **CA3:** el mensaje por tope se distingue del mensaje por saldo insuficiente.
+*   **Extras (opcional):** la vitrina muestra la vida atenuada cuando el alumno ya está en el tope.
 
-BDD (mínimo 3 escenarios)
--------------------------
+### BDD (mínimo 3 escenarios)
 
-**Característica:** Compra de vidas con validación del tope vigente simulado por curso
+**Característica:** Compra de vidas respetando el tope vigente por curso
 
 **Escenario 1**
 
-*   **Dado:** que el ALUMNO tiene menos vidas simuladas que el máximo permitido
+*   **Dado:** un ALUMNO con menos vidas que el máximo permitido
 *   **Cuando:** compra una vida
-*   **Entonces:** se le descuenta el precio y su contador de vidas simuladas sube en uno
+*   **Entonces:** se le acredita y se le cobra normalmente
 
 **Escenario 2**
 
-*   **Dado:** que el ALUMNO tiene el máximo simulado de vidas vigentes
-*   **Cuando:** intenta comprar una vida
-*   **Entonces:** la operación se rechaza antes de mover monedas y el mensaje indica que alcanzó el tope
+*   **Dado:** un ALUMNO que ya está en el máximo de vidas
+*   **Cuando:** intenta comprar otra
+*   **Entonces:** la compra se rechaza por el tope, se liberan las reservas y no se le cobra nada
 
 **Escenario 3**
 
-*   **Dado:** los dos motivos de rechazo posibles (saldo y tope)
+*   **Dado:** los dos motivos posibles de rechazo
 *   **Cuando:** se produce cada uno por separado
-*   **Entonces:** el ALUMNO recibe mensajes claramente distintos para cada caso
+*   **Entonces:** el ALUMNO recibe mensajes distintos para el tope y para el saldo insuficiente
 
-Prototipo
----------
+### Prototipo
 
-*   **Capturas:** \[PEGAR AQUÍ\]
-*   **URL Figma:** \[pendiente\]
-*   **Libro de cuentos:** \[pendiente\]
-*   **API simulada / Swagger:** reutiliza `POST /api/market/orders`, con la verificación de tope simulada internamente
+*   **Mock API / Swagger:** reutiliza `POST /api/v1/market/orders`, con el motivo de rechazo por tope en la respuesta de la saga
 
-Estimación / Prioridad
-----------------------
-
-**Formato rápido**
+### Estimación / Prioridad
 
 *   **Puntos (Fibonacci):** 5
 *   **Prioridad (MoSCoW / Numérica):** Should / 2
 
-**Formato tabla (opcional)**
-
 | Puntos (Fibonacci) | Prioridad (MoSCoW / Numérica) |
 | --- | --- |
-| 5 | Debería / 2 |
+| 5 | Should / 2 |
 
-Dependencias / Impactos
------------------------
+### Dependencias / Impactos
 
-*   **Servicios involucrados:** Mercado (dueño, con el tope simulado internamente). Roadmap — futuro reemplazo del valor simulado.
-*   **Módulos afectados:** Órdenes.
-*   **Otros equipos / aprobaciones:** ninguna bloqueante hoy; a coordinar con Roadmap cuando exista, para decidir si la validación pasa a ser una reserva de cupo o una simple consulta.
-*   **Impacto en datos / migraciones:** ninguno adicional en esta etapa, salvo el valor simulado del tope.
-*   **Riesgos y mitigación (opcional):** cuando Roadmap exista, puede aparecer una ventana de carrera entre validar el tope y acreditar la vida. Mitigación: queda documentado para resolver en esa integración, no bloquea esta historia hoy.
+*   **Servicios involucrados:** Mercado (orquesta). Banco (dueño de las vidas y del tope) — simulado por ahora.
+*   **Módulos afectados:** Mercado — Órdenes.
+*   **Otros equipos / aprobaciones:** Banco, para acordar el motivo de rechazo por tope.
+*   **Impacto en datos / migraciones:** ninguno adicional.
+*   **Riesgos y mitigación:** que el rechazo llegue sin motivo diferenciado y el alumno no entienda por qué no pudo comprar; se mitiga acordando el motivo en el contrato.
 
+> **Cambio de fondo respecto a la versión anterior:** el tope de vidas ya no es un valor simulado dentro de Mercado — el tope lo valida Banco al acreditar (consistente con CONTEXTO §9.7). Ver [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../CONTRATOS-COMUNICACION-SPRINT1.md) §4, task #1002/#1003.

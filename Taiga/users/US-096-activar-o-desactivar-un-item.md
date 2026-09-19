@@ -1,7 +1,7 @@
 # [G11 — Activar o desactivar un ítem]
 
 > **Taiga Ref:** #96 | **ID:** 9535772
-> **Épica:** [#90 — G11 — Gestión del Catálogo de Mercado](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
+> **Épica:** [#90 — G11 — Catálogo Abierto por Plantillas](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
 > **Estado:** New | **Puntos:** —
 > **Asignado a:** Sin asignar | **Propietario:** Melina Yain Medina
 

@@ -1,7 +1,7 @@
 # [G11 — Consultar catálogo disponible]
 
 > **Taiga Ref:** #94 | **ID:** 9535762
-> **Épica:** [#90 — G11 — Gestión del Catálogo de Mercado](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
+> **Épica:** [#90 — G11 — Catálogo Abierto por Plantillas](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
 > **Estado:** New | **Puntos:** —
 > **Asignado a:** Sin asignar | **Propietario:** Melina Yain Medina
 

@@ -1,89 +1,74 @@
-# [G11 — Modificar un ítem]
+# [G11 — Editar una oferta publicada]
 
 > **Taiga Ref:** #95 | **ID:** 9535768
-> **Épica:** [#90 — G11 — Gestión del Catálogo de Mercado](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
-> **Estado:** New | **Puntos:** —
+> **Épica:** [#90 — G11 — Catálogo Abierto por Plantillas](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
+> **Estado:** New | **Puntos:** 3
 > **Asignado a:** Sin asignar | **Propietario:** Melina Yain Medina
 
 ## Detalle / Especificación (Taiga)
 
-Descripción (Como / Quiero / Para)
-----------------------------------
+### Descripción (Como / Quiero / Para)
 
-*   **Como:** ADMIN
-*   **Quiero:** modificar la información de un ítem existente
-*   **Para:** mantener actualizado el catálogo
+*   **Como:** PROFESOR
+*   **Quiero:** modificar una oferta que ya publiqué en mi curso
+*   **Para:** corregir su precio, su descripción o su configuración sin tener que darla de baja
 
-Notas / Observaciones
----------------------
+### Notas / Observaciones
 
-*   **Reglas de negocio:** la modificación debe respetar las categorías y reglas definidas para el Mercado.
-*   **Validaciones:** el ítem debe existir y quien modifica debe tener rol ADMIN.
-*   **Datos obligatorios:** ID del ítem y campos que se desean modificar (nombre, tipo, precio, imagen, descripción corta, estado).
-*   **Performance (tiempos, volumen, límites):** la actualización debe realizarse de forma transaccional.
-*   **Seguridad (roles, permisos, datos sensibles):** solo ADMIN puede modificar información del catálogo.
-*   **Accesibilidad (WCAG/teclado/lectores):** el formulario debe ser accesible.
-*   **Otros:** debe evitarse modificar accidentalmente un ítem perteneciente a otro curso/cohorte.
+*   **Reglas de negocio:** se pueden editar nombre, descripción, precio, stock y los parámetros del tipo de plantilla. **No** se puede cambiar la plantilla base de una oferta ya publicada: para eso se publica una nueva.
+*   **Validaciones:** las mismas que al publicar (precio ≥ 1, stock vacío o mayor a 0, configuración completa según el tipo). La oferta debe existir y ser del curso del PROFESOR.
+*   **Datos obligatorios:** identificador de la oferta y los campos a modificar.
+*   **Performance (tiempos, volumen, límites):** actualización transaccional.
+*   **Seguridad (roles, permisos, datos sensibles):** solo el PROFESOR del curso; cualquier otro intento se rechaza.
+*   **Accesibilidad (WCAG/teclado/lectores):** formulario navegable por teclado, con los errores asociados a su campo.
+*   **Otros:** un cambio de precio rige solo hacia adelante (RF-CFG-06): las compras ya hechas conservan el precio con el que se ejecutaron.
 
-Criterios de Aceptación (CA)
-----------------------------
+### Criterios de Aceptación (CA)
 
-*   **CA1:** ADMIN puede modificar un ítem existente.
-*   **CA2:** el sistema rechaza la modificación de un ítem inexistente.
-*   **CA3:** el sistema impide que un rol distinto de ADMIN modifique información del catálogo.
-*   **Extras (opcional):** la modificación queda registrada para permitir trazabilidad.
+*   **CA1:** el PROFESOR modifica una oferta de su curso y los cambios se reflejan en la vitrina.
+*   **CA2:** una edición inválida (precio en cero, configuración incompleta) se rechaza indicando el campo.
+*   **CA3:** cambiar el precio no altera las órdenes ya realizadas con el precio anterior.
+*   **Extras (opcional):** cada edición queda registrada con autor y fecha.
 
-BDD (mínimo 3 escenarios)
--------------------------
+### BDD (mínimo 3 escenarios)
 
-**Característica:** Modificación de ítems del Mercado
+**Característica:** Edición de ofertas del catálogo
 
 **Escenario 1**
 
-*   **Dado:** un ítem existente y un ADMIN autenticado
-*   **Cuando:** modifica uno de sus datos válidos y confirma
-*   **Entonces:** el sistema actualiza la información del ítem
+*   **Dado:** una oferta activa en el curso del PROFESOR
+*   **Cuando:** cambia su precio y confirma
+*   **Entonces:** la vitrina muestra el precio nuevo
 
 **Escenario 2**
 
-*   **Dado:** un ADMIN autenticado
-*   **Cuando:** intenta modificar un ítem inexistente
-*   **Entonces:** el sistema informa que el ítem no existe
+*   **Dado:** una oferta de tipo escudo
+*   **Cuando:** el PROFESOR intenta dejarla sin cargas
+*   **Entonces:** el sistema rechaza la edición e indica el dato faltante
 
 **Escenario 3**
 
-*   **Dado:** un ALUMNO o PROFESOR autenticado (sin permisos de ADMIN)
-*   **Cuando:** intenta modificar un ítem
-*   **Entonces:** el sistema rechaza la operación
+*   **Dado:** una compra ya realizada con el precio anterior
+*   **Cuando:** el PROFESOR cambia el precio de esa oferta
+*   **Entonces:** la orden anterior conserva el precio con el que se ejecutó
 
-Prototipo
----------
+### Prototipo
 
-*   **Capturas:** \[PEGAR AQUÍ\]
-*   **URL Figma:** \[pendiente\]
-*   **Libro de cuentos:** \[pendiente\]
-*   **API simulada / Swagger:** `PUT/PATCH /api/market/items/{id}`
+*   **Mock API / Swagger:** `PUT /api/v1/market/courses/{courseId}/catalog/items/{itemId}`
 
-Estimación / Prioridad
-----------------------
-
-**Formato rápido**
+### Estimación / Prioridad
 
 *   **Puntos (Fibonacci):** 3
-*   **Prioridad (MoSCoW / Numérica):** Should / 2
-
-**Formato tabla (opcional)**
+*   **Prioridad (MoSCoW / Numérica):** Must / 1
 
 | Puntos (Fibonacci) | Prioridad (MoSCoW / Numérica) |
 | --- | --- |
-| 3 | Debería / 2 |
+| 3 | Must / 1 |
 
-Dependencias / Impactos
------------------------
+### Dependencias / Impactos
 
-*   **Servicios involucrados:** Mercado, Identidad (validación de rol ADMIN).
-*   **Módulos afectados:** Mercado.
+*   **Servicios involucrados:** Mercado (dueño). Usuarios y Cursos — simulados por ahora.
+*   **Módulos afectados:** Mercado — Catálogo.
 *   **Otros equipos / aprobaciones:** ninguna bloqueante.
-*   **Impacto en datos / migraciones:** actualización de registros existentes.
-*   **Riesgos y mitigación (opcional):** cambios incorrectos de precio o tipo. Mitigación: validar datos antes de persistir.
-
+*   **Impacto en datos / migraciones:** actualización sobre la tabla de ofertas.
+*   **Riesgos y mitigación:** que una edición afecte compras pasadas; se mitiga con el precio guardado en cada orden.

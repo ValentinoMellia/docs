@@ -1,4 +1,4 @@
-# [G11 — Gestión del Catálogo de Mercado]
+# [G11 — Catálogo Abierto por Plantillas]
 
 > **Taiga Ref:** #90 | **ID:** 367203
 > **Estado:** New | **Asignado a:** Sin asignar
@@ -6,51 +6,53 @@
 
 ## Descripción y Objetivos
 
-Objetivo
---------
+### Objetivo
 
-Permitir la gestión y consulta de los ítems disponibles en el Mercado, asegurando que los alumnos puedan visualizar los productos habilitados para su curso/cohorte y conocer sus características y precios antes de realizar una compra.
+Que el PROFESOR arme el catálogo de su curso-cohorte eligiendo una plantilla base que ofrece Mercado y configurando sus parámetros, y que el ALUMNO vea únicamente las ofertas activas de su curso con su precio, su efecto y su disponibilidad.
 
-Suposiciones y Restricciones
-----------------------------
+### Suposiciones y Restricciones
 
 *   **Suposiciones:**
-    *   Los ítems de Mercado están asociados al contexto del curso/cohorte correspondiente.
-    *   Los ítems pueden ser de los tipos contemplados por el Mercado: **vidas** y **equipamiento** (RF-DES-04 los llama BASICO/MEDIO/AVANZADO a nivel desafío, pero la clasificación propia del Mercado es vida/equipamiento).
-    *   El rol **ADMIN** es quien administra el catálogo global, en línea con RF-CFG-04 del PRD (la economía de gamificación es configuración global administrada exclusivamente por ADMIN).
-    *   El catálogo será la fuente de información utilizada por el rol **ALUMNO** para conocer qué ítems se encuentran disponibles para la compra.
-    *   Mientras los servicios de Identidad, Cursos/Matrícula y Banco no estén disponibles (equipos en desarrollo inicial), se trabaja con un ALUMNO y un curso/cohorte simulados de forma fija, y con el precio persistido directamente en el ítem, para no bloquear el desarrollo de esta épica.
+    *   El catálogo es **ABIERTO**: Mercado ofrece plantillas base y el PROFESOR las configura para su cohorte. Mercado no crea ítems libres.
+    *   Plantillas base: `SHIELD`, `BOOST_XP`, `BOOST_COINS` y `LIFE`.
+    *   Parámetros configurables por el PROFESOR: `coinPrice`, `stock` opcional, y los propios del tipo — `charges` y `applicableChallenges` (SHIELD); `multiplier`, `mode` (`TTL` / `PER_EXAM`), `durationMinutes`, `attempts`, `consumptionRule` (BOOST_*); `livesGranted` (LIFE).
+    *   El **inventario del alumno NO es de Mercado**: las instancias compradas las persiste **Banco**. El catálogo solo define qué se ofrece.
+    *   Mientras Usuarios y Cursos no estén disponibles, se simulan el profesor, el alumno y el curso-cohorte.
 *   **Restricciones (legales/técnicas):**
-    *   Las monedas son propias del curso y no pueden utilizarse fuera de dicho contexto (RF-INT-04).
-    *   El Mercado no administra directamente el saldo de monedas del ALUMNO; esa gestión corresponde al módulo Banco.
-    *   Solo deben visualizarse ítems correspondientes al curso/cohorte del ALUMNO.
-    *   Los ítems no disponibles o no publicados no deben aparecer como opciones de compra.
-    *   El PROFESOR no puede sobreescribir los parámetros de economía definidos por ADMIN (RF-CFG-05); en esta primera etapa, el PROFESOR no interviene en el catálogo — la curaduría por cohorte queda para una iteración posterior.
+    *   Las recompensas y las monedas son por curso (RF-REC-01, RF-INT-04).
+    *   Baja lógica en todas las entidades, sin borrado físico (RF-NFR-01).
+    *   La orden guarda el precio con el que se ejecutó (RF-CFG-06): un cambio de precio rige solo hacia adelante.
+    *   Una oferta inactiva no se puede comprar, aunque el alumno tenga la vitrina abierta desactualizada.
+    *   El PROFESOR solo publica en los cursos que dicta.
+    *   **Pendiente con el PO:** si el precio libre del profesor convive con algún límite global de Administración (RF-CFG-04/05, PAR-06/07).
 
-Criterios de Aceptación a nivel Épico
--------------------------------------
+### Criterios de Aceptación a nivel Épico
 
-*   El conjunto mínimo de historias permite el flujo extremo a extremo **ADMIN da de alta un ítem → el ALUMNO lo consulta en el catálogo de su curso/cohorte con su precio, tipo e imagen vigentes**.
-*   KPIs iniciales alcanzan: cero ítems visibles fuera del curso/cohorte del ALUMNO en las pruebas de aislamiento; el catálogo responde sin demoras perceptibles para el usuario con el volumen de ítems del MVP.
-*   Sin regresiones críticas en el flujo de catálogo ni en el resto de Mercado.
-*   Observabilidad y alertas configuradas: log de altas, modificaciones y cambios de estado de ítems, con autor y fecha.
-*   Documentación de uso y operación publicada: contrato de los endpoints de catálogo disponible para su consumo posterior por el flujo de compra.
+*   Flujo extremo a extremo: **el PROFESOR elige una plantilla → la configura y la publica en su curso → el ALUMNO la ve en la vitrina con precio, efecto y stock restante**.
+*   KPI inicial: cero ofertas de otro curso-cohorte visibles en las pruebas de aislamiento.
+*   KPI inicial: cero ofertas publicadas con una configuración inválida para su tipo de plantilla.
+*   Sin regresiones críticas en la compra directa, que consume este catálogo.
+*   Observabilidad: log de altas, ediciones y cambios de estado de cada oferta, con autor y fecha.
+*   Documentación publicada: contrato OpenAPI de plantillas y catálogo, disponible para el front y para el resto de los equipos.
 
-Dependencias / Impactos
------------------------
+### Dependencias / Impactos
 
-*   **Servicios / APIs:** Servicio de Mercado (dueño). Servicio de Identidad y Usuarios, Servicio de Cursos y Matrícula y Servicio Banco — **mockeados mientras esos equipos no tengan nada disponible**.
-*   **Módulos afectados:** Mercado.
-*   **Otros equipos:** Equipo responsable de Identidad, Equipo responsable de Cursos y Matrícula, Equipo responsable de Banco — a coordinar cuando corresponda.
-*   **Impacto en datos / migraciones:** creación de la estructura para almacenar los ítems del catálogo (nombre, tipo, precio, imagen, descripción corta, estado y curso/cohorte asociado como atributo directo del ítem).
-*   **Feature toggles / flags:** no se requieren inicialmente. En caso de habilitar funcionalidades de manera progresiva (por ejemplo, al conectar el precio real desde Banco), se podrá utilizar una marca de función para controlar su disponibilidad. Plan de retiro: se elimina cuando la integración real esté estable.
+*   **Servicios / APIs:** Mercado (dueño). Usuarios (roles `ROLE_PROFESSOR` / `ROLE_STUDENT`) y Cursos (curso-cohorte y matrícula) — simulados mientras esos equipos no tengan nada disponible.
+*   **Módulos afectados:** Mercado — Catálogo. Lo consume la épica de Compra Directa.
+*   **Otros equipos:** Cursos (pertenencia al curso), Usuarios (roles), Administración (posibles límites globales de precio, a confirmar).
+*   **Impacto en datos / migraciones:** tablas `item_base_template` y `course_catalog_offer` con la configuración por tipo de plantilla, más `stock` y `available_stock`.
+*   **Feature toggles / flags:** no se requieren inicialmente.
 
-## Historias de Usuario Asociadas (5)
+> Reemplaza el modelo anterior de catálogo administrado por ADMIN con ítems concretos y stock fijo obligatorio. Ver `CONTEXTO-MERCADO-SPRINT1.md` §5 y §12-E: el stock ahora es un campo opcional por oferta (vacío = ilimitado, > 0 = tope finito), no una prohibición absoluta.
+
+## Historias de Usuario Asociadas (7)
 
 | Ref | Título | Estado | Puntos | Archivo |
 | :---: | :--- | :---: | :---: | :--- |
-| **#92** | G11 — Crear un ítem | New | — | [US-092-crear-un-item.md](../users/US-092-crear-un-item.md) |
-| **#94** | G11 — Consultar catálogo disponible | New | — | [US-094-consultar-catalogo-disponible.md](../users/US-094-consultar-catalogo-disponible.md) |
-| **#95** | G11 — Modificar un ítem | New | — | [US-095-modificar-un-item.md](../users/US-095-modificar-un-item.md) |
-| **#96** | G11 — Activar o desactivar un ítem | New | — | [US-096-activar-o-desactivar-un-item.md](../users/US-096-activar-o-desactivar-un-item.md) |
-| **#98** | G11 — Consultar detalle de un artículo | New | — | [US-098-consultar-detalle-de-un-articulo.md](../users/US-098-consultar-detalle-de-un-articulo.md) |
+| **#92** | G11 — Publicar una oferta en mi curso a partir de una plantilla | New | 5 | [US-092-crear-un-item.md](../users/US-092-crear-un-item.md) |
+| **#94** | G11 — Consultar la vitrina de mi curso | New | 3 | [US-094-consultar-catalogo-disponible.md](../users/US-094-consultar-catalogo-disponible.md) |
+| **#95** | G11 — Editar una oferta publicada | New | 3 | [US-095-modificar-un-item.md](../users/US-095-modificar-un-item.md) |
+| **#96** | G11 — Activar o desactivar una oferta | New | 3 | [US-096-activar-o-desactivar-un-item.md](../users/US-096-activar-o-desactivar-un-item.md) |
+| **#98** | G11 — Consultar el detalle de una oferta | New | 2 | [US-098-consultar-detalle-de-un-articulo.md](../users/US-098-consultar-detalle-de-un-articulo.md) |
+| **#945** | G11 — Listar las plantillas base disponibles | New | 2 | *(creada en Taiga el 17/09/2026, sin archivo local — pendiente de exportar)* |
+| **#946** | G11 — Ver el catálogo completo de mi curso | New | 2 | *(creada en Taiga el 17/09/2026, sin archivo local — pendiente de exportar)* |
