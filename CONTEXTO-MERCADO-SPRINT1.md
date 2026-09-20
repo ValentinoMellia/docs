@@ -546,3 +546,15 @@ La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, 
 | `Sprint0_Propuesta_Mercado.pdf` | DoD del equipo, cálculo de capacidad, épicas M-00/M-01/M-02 con historias Gherkin | Vigente como base; las épicas quedaron reescritas en la Sección 11 de este documento |
 | `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` | Saga completa de compra directa con SSE, contratos de eventos | Desactualizado solo en el modelo de stock (12-D #1) y en quién inserta el ítem (ahora Grupo 12); el resto sigue siendo la referencia técnica principal |
 | `Workflow/README.md` | Convenciones de branching y commits del repo completo | Vigente, no relacionado con este contenido |
+
+## 14. Repositorios de código (fuente de verdad de implementación)
+
+Agregado el 19/09/2026. Estos tres repositorios de GitHub son la fuente de verdad **mayor** sobre este documento para todo lo que sea git flow, estructura de código, plantillas de PR/issue y estado real del backlog — este documento manda sobre el contexto de negocio/dominio, pero para implementación concreta hay que ir a los repos.
+
+| Repositorio | Rol | Nota de acceso |
+|---|---|---|
+| [`2026-P4-BE/tpi-market`](https://github.com/2026-P4-BE/tpi-market) | Backend — fuente de verdad principal (git flow, backlog técnico, issues/PRs) | Privado/inaccesible sin autenticación al 19/09/2026 — no se pudo verificar en vivo contra `Workflow/README.md` |
+| [`2026-P4-FE/2026-PIV-TPI-FE`](https://github.com/2026-P4-FE/2026-PIV-TPI-FE) | Frontend — agregado el 19/09/2026, fuente de verdad fuerte | Privado/inaccesible sin autenticación al 19/09/2026 |
+| [`2026-P4-FE/2026-PIV-TPI-UI-KIT`](https://github.com/2026-P4-FE/2026-PIV-TPI-UI-KIT) | UI Kit / design system consumido por el frontend | Privado/inaccesible sin autenticación al 19/09/2026 |
+
+Pendiente: autorizar acceso (MCP de GitHub o `gh auth login` con una cuenta miembro de `2026-P4-BE`/`2026-P4-FE`) para confirmar si el contenido real de estos repos coincide con `Workflow/README.md` y con el backlog de `Taiga/`.
