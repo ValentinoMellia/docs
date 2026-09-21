@@ -182,6 +182,7 @@ Once Bank confirms the coin hold on `bank.holds.events` (`HOLD_CREATED`), Market
 {
   "eventId": "c32f94d6-9a30-4b24-ae33-14daf13e2203",
   "eventType": "ITEM_PROVISION_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-16T22:40:03Z",
   "producer": "team-09-market",
   "payload": {

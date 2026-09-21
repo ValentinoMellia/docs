@@ -18,18 +18,30 @@ Per the Aula Quest Product Requirements Document (PRD) and e-commerce resilience
 3. **Grupo 12 (Bank's own team) as owner of the student backpack:**
    - Since decision #13, item provisioning and the student's backpack (`student_inventory`) — its lifecycle, active slots, charges, and runtime effect evaluation — are Grupo 12's responsibility, not Market's. This is not a separate "Inventory microservice"; Grupo 12 is Bank's own Taiga team (Tema 08).
    - Receives the rich item metadata from Market only after Bank has confirmed the coin Hold.
-4. **Standard 5-Field English Event Wrapper:**
+4. **Standard 6-Field Generic English Event Envelope (`EventEnvelope<T>`):**
    - Every Kafka event adheres to the official JSON schema:
      ```json
      {
        "eventId": "UUID",
        "eventType": "String",
+       "eventVersion": 1,
        "timestamp": "ISO 8601 UTC",
        "producer": "String",
        "payload": { }
      }
      ```
    - Partition key: `studentId` (guarantees strict FIFO ordering per student).
+   - Java Record contract:
+     ```java
+     public record EventEnvelope<T>(
+             UUID eventId,
+             String eventType,
+             int eventVersion,
+             Instant timestamp,
+             String producer,
+             T payload
+     ) {}
+     ```
 
 ---
 
@@ -170,6 +182,7 @@ Market validates the offer (no stock check — decision #6), then publishes comm
   {
     "eventId": "a10f92b4-7e18-4902-8c11-92b8d91c0001",
     "eventType": "HOLD_CREATE_REQUESTED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:01Z",
     "producer": "team-09-market",
     "payload": {
@@ -195,6 +208,7 @@ Bank consumes command, verifies balance $\ge 350$, locks funds and replies:
   {
     "eventId": "b21e83c5-8f29-4a13-9d22-03c9e02d1102",
     "eventType": "HOLD_CREATED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:02Z",
     "producer": "team-08-bank",
     "payload": {
@@ -222,6 +236,7 @@ Having secured student funds in Bank, Market requests **Grupo 12** to accredit t
   {
     "eventId": "c32f94d6-9a30-4b24-ae33-14daf13e2203",
     "eventType": "ITEM_PROVISION_REQUESTED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:03Z",
     "producer": "team-09-market",
     "payload": {
@@ -257,6 +272,7 @@ Grupo 12 persists the item into its own `student_inventory` in state `AVAILABLE`
   {
     "eventId": "d43a05e7-0b41-4c35-bf44-25eb024f3304",
     "eventType": "ITEM_PROVISIONED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:04Z",
     "producer": "team-08-bank",
     "payload": {
@@ -283,6 +299,7 @@ Item is safely delivered to the student backpack. Market authorizes Bank to conv
   {
     "eventId": "e54b16f8-1c52-4d46-c055-36fc135a4405",
     "eventType": "HOLD_CONFIRM_REQUESTED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:05Z",
     "producer": "team-09-market",
     "payload": {
@@ -307,6 +324,7 @@ Bank commits the debit in the ledger, closes the coin hold as `COMMITTED`:
   {
     "eventId": "f65c27a9-2d63-4e57-d166-47ad246b5506",
     "eventType": "HOLD_CONFIRMED",
+    "eventVersion": 1,
     "timestamp": "2026-09-16T22:40:06Z",
     "producer": "team-08-bank",
     "payload": {

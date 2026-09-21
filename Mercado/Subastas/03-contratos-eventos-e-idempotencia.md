@@ -102,12 +102,13 @@ Esto impide que dos instancias concurrentes del programador de tareas o dos peti
 
 ### 3. Envoltura Estándar Obligatoria (Envelope JSON)
 
-Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructura canónica oficial de 5 campos del ecosistema de Aula Quest:
+Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructura canónica oficial de 6 campos (`EventEnvelope<T>`) del ecosistema de Aula Quest:
 
 ```json
 {
   "eventId": "UUIDv4",
   "eventType": "String",
+  "eventVersion": 1,
   "timestamp": "ISO-8601 UTC",
   "producer": "String",
   "payload": { }
@@ -128,6 +129,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
   "eventType": "HOLD_CREATE_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T18:00:00.120Z",
   "producer": "team-09-market",
   "payload": {
@@ -156,6 +158,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
   "eventType": "HOLD_CREATED",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T18:00:00.350Z",
   "producer": "team-08-bank",
   "payload": {
@@ -182,6 +185,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f",
   "eventType": "HOLD_INCREASE_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T19:15:22.010Z",
   "producer": "team-09-market",
   "payload": {
@@ -208,6 +212,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f9a",
   "eventType": "HOLD_INCREASED",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T19:15:22.215Z",
   "producer": "team-08-bank",
   "payload": {
@@ -233,6 +238,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b",
   "eventType": "HOLD_CONFIRM_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:01.050Z",
   "producer": "team-09-market",
   "payload": {
@@ -258,6 +264,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "f6a7b8c9-d0e1-2f3a-4b5c-6d7e8f9a0b1c",
   "eventType": "HOLD_CONFIRMED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:01.320Z",
   "producer": "team-08-bank",
   "payload": {
@@ -284,6 +291,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "07b8c9d0-e1f2-3a4b-5c6d-7e8f9a0b1c2d",
   "eventType": "HOLD_RELEASE_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:02.100Z",
   "producer": "team-09-market",
   "payload": {
@@ -308,6 +316,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "18c9d0e1-f2a3-4b5c-6d7e-8f9a0b1c2d3e",
   "eventType": "HOLD_RELEASED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:02.310Z",
   "producer": "team-08-bank",
   "payload": {
@@ -334,6 +343,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "a9b8c7d6-e5f4-3a2b-1c0d-9e8f7a6b5c4d",
   "eventType": "HOLD_REJECTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T18:00:00.300Z",
   "producer": "team-08-bank",
   "payload": {
@@ -357,6 +367,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "29d0e1f2-a3b4-5c6d-7e8f-9a0b1c2d3e4f",
   "eventType": "AUCTION_AWARDED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:03.000Z",
   "producer": "team-09-market",
   "payload": {
@@ -384,6 +395,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "3ae1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a",
   "eventType": "BID_OUTBID",
+  "eventVersion": 1,
   "timestamp": "2026-09-12T19:15:23.000Z",
   "producer": "team-09-market",
   "payload": {
@@ -412,6 +424,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "4bf2a3b4-c5d6-7e8f-9a0b-1c2d3e4f5a6b",
   "eventType": "ITEM_PROVISION_REQUESTED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:03.100Z",
   "producer": "team-09-market",
   "payload": {
@@ -435,6 +448,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "5c03b4c5-d6e7-8f9a-0b1c-2d3e4f5a6b7c",
   "eventType": "ITEM_PROVISIONED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:03.400Z",
   "producer": "grupo-12",
   "payload": {
@@ -457,6 +471,7 @@ Todos los eventos y comandos que circulan por Apache Kafka utilizan la estructur
 {
   "eventId": "6d14c5d6-e7f8-9a0b-1c2d-3e4f5a6b7c8d",
   "eventType": "ITEM_PROVISION_FAILED",
+  "eventVersion": 1,
   "timestamp": "2026-09-13T18:00:03.400Z",
   "producer": "grupo-12",
   "payload": {

@@ -308,7 +308,7 @@ Mercado publica PURCHASE_CONFIRMED al bus
 2. Tabla de deduplicación en Banco (`processed_commands`).
 3. Bloqueo optimista en Mercado (`@Version` sobre `MarketAuction`).
 
-Envoltura estándar de todo evento: `{eventId, eventType, timestamp, producer, payload}`.
+Envoltura estándar de todo evento (`EventEnvelope<T>`): `{eventId, eventType, eventVersion, timestamp, producer, payload}`.
 
 ### 8.5 Contratos de eventos de la saga de subasta
 
@@ -366,7 +366,7 @@ Protocolo (saga de pasos, no es "descuento y después entrego"):
 3. HOLD_CONFIRM_REQUESTED → HOLD_CONFIRMED (débito efectivo en el ledger)
    o HOLD_RELEASE_REQUESTED → HOLD_RELEASED (devolución sin costo)
 ```
-Sincrónico vía Gateway para comandos con respuesta inmediata, asincrónico vía Kafka para hechos consumados. Envoltura estándar de 5 campos. Broker: Kafka, semántica *at-least-once*, `partitionKey = studentId` para compra directa.
+Sincrónico vía Gateway para comandos con respuesta inmediata, asincrónico vía Kafka para hechos consumados. Envoltura estándar de 6 campos (`EventEnvelope<T>` con `eventVersion`). Broker: Kafka, semántica *at-least-once*, `partitionKey = studentId` para compra directa.
 
 > **Partición inconsistente detectada en la auditoría:** el contrato de subastas usa `partitionKey = auctionId` para el mismo tópico `bank.holds.commands` donde compra directa usa `studentId`. Esto es intencional (distinto caso de uso), pero **hay que documentarlo explícitamente como partición dual por `orderType`**, no dejarlo como una inconsistencia sin explicar — Banco necesita saber que las garantías de orden FIFO son por auction, no por alumno, en el caso de subastas.
 

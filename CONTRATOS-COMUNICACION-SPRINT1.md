@@ -37,7 +37,7 @@ Todos requieren las cabeceras inyectadas por el Gateway (§1.3) y devuelven `403
 
 ## 2. Qué emite Mercado (eventos, CONTEXTO §10)
 
-Convención obligatoria (decisión #4): `MAYUSCULAS_SNAKE_CASE`, en inglés, envoltura estándar de 5 campos (`eventId`, `eventType`, `timestamp`, `producer`, `payload`).
+Convención obligatoria (decisión #4): `MAYUSCULAS_SNAKE_CASE`, en inglés, envoltura estándar de 6 campos (`EventEnvelope<T>` con `eventId`, `eventType`, `eventVersion`, `timestamp`, `producer`, `payload`).
 
 | Evento | Tópico | Cuándo | Consumidores conocidos |
 |---|---|---|---|
@@ -52,7 +52,7 @@ Eliminado explícitamente por decisión #13: `ITEM_CONSUMED` — Mercado ya no l
 
 ### 3.1 Banco / Grupo 12 — dependencia crítica bloqueante (§9.1, §7)
 
-Saga de 3 pasos, síncrono vía Gateway para comandos con respuesta inmediata, asíncrono vía Kafka para hechos consumados. Envoltura estándar de 5 campos. `partitionKey = studentId` para compra directa.
+Saga de 3 pasos, síncrono vía Gateway para comandos con respuesta inmediata, asíncrono vía Kafka para hechos consumados. Envoltura estándar de 6 campos (`EventEnvelope<T>` con `eventVersion`). `partitionKey = studentId` para compra directa.
 
 ```
 1. HOLD_CREATE_REQUESTED  {orderId, studentId, courseId, amount, currency, orderType:"DIRECT_PURCHASE"}
