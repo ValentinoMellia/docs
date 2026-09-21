@@ -115,5 +115,6 @@ Solo consumidor — no expone nada que Mercado necesite llamar. Consume `CATALOG
 ## 5. Referencias
 
 - [`CONTEXTO-MERCADO-SPRINT1.md`](CONTEXTO-MERCADO-SPRINT1.md) — fuente de verdad de todo lo anterior (§7, §9, §10).
-- [`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`](Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) — saga de compra directa con detalle completo de payloads y diagrama de secuencia (vigente salvo el modelo de stock, ya no aplica).
+- [`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md`](Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md) — especificación consolidada y ampliada de la saga de compra directa (Mercado ↔ Banco ↔ Inventario) con diagramas, idempotencia y análisis de ambigüedades.
+- [`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`](Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) — documento base de integración con Banco (vigente salvo modelo de stock y posesión de inventario).
 - [`Mercado/Subastas/03-contratos-eventos-e-idempotencia.md`](Mercado/Subastas/03-contratos-eventos-e-idempotencia.md) — contrato equivalente para subastas (Fase 3, fuera de este sprint).
