@@ -21,7 +21,7 @@
 
 Todos requieren las cabeceras inyectadas por el Gateway (§1.3) y devuelven `403 {ROLE_NOT_PERMITTED}` si el rol no corresponde, o si el curso-cohorte de la oferta no coincide con el del usuario (curaduría aislada por curso, HU-01.3).
 
-### 1.2 Compra directa (M-02) — tomado de CONTEXTO §7 / `flujo-comunicacion-banco.md`
+### 1.2 Compra directa (M-02) — tomado de CONTEXTO §7 / `flujo-mercado-inventario.md`
 
 | Endpoint | Rol | Propósito |
 |---|---|---|
@@ -116,6 +116,6 @@ Solo consumidor — no expone nada que Mercado necesite llamar. Consume `CATALOG
 
 - [`CONTEXTO-MERCADO-SPRINT1.md`](CONTEXTO-MERCADO-SPRINT1.md) — fuente de verdad de todo lo anterior (§7, §9, §10).
 - [`Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md`](Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md) — contrato definitivo y protocolo transaccional unificado con Accounting (eventos Kafka, Item Hold, DLQs y endpoint REST de reconciliación).
-- [`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md`](Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md) — especificación consolidada y ampliada de la saga de compra directa (Mercado ↔ Banco ↔ Inventario) con diagramas, idempotencia y análisis de ambigüedades.
-- [`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`](Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) — documento base de integración con Banco (vigente salvo modelo de stock y posesión de inventario).
+- [`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md`](Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md) — **referencia vigente**: especificación consolidada y ampliada de la saga de compra directa (Mercado ↔ Banco ↔ Inventario) con diagramas, idempotencia y análisis de ambigüedades.
+- [`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`](Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) — documento histórico/predecesor de integración con Banco, **deprecado** (ver nota de versión en el propio archivo).
 - [`Mercado/Subastas/03-contratos-eventos-e-idempotencia.md`](Mercado/Subastas/03-contratos-eventos-e-idempotencia.md) — contrato equivalente para subastas (Fase 3, fuera de este sprint).

@@ -4,6 +4,8 @@
 > **Estado:** New | **Asignado a:** Sin asignar
 > **Propietario:** Mateo Nicolas Presset
 
+> **Estado: en división — ver [`PLAN-actualizacion-backlog-sprint1.md`](../PLAN-actualizacion-backlog-sprint1.md).** Esta épica se divide según el plan de actualización de backlog; revisar ese documento antes de tomar trabajo de esta épica.
+
 ## Descripción y Objetivos
 
 ## G11 — Vencimiento de Ítems del Inventario

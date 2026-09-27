@@ -4,6 +4,8 @@
 > **Estado:** New | **Asignado a:** Sin asignar
 > **Propietario:** Juan Bosque
 
+> **Estado: en revisión — probable error de carga, ver [`PLAN-actualizacion-backlog-sprint1.md`](../PLAN-actualizacion-backlog-sprint1.md).** No tiene relación con Mercado (ítems/catálogo/monedas); es territorio de Motor de Desafíos/Roadmap. Recomendación pendiente: reasignar al proyecto correcto en Taiga.
+
 ## Descripción y Objetivos
 
 # [G11] — Otorgamiento de Boost de XP al superar desafíos

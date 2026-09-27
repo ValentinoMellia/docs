@@ -4,6 +4,8 @@
 > **Estado:** New | **Asignado a:** Sin asignar
 > **Propietario:** Melina Yain Medina
 
+> **Estado: transferido — ver [`PLAN-actualizacion-backlog-sprint1.md`](../PLAN-actualizacion-backlog-sprint1.md).** Esta épica se transfiere íntegramente a Grupo 12 (Inventario); no es responsabilidad de Mercado.
+
 ## Descripción y Objetivos
 
 Objetivo

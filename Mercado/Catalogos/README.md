@@ -1,5 +1,5 @@
 # Technical Specification — Open Catalog by Templates (Team 09 Market)
-## Configurable Item Templates & Professor Course Curation (No Stock Limit)
+## Configurable Item Templates & Professor Course Curation (Optional Per-Offer Stock)
 
 > 🖥️ **Herramientas visuales interactivas disponibles:**
 > - [**Curación de Catálogo del Profesor (UI dedicada)**](file:///C:/Users/totok/Documents/TUP%20-%202026/Programacion/AulaQuest/docs/Mercado/Catalogos/curacion-catalogo-profesor.html) — Creador y gestor de ofertas de cohorte, configuración por plantillas, vista previa del alumno y generador de payloads REST.
@@ -10,7 +10,7 @@
 ## 1. Domain Boundary & Architectural Principles
 
 1. **Market as an Orchestrating Storefront / Kiosk:**
-   - Market manages **Item Templates**, **Course Cohort Offerings**, and **Purchase Orders**. Catalog offers have **no stock limit** — availability is always unlimited while an offer is active (decision #6).
+   - Market manages **Item Templates**, **Course Cohort Offerings**, and **Purchase Orders**. Catalog offers have an **optional `stock` field**, configured per course-cohort by the professor — unset means unlimited availability; a positive integer sets a finite cap that can be exhausted (decision #6, revised 19/09). Does not apply to auctions (single item, no stock).
    - Market **never** persists `student_inventory` (managed exclusively by **Grupo 12**, Bank's own team, since decision #13 — this is not a separate microservice).
    - Market **never** holds coin balances (managed exclusively by **Bank / Team 08**).
 2. **Open Catalog with Professor-Driven Configuration (Templates, Not Fixed Items):**
@@ -20,26 +20,27 @@
    - **Phase 1 (Bank Balance Hold):** Market requests coin reservation $\rightarrow$ Bank locks coins (`HOLD_CREATE_REQUESTED` $\rightarrow$ `HOLD_CREATED`).
    - **Phase 2 (Item Provisioning via Grupo 12):** Market requests acreditación of the asset from **Grupo 12** (`ITEM_PROVISION_REQUESTED` $\rightarrow$ `ITEM_PROVISIONED`).
    - **Phase 3 (Commit & Settlement):** Market orders Bank to finalize the ledger deduction (`HOLD_CONFIRM_REQUESTED` $\rightarrow$ `HOLD_CONFIRMED`) only once item provisioning has been corroborated (decision #8).
-   - **Compensation:** If Bank rejects funds or Grupo 12 fails to provision the item, the coin hold is released (`HOLD_RELEASE_REQUESTED`) and the order is marked `CANCELADA` — no stock to restore.
+   - **Compensation:** If Bank rejects funds or Grupo 12 fails to provision the item, the coin hold is released (`HOLD_RELEASE_REQUESTED`) and the order is marked `CANCELADA` — if the offer has a finite `stock` configured and a unit had been decremented for this order, that unit is restored; offers without a configured stock have nothing to restore.
 
 ---
 
 ## 2. Availability & Concurrency Strategy
 
-### 2.1 No Stock Limit (Decision #6)
+### 2.1 Optional Per-Offer Stock (Decision #6, revised 19/09)
 
-Catalog offers have **unlimited availability while active** — there is no `stock`/`availableStock` field, no atomic decrement, and no `stock_holds` table. Concurrency control for a purchase is entirely about the student's **coin balance**, which is Bank's responsibility, not Market's:
+Catalog offers have an **optional `stock`/`availableStock` field**, configured per course-cohort by the professor. When left unset, the offer has **unlimited availability while active** and there is no atomic decrement and no `stock_holds` table. When the professor configures a finite positive integer, Market tracks that cap with an atomic decrement and a `stock_holds` table, in addition to the coin-balance concurrency control:
 
-* Under 120 concurrent sessions, the only race condition that matters is over-committing an alumno's balance across simultaneous purchases — Bank's `BalanceHold` mechanism already handles that (Section 4 and `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`).
-* Market's only remaining validation before requesting a hold is that the offer itself is **active** (not deactivated/archived); there is no concept of "sold out."
+* Under 120 concurrent sessions, the main race condition that matters is over-committing an alumno's balance across simultaneous purchases — Bank's `BalanceHold` mechanism already handles that (Section 4 and `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`).
+* Market's remaining validation before requesting a hold is that the offer itself is **active** (not deactivated/archived), and, when the offer has a configured finite stock, that a unit is still available. If no stock was configured, there is no concept of "sold out"; if a finite stock was configured, "sold out" applies once it is exhausted.
 
 ### 2.2 When Market Still Returns 409
 
-`409 Conflict` is only returned for **offer-state** reasons, never for stock exhaustion:
+`409 Conflict` is returned for **offer-state** reasons, and also for **stock exhaustion** when the offer has a finite stock configured:
 
 * Offer is inactive or was deleted (logical deletion, RF-NFR-01).
 * Offer does not belong to the requested course-cohort.
 * Cohort is archived or the student is unenrolled (decision #10 — same treatment as archived).
+* Offer has a finite `stock` configured and it is exhausted (decision #6, revised 19/09).
 
 ---
 
@@ -56,7 +57,7 @@ Market defines a **closed set of template TYPES** (decision #5); it does **not**
 | `BOOST_COINS` | Multiplies coin rewards earned from deliveries. | `coinPrice`, `multiplier`, `mode`, `durationMinutes`, `attempts`, `consumptionRule` |
 | `LIFE` | Restores additional student life attempts. | `coinPrice`, `livesGranted` (default 1) |
 
-There is no `stock` parameter for any type (decision #6 — no stock limit, ever).
+A `stock` parameter is optional for any type — if unset, availability is unlimited; if set to a positive integer, it is a finite cap that can be exhausted (decision #6, revised 19/09).
 
 ---
 

@@ -8,7 +8,7 @@ This repository maintains the technical specifications, domain models, **Open Ca
 ## 🏛️ Bounded Context & Platform Architecture Doctrine
 
 1. **Market as an Orchestrating Storefront / Kiosk:**
-   - Sole authority over **Course Catalog Offerings**, **Open Catalog Curation**, **Purchase Orders**, and **Auctions**. Offers have unlimited availability while active — no stock limit (decision #6).
+   - Sole authority over **Course Catalog Offerings**, **Open Catalog Curation**, **Purchase Orders**, and **Auctions**. Offers have an optional `stock` field, configured per course-cohort by the professor — unset means unlimited availability, a positive integer sets a finite cap (decision #6, revised 19/09). Does not apply to auctions.
    - **Does not** persist student backpacks (`student_inventory`) — owned by **Grupo 12** (Bank's team) since decision #13.
    - **Does not** manage coin balances (governed by Bank).
    - **Does not** evaluate challenge effects or charge deductions (exclusive contract between Motor de Desafíos and Grupo 12, decision #11).
@@ -20,9 +20,28 @@ This repository maintains the technical specifications, domain models, **Open Ca
      3. **Phase 3 (Commit & Debit):** Market authorizes Bank to finalize the ledger deduction (`HOLD_CONFIRM_REQUESTED` $\rightarrow$ `HOLD_CONFIRMED`) only once item provisioning has been corroborated (decision #8).
 3. **Open Catalog with Free Market Pricing:**
    - Item prices and operational constraints are **not governed by Backoffice**.
-   - Market defines a closed set of **Item Template types** (`SHIELD`, `BOOST_XP`, `BOOST_COINS`, `LIFE`). There are no fixed tiers or fixed concrete items — professors freely configure `coinPrice`, `charges`, `applicableChallenges`, `multiplier`, `mode` (`TTL` vs `PER_EXAM`) per cohort on top of a chosen template type. Availability is always unlimited while an offer is active — there is no stock limit.
+   - Market defines a closed set of **Item Template types** (`SHIELD`, `BOOST_XP`, `BOOST_COINS`, `LIFE`). There are no fixed tiers or fixed concrete items — professors freely configure `coinPrice`, `charges`, `applicableChallenges`, `multiplier`, `mode` (`TTL` vs `PER_EXAM`) per cohort on top of a chosen template type. Availability is unlimited while an offer is active unless the professor configures a finite `stock` cap for it (decision #6, revised 19/09).
 4. **Everything is an Item Doctrine:**
    - Shields, boosts, and **Lives** are uniformly modeled as items in the catalog and provisioned into the student's backpack via Grupo 12.
+
+---
+
+## 📍 Fuente de Verdad por Tema
+
+> Antes de citar cualquier documento de este repo, verificá acá cuál es el vigente. Los demás pueden estar deprecados, ser históricos, o cubrir solo un recorte.
+
+| Tema | Documento vigente | Otros documentos relacionados |
+|---|---|---|
+| Contexto y decisiones del equipo (Sprint 1) | [`CONTEXTO-MERCADO-SPRINT1.md`](./CONTEXTO-MERCADO-SPRINT1.md) | Su §13 es un registro histórico de auditoría, no un índice de vigencia. |
+| Catálogo abierto por plantillas | [`Mercado/Catalogos/README.md`](./Mercado/Catalogos/README.md) | — |
+| Compra directa (contratos REST/eventos) | [`CONTRATOS-COMUNICACION-SPRINT1.md`](./CONTRATOS-COMUNICACION-SPRINT1.md) | Deriva de `CONTEXTO-MERCADO-SPRINT1.md` §7/§9/§10 |
+| Integración Mercado ↔ Banco ↔ Inventario | [`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md`](./Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md) | `flujo-comunicacion-banco.md` — **deprecado**, documento histórico/predecesor |
+| Subastas — arquitectura y resiliencia | [`Mercado/Subastas/README.md`](./Mercado/Subastas/README.md) (índice) → `01-analisis-opciones-arquitectura.md`, `02-matriz-fallos-resiliencia-y-soluciones.md` | Vigentes desde el commit `f1aca8b` (18/09) |
+| Subastas — contratos de eventos e idempotencia | [`Mercado/Subastas/03-contratos-eventos-e-idempotencia.md`](./Mercado/Subastas/03-contratos-eventos-e-idempotencia.md) | — |
+| Estándar de eventos Kafka | [`KAFKA_EVENT_STANDARD.md`](./KAFKA_EVENT_STANDARD.md) | — |
+| Diagramas de dominio (Mermaid) | [`diagramas-mercado.md`](./diagramas-mercado.md) | — |
+| Workflow de Git / PRs | [`Workflow/README.md`](./Workflow/README.md) | — |
+| Backlog Taiga — plan de actualización | [`Taiga/PLAN-actualizacion-backlog-sprint1.md`](./Taiga/PLAN-actualizacion-backlog-sprint1.md) | Ver headers de estado en `EPIC-131`, `EPIC-482`, `EPIC-770`, `US-810` |
 
 ---
 
@@ -32,7 +51,8 @@ This repository maintains the technical specifications, domain models, **Open Ca
 docs/
 ├── Comunicacion/
 │   └── Grupo-08-Banco/                      # Bank integration & Two-Phase Hold saga
-│       └── flujo-comunicacion-banco.md      # Complete English Kafka events & dual-hold saga contract
+│       ├── flujo-comunicacion-banco.md      # DEPRECATED — historical predecessor, superseded by flujo-mercado-inventario.md
+│       └── flujo-mercado-inventario.md      # Consolidated Mercado↔Banco↔Inventario saga contract (current)
 │
 ├── Mercado/                                 # Market domain specifications
 │   ├── Catalogos/                           # Open Catalog by configurable templates
@@ -78,8 +98,8 @@ All topics, commands, and events adhere to standard English naming:
 
 ## 🏪 Key Deliverables & Interactive Tools
 
-* [**Open Catalog Technical Specification**](./Mercado/Catalogos/README.md): Definition of item template types, professor customization parameters (no stock limit), and REST DTOs.
+* [**Open Catalog Technical Specification**](./Mercado/Catalogos/README.md): Definition of item template types, professor customization parameters (optional per-offer stock), and REST DTOs.
 * [**Open Catalog & Dual-Hold Interactive Simulator**](./Mercado/Catalogos/catalogo-abierto-interactivo.html): Web-based visualizer for live template customization and saga JSON payload inspection.
-* [**Bank & Grupo 12 Saga Protocol**](./Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md): Complete specification of the coin-hold + item-provisioning transaction.
-* [**Architectural Diagrams (Mermaid)**](./diagramas-mercado.md): C4 context, domain model by templates (no stock), state machines, and auction settlement sequence.
+* [**Bank & Grupo 12 Saga Protocol**](./Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md): Complete specification of the coin-hold + item-provisioning transaction. (`flujo-comunicacion-banco.md` is the deprecated predecessor.)
+* [**Architectural Diagrams (Mermaid)**](./diagramas-mercado.md): C4 context, domain model by templates (optional stock), state machines, and auction settlement sequence.
 * [**Sprint 1 Master Context**](./CONTEXTO-MERCADO-SPRINT1.md): Consolidated background, team decisions, and Sprint 1 planning notes.

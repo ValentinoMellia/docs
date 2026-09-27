@@ -5,8 +5,8 @@
 
 ## 1. Context Diagram: Market & External Microservices
 
-Market acts as an orchestrating Kiosk / Storefront. In accordance with platform design and the Reserve → Provision → Confirm Saga (no local stock — decision #6: catalog offers have unlimited availability while active):
-- **Market (Team 09):** Orchestrates the purchase/auction saga and curates the Open Catalog (templates with professor-configured parameters, no fixed stock).
+Market acts as an orchestrating Kiosk / Storefront. In accordance with platform design and the Reserve → Provision → Confirm Saga (optional per-offer stock — decision #6, revised 19/09: catalog offers may have a finite stock cap configured by the professor, or unlimited availability if unset):
+- **Market (Team 09):** Orchestrates the purchase/auction saga and curates the Open Catalog (templates with professor-configured parameters, with an optional finite stock per offer).
 - **Bank / Grupo 12 (Team 08):** Manages coin balances, handles `BalanceHold` commands, settles ledger debits, and — since decision #13 — also owns the student backpack (`student_inventory`), its lifecycle, and runtime effect execution. This is not a separate microservice; Grupo 12 is Bank's own Taiga team.
 
 ```mermaid
@@ -37,9 +37,9 @@ graph TB
 
 ---
 
-## 2. Market Domain Model (Open Catalog by Templates, No Stock)
+## 2. Market Domain Model (Open Catalog by Templates, Optional Stock)
 
-Market manages item templates, cohort offerings, purchase orders, and auctions. There is **no local stock** (decision #6: offers have unlimited availability while active) and **no `ItemInventario`** — final item acreditación is an external contract with Grupo 12 (decision #13):
+Market manages item templates, cohort offerings, purchase orders, and auctions. Local stock is **optional per offer** (decision #6, revised 19/09: unset means unlimited availability while active; a positive integer sets a finite cap that can be exhausted) and there is **no `ItemInventario`** — final item acreditación is an external contract with Grupo 12 (decision #13):
 
 ```mermaid
 classDiagram
@@ -60,6 +60,7 @@ classDiagram
         +String customDescription
         +int coinPrice  // chosen by professor within the template's configurable price range
         +boolean active
+        +Integer stock  // optional, decision #6 revised 19/09 — null/unset = unlimited; positive integer = finite cap
         +ItemConfiguration configuration
         +Instant createdAt
         +Instant updatedAt
@@ -135,7 +136,7 @@ classDiagram
 
 ### 3.1 Purchase Order State Machine (Reserve → Provision → Confirm Saga)
 
-> Note: there is no local stock step and no "create `ItemInventario`" step — the hold is requested directly from Bank, and item acreditación is requested and corroborated against Grupo 12 before the debit is confirmed (decision #8 + #13).
+> Note: when the offer has no finite stock configured there is no local stock step; when it does, a stock decrement/hold step precedes the Bank hold. There is no "create `ItemInventario`" step in either case — the hold is requested directly from Bank, and item acreditación is requested and corroborated against Grupo 12 before the debit is confirmed (decision #8 + #13).
 
 ```mermaid
 stateDiagram-v2
@@ -172,7 +173,7 @@ sequenceDiagram
 
     Student->>GW: POST /api/v1/market/orders {offerId: "item-course-9912", courseId: "COURSE_PROG4_2026"}
     GW->>Market: Forwards request with auth headers (X-User-Id, X-Roles)
-    Market->>Market: Validates cohort active, offer active, current price (no stock check — decision #6)
+    Market->>Market: Validates cohort active, offer active, current price, and stock availability if configured (decision #6, revised 19/09)
     Market-->>Student: 202 Accepted {orderId: "ord-88391a", status: "PROCESSING"}
 
     %% Phase 1: Coin Hold in Bank

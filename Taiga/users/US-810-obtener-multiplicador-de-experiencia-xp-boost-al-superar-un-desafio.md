@@ -5,6 +5,8 @@
 > **Estado:** New | **Puntos:** —
 > **Asignado a:** Sin asignar | **Propietario:** Wiesek Lucio
 
+> **Estado: duplicado de US-130 — ver [`PLAN-actualizacion-backlog-sprint1.md`](../PLAN-actualizacion-backlog-sprint1.md).** Contenido idéntico a `US-130-obtener-multiplicador-de-experiencia-xp-boost-al-superar-un-desafio.md` (bug de exportación/clonado en Taiga, distinto ID y propietario). La versión viva es US-130; se recomienda cerrar #810 como duplicado.
+
 ## Detalle / Especificación (Taiga)
 
 G11-HU06\] — Obtener multiplicador de experiencia (XP Boost) al superar un desafío

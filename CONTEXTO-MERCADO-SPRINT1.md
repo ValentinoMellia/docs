@@ -269,7 +269,7 @@ Mercado publica PURCHASE_CONFIRMED al bus
 
 ### Contrato técnico de referencia
 
-`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` sigue siendo la referencia técnica más madura para el mecanismo de reserva/confirmación (SSE, envoltura de eventos, idempotencia) — **salvo** en los puntos que este documento redefine: el modelo de stock (ya no aplica, decisión #6) y quién inserta el ítem (ahora Grupo 12, no Mercado, decisión #13). Los nombres de evento de Banco (`HOLD_*`) siguen siendo el contrato bilateral vigente y no se renombran.
+`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md` es la referencia técnica principal y vigente para el mecanismo de reserva/confirmación (SSE, envoltura de eventos, idempotencia) — **salvo** en los puntos que este documento redefine: el modelo de stock (ahora opcional por oferta, decisión #6 revisada 19/09) y quién inserta el ítem (ahora Grupo 12, no Mercado, decisión #13). Los nombres de evento de Banco (`HOLD_*`) siguen siendo el contrato bilateral vigente y no se renombran. `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` queda como antecedente histórico del mismo mecanismo SSE/idempotencia — no citar como referencia vigente (ver nota de versión en ese archivo).
 
 ---
 
@@ -308,7 +308,7 @@ Mercado publica PURCHASE_CONFIRMED al bus
 2. Tabla de deduplicación en Banco (`processed_commands`).
 3. Bloqueo optimista en Mercado (`@Version` sobre `MarketAuction`).
 
-Envoltura estándar de todo evento (`EventEnvelope<T>`): `{eventId, eventType, eventVersion, timestamp, producer, payload}`.
+Envoltura estándar de todo evento: `{eventId, eventType, timestamp, producer, payload}`.
 
 ### 8.5 Contratos de eventos de la saga de subasta
 
@@ -366,7 +366,7 @@ Protocolo (saga de pasos, no es "descuento y después entrego"):
 3. HOLD_CONFIRM_REQUESTED → HOLD_CONFIRMED (débito efectivo en el ledger)
    o HOLD_RELEASE_REQUESTED → HOLD_RELEASED (devolución sin costo)
 ```
-Sincrónico vía Gateway para comandos con respuesta inmediata, asincrónico vía Kafka para hechos consumados. Envoltura estándar de 6 campos (`EventEnvelope<T>` con `eventVersion`). Broker: Kafka, semántica *at-least-once*, `partitionKey = studentId` para compra directa.
+Sincrónico vía Gateway para comandos con respuesta inmediata, asincrónico vía Kafka para hechos consumados. Envoltura estándar de 5 campos. Broker: Kafka, semántica *at-least-once*, `partitionKey = studentId` para compra directa.
 
 > **Partición inconsistente detectada en la auditoría:** el contrato de subastas usa `partitionKey = auctionId` para el mismo tópico `bank.holds.commands` donde compra directa usa `studentId`. Esto es intencional (distinto caso de uso), pero **hay que documentarlo explícitamente como partición dual por `orderType`**, no dejarlo como una inconsistencia sin explicar — Banco necesita saber que las garantías de orden FIFO son por auction, no por alumno, en el caso de subastas.
 
@@ -533,18 +533,20 @@ La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, 
 
 ## 13. Referencias
 
+> **Nota:** esta tabla refleja el estado detectado en la auditoría del 18/09/2026. Para el estado *vigente* de cada documento, consultar [`README.md` § Fuente de Verdad por Tema](README.md#-fuente-de-verdad-por-tema).
+
 | Documento | Contenido | Estado tras la auditoría del 18/09 |
 |---|---|---|
 | `README.md` (raíz) | Índice general del repo y mapa de tópicos Kafka | Desactualizado: modelo de stock (12-D #1), catálogo fijo (12-D #2), falta el mapa de tópicos de subastas |
 | `diagramas-mercado.md` | Borradores Mermaid: contexto C4, modelo de dominio, máquinas de estado, secuencias | Desactualizado: `StockHold` (12-D #1), `ItemBaseTemplate` fijo (12-D #2), enum de subasta distinto (12-D #6) |
 | `Mercado/Catalogos/README.md` | Spec técnica de catálogo y stock hold | Desactualizado en casi todo su contenido de stock (12-D #1) y plantillas fijas (12-D #2) |
 | `Mercado/Subastas/README.md` | Índice del paquete documental de Subastas | Vigente como índice; los 3 docs que enlaza están desactualizados |
-| `Mercado/Subastas/01-analisis-opciones-arquitectura.md` | 3 opciones de arquitectura de holds, con dictamen | Desactualizado: recomienda Opción 2 como objetivo (12-D #3) |
-| `Mercado/Subastas/02-matriz-fallos-resiliencia-y-soluciones.md` | 5 errores críticos, matriz de fallos, máquina de estados | Desactualizado: propone Opción 2 (12-D #3), orden de liquidación invertido (12-D #5), enum propio (12-D #6) |
+| `Mercado/Subastas/01-analisis-opciones-arquitectura.md` | 3 opciones de arquitectura de holds, con dictamen | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
+| `Mercado/Subastas/02-matriz-fallos-resiliencia-y-soluciones.md` | 5 errores críticos, matriz de fallos, máquina de estados | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
 | `Mercado/Subastas/03-contratos-eventos-e-idempotencia.md` | Contratos de eventos e idempotencia de subastas | Desactualizado: eventos en español (12-D #4), convención `tema-XX` (12-D #7), enum propio (12-D #6) |
 | `PRD-Plataforma-Gamificada-TP.pdf` | Fuente de verdad oficial del producto | Vigente, no tocado por esta auditoría |
 | `Sprint0_Propuesta_Mercado.pdf` | DoD del equipo, cálculo de capacidad, épicas M-00/M-01/M-02 con historias Gherkin | Vigente como base; las épicas quedaron reescritas en la Sección 11 de este documento |
-| `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` | Saga completa de compra directa con SSE, contratos de eventos | Desactualizado solo en el modelo de stock (12-D #1) y en quién inserta el ítem (ahora Grupo 12); el resto sigue siendo la referencia técnica principal |
+| `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` | Saga completa de compra directa con SSE, contratos de eventos | Deprecado — superado por `Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md` (ver nota de versión en ese mismo archivo, línea 4). Se conserva como documento histórico. |
 | `Workflow/README.md` | Convenciones de branching y commits del repo completo | Vigente, no relacionado con este contenido |
 
 ## 14. Repositorios de código (fuente de verdad de implementación)
@@ -558,3 +560,33 @@ Agregado el 19/09/2026. Estos tres repositorios de GitHub son la fuente de verda
 | [`2026-P4-FE/2026-PIV-TPI-UI-KIT`](https://github.com/2026-P4-FE/2026-PIV-TPI-UI-KIT) | UI Kit / design system consumido por el frontend | Privado/inaccesible sin autenticación al 19/09/2026 |
 
 Pendiente: autorizar acceso (MCP de GitHub o `gh auth login` con una cuenta miembro de `2026-P4-BE`/`2026-P4-FE`) para confirmar si el contenido real de estos repos coincide con `Workflow/README.md` y con el backlog de `Taiga/`.
+
+{
+  "eventId": "d81a...",
+  "eventType": "ITEM_CONFIRMED",
+  "timestamp": "2026-09-19T22:15:00Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+        "studentId": "stu-8821",
+        "courseId": "crs-14",
+        "orderId": "ord-2305",
+        "catalogItemId": "cat-item-42",
+        "itemName": "Escudo",
+        "itemCode": "SHIELD-01",
+        "effect": { "type": "LIFE", "mode": "SHIELD", "value": 1 }
+      }
+}
+ACREDITACIÒN ITEM
+{
+  "eventId": "b91c...",
+  "eventType": "LIFE_PURCHASE_CONFIRMED",
+  "timestamp": "2026-09-19T22:05:00Z",
+  "producer": "tema-09-mercado",
+  "payload": {
+        "studentId": "stu-8821",
+        "courseId": "crs-14",
+        "orderId": "ord-2201"
+    "quantity": 1
+  }
+}
+ACREDITACIÒN DE COMPRA DE VIDA

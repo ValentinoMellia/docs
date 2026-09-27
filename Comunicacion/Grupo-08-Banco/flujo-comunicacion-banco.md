@@ -1,6 +1,7 @@
 # Integration Protocol & Transactional Flow — Market (Tema 09) & Bank (Tema 08)
 ## Asynchronous Saga Choreography (Kafka) with Coin Holds, Item Provisioning (Grupo 12) & SSE Streaming
 
+> **Estado: deprecado — superado por [`flujo-mercado-inventario.md`](flujo-mercado-inventario.md).** Se conserva como documento histórico/predecesor; no citar como referencia vigente.
 > **Nota de versión:** La versión consolidada, enriquecida y con análisis crítico de ambigüedades de este protocolo se encuentra en [`flujo-mercado-inventario.md`](flujo-mercado-inventario.md).
 
 ---

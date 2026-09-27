@@ -29,6 +29,8 @@ Para garantizar la estabilidad, trazabilidad y calidad del código en producció
    - **Toda Pull Request debe rellenar de forma obligatoria y exhaustiva toda la información solicitada en la plantilla del repositorio (`pull_request_template.md`)**.
    - Queda estrictamente prohibido abrir PRs con la plantilla vacía, con comentarios placeholder (`<!--- ... -->`) o información incompleta.
    - Se debe documentar sin excepción: **Título convencional**, **Descripción detallada**, **Issues/US relacionadas (Taiga/GitHub)**, **Motivación y contexto**, **Detalle de pruebas realizadas (testing)** y el **Checklist de calidad**.
+8. **🔗 Propagación de Cambios de Decisión entre Documentos**:
+   - **Al cambiar una decisión que afecte contenido documentado en más de un archivo**, actualizá también la tabla "Fuente de Verdad por Tema" del `README.md` raíz y el header de estado del/los archivo(s) afectado(s) — no dejes la corrección solo en el documento que la origina.
 
 ---
 
