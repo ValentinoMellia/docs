@@ -529,6 +529,15 @@ La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, 
 - El resto de la decisión #6 original (no hay tiers fijos, el catálogo es por plantillas configurables) **no cambia** — solo se revierte la afirmación de "nunca hay stock".
 - Esta revisión no afecta subastas (Sección 8): las subastas no tienen stock, son por ítem único.
 
+### 12-F. Revisión del 27/09/2026 — decisión #13 (Grupo 12 = Banco) corregida
+
+**La decisión #13, que daba por fusionados a Banco e Inventario en un solo "Grupo 12 (Banco)", queda revisada: son dos microservicios separados.** Historia real, confirmada con Grupo 08 el 26/09/2026: la responsabilidad de Inventario (mochila del alumno) se transfirió de Mercado a Banco; después, el equipo que quedó a cargo de Banco dividió ese dominio combinado en dos microservicios — **Accounting** (ledger financiero, Balance Hold, exclusivamente) e **Inventario** (custodio de `student_inventory`), separados entre sí. Esto surgió al implementar la tarea US-138 T04 en `tpi-market` (decisión D2 del código).
+
+**Impacto:**
+- Cualquier contrato de integración de Mercado con la mochila del alumno debe dirigirse al microservicio de Inventario, no a Accounting/Banco.
+- El documento `Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md` describe a Accounting como custodio de la mochila en su §1 paso 3 — ese punto quedó desactualizado por este split; tiene una nota de advertencia agregada el 27/09/2026 señalándolo.
+- Detalle completo del estado real de implementación (qué hay hecho, qué falta) en [`Comunicacion/Grupo-08-Banco/ESTADO-IMPLEMENTACION-BANCO.md`](Comunicacion/Grupo-08-Banco/ESTADO-IMPLEMENTACION-BANCO.md).
+
 ---
 
 ## 13. Referencias

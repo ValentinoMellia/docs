@@ -12,6 +12,8 @@
 
 ---
 
+> ⚠️ **Nota de consistencia (27/09/2026):** tras el split de Banco en dos microservicios, Accounting (Tema 08) quedó como el ledger financiero (Balance Hold) **exclusivamente** — la custodia de la mochila del estudiante (`student_inventory`) pasó al microservicio de Inventario, separado de Accounting (confirmado con Grupo 08 el 26/09/2026, ver decisión D2 en `tpi-market` y [`ESTADO-IMPLEMENTACION-BANCO.md`](ESTADO-IMPLEMENTACION-BANCO.md)). Este documento todavía describe a Accounting como *"custodio de la mochila del estudiante"* (línea 9) y como responsable de instanciar el ítem en `student_inventory` (§1, paso 3) — eso ya no corresponde a su alcance. Revisar con el autor de este contrato antes de implementar el paso 3 contra Accounting; probablemente ese paso deba dirigirse al microservicio de Inventario en su lugar.
+
 ## Índice
 1. [Resumen Ejecutivo de Obligaciones de Accounting](#1-resumen-ejecutivo-de-obligaciones-de-accounting)
 2. [El Mecanismo de "Item Hold" en Mercado](#2-el-mecanismo-de-item-hold-en-mercado)
