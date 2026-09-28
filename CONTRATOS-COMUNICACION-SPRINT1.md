@@ -25,8 +25,8 @@ Todos requieren las cabeceras inyectadas por el Gateway (§1.3) y devuelven `403
 
 | Endpoint | Rol | Propósito |
 |---|---|---|
-| `POST /api/v1/market/orders` | `ROLE_STUDENT` | Inicia una orden de compra. Body: `{offerId, courseId, idempotencyKey}`. Responde `202 Accepted {orderId, status:"PROCESSING", sseStreamUrl}` — nunca bloquea esperando a Banco. |
-| `GET /api/v1/market/orders/stream/{orderId}` | `ROLE_STUDENT` | Canal SSE unidireccional con el progreso de la orden (hold → acreditación → confirmación). |
+| `POST /api/market/courses/{courseId}/orders` | `ROLE_STUDENT` | Inicia una orden de compra. El `courseId` va en la ruta. Body: `{offerId, idempotencyKey}`. Responde `202 Accepted {orderId, status:"PROCESSING", courseId, offerId, sseStreamUrl, createdAt}` — nunca bloquea esperando a Banco. |
+| `GET /api/market/orders/stream/{orderId}` | `ROLE_STUDENT` | Canal SSE unidireccional con el progreso de la orden (hold → acreditación → confirmación). |
 | `GET /api/v1/market/admin/metrics?courseId=` | `ROLE_PROFESSOR` | Snapshot agregado de métricas de Mercado, frescura máxima 15 min (§9.5). |
 
 ### 1.3 Cabeceras que Mercado recibe de todo request entrante (Gateway, §9.3)
@@ -97,12 +97,12 @@ Solo consumidor — no expone nada que Mercado necesite llamar. Consume `CATALOG
 | Task | US padre | Punto de integración de este documento |
 |---|---|---|
 | #976 T01 Modelar orden de compra | US-138 | §1.2 (contrato de `Orden`, sin sección propia de endpoint) |
-| #977 T02 Endpoint de compra | US-138 | §1.2 — `POST /api/v1/market/orders` + `GET .../stream/{orderId}` |
+| #977 T02 Endpoint de compra | US-138 | §1.2 — `POST /api/market/courses/{courseId}/orders` + `GET .../stream/{orderId}` |
 | #978 T03 Reserva de monedas a Banco | US-138 | §3.1 — paso 1 de la saga (`HOLD_CREATE_REQUESTED`/`HOLD_CREATED`/`HOLD_REJECTED`) |
 | #979 T04 Acreditación del ítem | US-138 | §3.1 — paso 2 de la saga (`ITEM_PROVISION_REQUESTED`/`PROVISIONED`/`FAILED`) |
 | #980 T05 Confirmar cobro y cerrar orden | US-138 | §3.1 — paso 3 de la saga (`HOLD_CONFIRM_REQUESTED`/`HOLD_CONFIRMED`) + §2 (`PURCHASE_CONFIRMED`) |
 | #981 T06 Pruebas (camino feliz/saldo/oferta inactiva) | US-138 | §3.1 completo (para simular `HOLD_REJECTED`/`ITEM_PROVISION_FAILED`) |
-| #986 T01 Clave de idempotencia en contrato | US-139 | §1.2 (`idempotencyKey` en `POST /orders`) + §3.1 (`commandId` hacia Banco) |
+| #986 T01 Clave de idempotencia en contrato | US-139 | §1.2 (`idempotencyKey` en `POST /courses/{courseId}/orders`) + §3.1 (`commandId` hacia Banco) |
 | #987 T02 Índice único + huella | US-139 | Interno a Mercado (BD propia `Orden.idempotencyKey`), sin contrato externo |
 | #988 T03 Deshabilitar botón durante operación | US-139 | §1.2 (`GET .../stream/{orderId}` para feedback de estado) |
 | #989 T04 Pruebas de doble envío/conflicto | US-139 | §1.2 + §3.1 (verificar que un reintento con la misma `idempotencyKey` no dispare una segunda saga) |
