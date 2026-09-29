@@ -1,7 +1,7 @@
 # [G11 - Mercado] Módulo de Subastas (Épica E-07)
 ## Documentación Arquitectónica, Resiliencia y Contratos de Integración
 
-> **Estado: diseño de Fase 3 (épica #577), aún sin implementar.** `tpi-market` no contiene código de subastas; estos documentos describen el diseño objetivo, no el comportamiento actual del servicio.
+> **Estado: diseño de Fase 3 (épica #577), aún sin implementar.** `tpi-market` no contiene código de subastas; estos documentos describen el diseño objetivo, no el comportamiento actual del servicio. Estado, brechas con Accounting y prerrequisitos: [`../estado-actual/subasta.md`](../estado-actual/subasta.md).
 
 Este directorio consolida el diseño técnico, la matriz de resiliencia y los contratos de eventos para el subsistema de **Subastas** en la plataforma distribuida de Aula Quest (Tema 09 - Mercado & Tema 08 - Banco).
 

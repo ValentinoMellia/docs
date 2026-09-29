@@ -34,6 +34,8 @@ This repository maintains the technical specifications, domain models, **Open Ca
 
 | Tema | Documento vigente | Otros documentos relacionados |
 |---|---|---|
+| **Estado actual de Mercado** (compra, gestión de tienda, subasta) | [`mercado/README.md`](./mercado/README.md) → [`estado-actual/`](./mercado/estado-actual/brechas-y-pendientes.md) | Verificado contra el código (29/09/2026); **manda sobre los documentos de diseño** cuando difieren |
+| **Integración Mercado ↔ Accounting** (desajustes y flujo recomendado) | [`integracion/banco/estado-integracion-mercado-accounting.md`](./integracion/banco/estado-integracion-mercado-accounting.md) | Reemplaza como estado a `ESTADO-IMPLEMENTACION-BANCO.md` |
 | Contexto y decisiones del equipo (Sprint 1) | [`arquitectura/CONTEXTO-MERCADO-SPRINT1.md`](./arquitectura/CONTEXTO-MERCADO-SPRINT1.md) | Su §13 es un registro histórico de auditoría, no un índice de vigencia. |
 | Catálogo abierto por plantillas | [`mercado/catalogos/README.md`](./mercado/catalogos/README.md) | — |
 | Compra directa (contratos REST/eventos) | [`arquitectura/CONTRATOS-COMUNICACION-SPRINT1.md`](./arquitectura/CONTRATOS-COMUNICACION-SPRINT1.md) | Deriva de `CONTEXTO-MERCADO-SPRINT1.md` §7/§9/§10 |
@@ -69,7 +71,8 @@ docs/
 │
 ├── integracion/
 │   └── banco/                               # Bank / Accounting / Inventory integration
-│       ├── ESTADO-IMPLEMENTACION-BANCO.md   # Real implementation status (read first)
+│       ├── estado-integracion-mercado-accounting.md # Real Market ↔ Accounting status (read first)
+│       ├── ESTADO-IMPLEMENTACION-BANCO.md   # Historical status (27/09), superseded
 │       ├── flujo-mercado-inventario.md      # Target saga design (current)
 │       ├── contrato-integracion-mercado-accounting.md # Proposed Kafka contract (T07)
 │       ├── Banco-T08_Mercado-T09_Documento-de-integracion.docx
@@ -77,6 +80,10 @@ docs/
 │           └── flujo-comunicacion-banco.md  # DEPRECATED predecessor
 │
 ├── mercado/                                 # Market domain specifications
+│   ├── README.md                            # Market overview and status by function
+│   ├── estado-actual/                       # Code-verified current state (read first)
+│   │   ├── compra.md · gestion-de-tienda.md · subasta.md
+│   │   └── brechas-y-pendientes.md          # Prioritized gaps
 │   ├── catalogos/                           # Open Catalog by configurable templates
 │   │   ├── README.md                        # Technical specification, DTOs & payloads
 │   │   ├── catalogo-abierto-interactivo.html# Interactive simulator & dual-hold saga previewer
@@ -108,7 +115,7 @@ The platform provisions **one domain topic per team plus its `.DLT`**, with 3 pa
 | `notifications.events` (+ `.DLT`) | Student-facing notifications | Consumer of Market / Bank events |
 | `courses.events`, `users.events` (+ `.DLT`) | Course lifecycle and user lifecycle | Consumed for cohort / user validation |
 
-The per-flow topic names used in earlier drafts (`bank.holds.commands`, `bank.holds.events`, `inventory.items.commands`, `inventory.items.events`, `market.orders.events`, `market.auctions.events`, `notifications.alerts`, `accounting.settlement.*`) are **design proposals, not provisioned topics**. Event types travel inside the standard envelope defined in [`KAFKA_EVENT_STANDARD.md`](./arquitectura/KAFKA_EVENT_STANDARD.md). Today `tpi-market` publishes through a mock event publisher; there is no Kafka consumer implemented yet.
+The per-flow topic names used in earlier drafts (`bank.holds.commands`, `bank.holds.events`, `inventory.items.commands`, `inventory.items.events`, `market.orders.events`, `market.auctions.events`, `notifications.alerts`, `accounting.settlement.*`) are **design proposals, not provisioned topics**. Event types travel inside the standard envelope defined in [`KAFKA_EVENT_STANDARD.md`](./arquitectura/KAFKA_EVENT_STANDARD.md). `tpi-market` implements a Kafka transport (transactional outbox, idempotent consumers) but still uses its own topic names (`accounting.holds.*`, `inventory.items.*`, `market.orders.events`) that are not provisioned; see [`estado-integracion-mercado-accounting.md`](./integracion/banco/estado-integracion-mercado-accounting.md).
 
 ---
 
