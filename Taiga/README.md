@@ -21,9 +21,9 @@ Este directorio contiene la exportación directa y sincronizada de todas las **�
 
 | Ref | ID | Título | Épica Asociada | Tareas | Estado | Documento |
 | :---: | :---: | :--- | :--- | :---: | :---: | :--- |
-| **#92** | 9535755 | G11 — Publicar una oferta en mi curso a partir de una plantilla | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-092-crear-un-item.md](./users/US-092-crear-un-item.md) |
+| **#92** | 9535755 | G11 — Publicar una oferta en mi curso a partir de una plantilla | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | Done | [US-092-crear-un-item.md](./users/US-092-crear-un-item.md) |
 | **#94** | 9535762 | G11 — Consultar la vitrina de mi curso | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-094-consultar-catalogo-disponible.md](./users/US-094-consultar-catalogo-disponible.md) |
-| **#95** | 9535768 | G11 — Editar una oferta publicada | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-095-modificar-un-item.md](./users/US-095-modificar-un-item.md) |
+| **#95** | 9535768 | G11 — Editar una oferta publicada | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | Done | [US-095-modificar-un-item.md](./users/US-095-modificar-un-item.md) |
 | **#96** | 9535772 | G11 — Activar o desactivar una oferta | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-096-activar-o-desactivar-un-item.md](./users/US-096-activar-o-desactivar-un-item.md) |
 | **#98** | 9535782 | G11 — Consultar el detalle de una oferta | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-098-consultar-detalle-de-un-articulo.md](./users/US-098-consultar-detalle-de-un-articulo.md) |
 | **#945** | 9555132 | G11 — Listar las plantillas base disponibles | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | *(sin archivo local — creada en Taiga el 17/09/2026)* |
