@@ -1,6 +1,8 @@
 # Technical Specification — Open Catalog by Templates (Team 09 Market)
 ## Configurable Item Templates & Professor Course Curation (Optional Per-Offer Stock)
 
+> ⚠️ **Documento de diseño parcialmente desactualizado.** Para lo implementado en `tpi-market` (plantillas, publicación, stock, vencimiento de la publicación), ver [`../estado-actual/gestion-de-tienda.md`](../estado-actual/gestion-de-tienda.md).
+
 > 🖥️ **Herramientas visuales interactivas disponibles:**
 > - [**Curación de Catálogo del Profesor (UI dedicada)**](./curacion-catalogo-profesor.html) — Creador y gestor de ofertas de cohorte, configuración por plantillas, vista previa del alumno y generador de payloads REST.
 > - [**Simulador Integral de Saga y Holds**](./catalogo-abierto-interactivo.html) — Flujo completo de compra, Dual-Hold (Stock + Banco) y contratos Kafka.

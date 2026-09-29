@@ -1,6 +1,8 @@
 # Estado real de implementación — Integración Mercado ↔ Banco
 
-> **Estado: vigente.** Este documento describe lo que **hoy existe implementado en el código** del repo `tpi-market` (commit `455fc3f`, 27/09/2026), no un contrato ideal o propuesto. Para el diseño objetivo de la integración ver [`flujo-mercado-inventario.md`](flujo-mercado-inventario.md) (saga consolidada) y [`contrato-integracion-mercado-accounting.md`](contrato-integracion-mercado-accounting.md) (contrato Kafka async propuesto) — ambos están, a la fecha de este documento, **desalineados con lo implementado** (ver Sección 4).
+> ⚠️ **Superado el 29/09/2026** por [`estado-integracion-mercado-accounting.md`](./estado-integracion-mercado-accounting.md). Este documento describe el código de `tpi-market` al 27/09 (integración síncrona y mockeada) y asume Banco e Inventario como servicios separados; hoy Mercado ya tiene transporte Kafka con outbox y, en el código, Accounting incluye monedas, vidas e inventario. Se conserva como historial de decisiones.
+
+> **Estado: histórico (al 27/09/2026).** Este documento describe lo que **hoy existe implementado en el código** del repo `tpi-market` (commit `455fc3f`, 27/09/2026), no un contrato ideal o propuesto. Para el diseño objetivo de la integración ver [`flujo-mercado-inventario.md`](flujo-mercado-inventario.md) (saga consolidada) y [`contrato-integracion-mercado-accounting.md`](contrato-integracion-mercado-accounting.md) (contrato Kafka async propuesto) — ambos están, a la fecha de este documento, **desalineados con lo implementado** (ver Sección 4).
 
 ## 1. Qué está implementado y confirmado hoy
 

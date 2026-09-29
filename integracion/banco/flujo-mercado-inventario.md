@@ -1,6 +1,8 @@
 # Protocolo de Integración y Flujo Transaccional: Mercado (Tema 09) ↔ Banco (Tema 08) ↔ Inventario (Grupo 12 / Tema 08)
 ## Coreografía de Saga Asíncrona (Kafka), Retención de Saldo (Coin Holds), Acreditación en Mochila y Comunicación en Tiempo Real (SSE)
 
+> ℹ️ **Diseño objetivo, no estado del código.** Para lo que hoy implementan Mercado y Accounting y sus diferencias con este protocolo, ver [`estado-integracion-mercado-accounting.md`](./estado-integracion-mercado-accounting.md).
+
 > **Estado:** Especificación Técnica Consolidada — Sprint 1  
 > **Microservicios involucrados:** 
 > 1. **Mercado (Tema 09 / Grupo 11):** Orquestador de compra y catálogo curado por cohorte.

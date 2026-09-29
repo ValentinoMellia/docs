@@ -1,6 +1,8 @@
 # Contrato de Integración y Protocolo Transaccional: Mercado (Tema 09) ↔ Accounting (Tema 08)
 ## Liquidación Asíncrona (Kafka), Retención de Saldo, Acreditación en Mochila, Item Hold y Reconciliación REST
 
+> ⚠️ **Contrato no implementado por ninguno de los dos lados (verificado el 29/09/2026).** Ni `tpi-market` ni `tpi-accounting` contienen `PURCHASE_SETTLEMENT_*` ni el endpoint `GET /orders/{orderId}/status`. Accounting implementó el contrato de plataforma `contratos-kafka` v3 (`accounting.events`, comandos `HOLD_*` e `ITEM_CONFIRMED`). Ver [`estado-integracion-mercado-accounting.md`](./estado-integracion-mercado-accounting.md).
+
 > **Versión del Documento:** 2.0  
 > **Fecha de Emisión:** 26/09/2026  
 > **Estado:** Aprobado para Especificación e Implementación Técnica  
