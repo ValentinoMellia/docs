@@ -2,8 +2,8 @@
 ## Configurable Item Templates & Professor Course Curation (Optional Per-Offer Stock)
 
 > 🖥️ **Herramientas visuales interactivas disponibles:**
-> - [**Curación de Catálogo del Profesor (UI dedicada)**](file:///C:/Users/totok/Documents/TUP%20-%202026/Programacion/AulaQuest/docs/Mercado/Catalogos/curacion-catalogo-profesor.html) — Creador y gestor de ofertas de cohorte, configuración por plantillas, vista previa del alumno y generador de payloads REST.
-> - [**Simulador Integral de Saga y Holds**](file:///C:/Users/totok/Documents/TUP%20-%202026/Programacion/AulaQuest/docs/Mercado/Catalogos/catalogo-abierto-interactivo.html) — Flujo completo de compra, Dual-Hold (Stock + Banco) y contratos Kafka.
+> - [**Curación de Catálogo del Profesor (UI dedicada)**](./curacion-catalogo-profesor.html) — Creador y gestor de ofertas de cohorte, configuración por plantillas, vista previa del alumno y generador de payloads REST.
+> - [**Simulador Integral de Saga y Holds**](./catalogo-abierto-interactivo.html) — Flujo completo de compra, Dual-Hold (Stock + Banco) y contratos Kafka.
 
 ---
 
@@ -30,7 +30,7 @@
 
 Catalog offers have an **optional `stock`/`availableStock` field**, configured per course-cohort by the professor. When left unset, the offer has **unlimited availability while active** and there is no atomic decrement and no `stock_holds` table. When the professor configures a finite positive integer, Market tracks that cap with an atomic decrement and a `stock_holds` table, in addition to the coin-balance concurrency control:
 
-* Under 120 concurrent sessions, the main race condition that matters is over-committing an alumno's balance across simultaneous purchases — Bank's `BalanceHold` mechanism already handles that (Section 4 and `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`).
+* Under 120 concurrent sessions, the main race condition that matters is over-committing an alumno's balance across simultaneous purchases — Bank's `BalanceHold` mechanism already handles that (Section 4 and `integracion/banco/archivado/flujo-comunicacion-banco.md`).
 * Market's remaining validation before requesting a hold is that the offer itself is **active** (not deactivated/archived), and, when the offer has a configured finite stock, that a unit is still available. If no stock was configured, there is no concept of "sold out"; if a finite stock was configured, "sold out" applies once it is exhausted.
 
 ### 2.2 When Market Still Returns 409

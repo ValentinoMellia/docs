@@ -2,7 +2,7 @@
 
 Este directorio contiene la exportación directa y sincronizada de todas las **Épicas** e **Historias de Usuario** pertenecientes al Grupo 11 (G11) extraídas desde el proyecto en Taiga.
 
-> **Contexto de negocio:** [`../CONTEXTO-MERCADO-SPRINT1.md`](../CONTEXTO-MERCADO-SPRINT1.md) es el documento que reconcilia todo este backlog con las decisiones cerradas del equipo, y está preparado explícitamente para servir de contexto a un futuro ciclo SDD (`sdd-explore → sdd-propose → sdd-spec → sdd-design → sdd-tasks → sdd-apply`) — todavía no se ejecuta ese ciclo, pero cuando se haga, ese es el punto de partida.
+> **Contexto de negocio:** [`../CONTEXTO-MERCADO-SPRINT1.md`](../../arquitectura/CONTEXTO-MERCADO-SPRINT1.md) es el documento que reconcilia todo este backlog con las decisiones cerradas del equipo, y está preparado explícitamente para servir de contexto a un futuro ciclo SDD (`sdd-explore → sdd-propose → sdd-spec → sdd-design → sdd-tasks → sdd-apply`) — todavía no se ejecuta ese ciclo, pero cuando se haga, ese es el punto de partida.
 
 ## Resumen de Épicas (6)
 

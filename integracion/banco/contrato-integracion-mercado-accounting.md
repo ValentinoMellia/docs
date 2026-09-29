@@ -142,7 +142,7 @@ En los entornos de despliegue (Docker Compose y Kubernetes):
 ## 4. Contrato de Eventos Asíncronos (Kafka)
 
 ### 4.1. Envoltorio Estándar (`EventEnvelope<T>`)
-Todos los mensajes producidos y consumidos deben respetar la estructura estándar definida en [`KAFKA_EVENT_STANDARD.md`](../KAFKA_EVENT_STANDARD.md):
+Todos los mensajes producidos y consumidos deben respetar la estructura estándar definida en [`KAFKA_EVENT_STANDARD.md`](../../arquitectura/KAFKA_EVENT_STANDARD.md):
 
 ```json
 {

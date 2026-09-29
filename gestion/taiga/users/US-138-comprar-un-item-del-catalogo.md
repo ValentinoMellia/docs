@@ -73,4 +73,4 @@
 *   **Impacto en datos / migraciones:** tabla de órdenes con su estado, precio aplicado e identificadores de reservas.
 *   **Riesgos y mitigación:** que la compra quede a mitad de camino si Banco no responde; se mitiga con la liberación de reservas y la reconciliación de órdenes colgadas.
 
-> Reemplaza al enfoque anterior, que descontaba de un saldo simulado dentro de Mercado. Ahora Mercado orquesta y Banco es dueño de las monedas y del inventario. Ver el detalle completo de la saga en [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../CONTRATOS-COMUNICACION-SPRINT1.md) §3.1.
+> Reemplaza al enfoque anterior, que descontaba de un saldo simulado dentro de Mercado. Ahora Mercado orquesta y Banco es dueño de las monedas y del inventario. Ver el detalle completo de la saga en [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../../arquitectura/CONTRATOS-COMUNICACION-SPRINT1.md) §3.1.
