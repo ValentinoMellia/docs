@@ -1,6 +1,6 @@
 # Plan de actualización del backlog de Taiga (Grupo 11 — Mercado)
 
-> Basado en `docs/CONTEXTO-MERCADO-SPRINT1.md` (14 decisiones confirmadas) y en la auditoría del 18/09/2026 sobre las 6 épicas / 35 historias exportadas en `docs/Taiga/`. Este documento es el plan — todavía no se aplicó nada en Taiga (el acceso por API sigue bloqueado por el 405 de `tree.taiga.io`; hasta que se resuelva, esto se vuelca a mano en la UI).
+> Basado en `docs/arquitectura/CONTEXTO-MERCADO-SPRINT1.md` (14 decisiones confirmadas) y en la auditoría del 18/09/2026 sobre las 6 épicas / 35 historias exportadas en `docs/Taiga/`. Este documento es el plan — todavía no se aplicó nada en Taiga (el acceso por API sigue bloqueado por el 405 de `tree.taiga.io`; hasta que se resuelva, esto se vuelca a mano en la UI).
 
 ## Resumen ejecutivo
 
@@ -38,7 +38,7 @@
 |---|---|
 | **#138 — Comprar un ítem del catálogo** | Reescribir el CA1 y el BDD alrededor de la saga de 3 pasos: `HOLD_CREATE_REQUESTED`→`HOLD_CREATED` → `ITEM_PROVISION_REQUESTED`→`ITEM_PROVISIONED`/`ITEM_PROVISION_FAILED` (contra Grupo 12, ya no "recibe el ítem en su inventario" local) → `HOLD_CONFIRM_REQUESTED`→`HOLD_CONFIRMED`. Agregar los 3 payloads completos (CONTEXTO §7). |
 | **#139 — No pagar dos veces por doble clic** | Sin conflicto. Agregar nombre del header de idempotencia y el código de estado en caso de colisión (409). |
-| **#140 — Ver el resultado de una compra en proceso** | **No cerrar como lista todavía**: depende de una pregunta abierta en CONTEXTO §12-C (canal de notificación: ¿polling o push/SSE?). Recomendación: adoptar SSE siguiendo el patrón ya maduro de `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` (`GET /api/v1/market/orders/stream/{orderId}`), pero esto hay que confirmarlo con el equipo antes de darlo por definitivo. |
+| **#140 — Ver el resultado de una compra en proceso** | **No cerrar como lista todavía**: depende de una pregunta abierta en CONTEXTO §12-C (canal de notificación: ¿polling o push/SSE?). Recomendación: adoptar SSE siguiendo el patrón ya maduro de `integracion/banco/archivado/flujo-comunicacion-banco.md` (`GET /api/v1/market/orders/stream/{orderId}`), pero esto hay que confirmarlo con el equipo antes de darlo por definitivo. |
 | **#141 — Recuperar mis monedas si la compra no se completó** | **Reescritura de la premisa completa.** Ya no es "se cobró pero no se acreditó el ítem → devolver". Con la decisión #8, eso no puede pasar en el camino normal: el hold se libera **antes** de confirmar cualquier débito si la acreditación del ítem falla. Nueva premisa: "si Grupo 12 no puede acreditar el ítem, el hold se libera sin haberse confirmado nunca un débito — no hay nada que reembolsar porque nunca se cobró". |
 | **#142 — Comprar una vida sin pasarme del tope** | Sin conflicto (alineado con PAR-12). Agregar contrato. |
 | **#143 — Revisar las compras que quedaron a medias** | Sin conflicto. Agregar JSON de respuesta. |

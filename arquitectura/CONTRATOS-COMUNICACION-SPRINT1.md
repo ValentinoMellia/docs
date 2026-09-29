@@ -1,6 +1,6 @@
 # Contratos de comunicación — Mercado (Tema 09 / Grupo 11) para Sprint 1
 
-> **Alcance: solo Catálogo (M-01) y Compra Directa (M-02)**, el trabajo activo en Sprint 1. Subastas (Fase 3, épica #577) no está en este sprint — su contrato de comunicación vigente sigue siendo [`Mercado/Subastas/03-contratos-eventos-e-idempotencia.md`](Mercado/Subastas/03-contratos-eventos-e-idempotencia.md); este documento no lo duplica.
+> **Alcance: solo Catálogo (M-01) y Compra Directa (M-02)**, el trabajo activo en Sprint 1. Subastas (Fase 3, épica #577) no está en este sprint — su contrato de comunicación vigente sigue siendo [`mercado/subastas/03-contratos-eventos-e-idempotencia.md`](../mercado/subastas/03-contratos-eventos-e-idempotencia.md); este documento no lo duplica.
 >
 > **Fuente de verdad:** todo lo que sigue está tomado o derivado de [`CONTEXTO-MERCADO-SPRINT1.md`](CONTEXTO-MERCADO-SPRINT1.md) §7, §9 y §10 (documento ya cerrado y auditado el 18/09/2026). Donde CONTEXTO no fija un path REST literal (endpoints de catálogo), se propone uno consistente con la convención ya usada en el resto de la plataforma (`/api/v1/<tema>/...`) — está marcado explícitamente como **propuesto**, a confirmar en diseño técnico.
 
@@ -115,7 +115,7 @@ Solo consumidor — no expone nada que Mercado necesite llamar. Consume `CATALOG
 ## 5. Referencias
 
 - [`CONTEXTO-MERCADO-SPRINT1.md`](CONTEXTO-MERCADO-SPRINT1.md) — fuente de verdad de todo lo anterior (§7, §9, §10).
-- [`Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md`](Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md) — contrato definitivo y protocolo transaccional unificado con Accounting (eventos Kafka, Item Hold, DLQs y endpoint REST de reconciliación).
-- [`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md`](Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md) — **referencia vigente**: especificación consolidada y ampliada de la saga de compra directa (Mercado ↔ Banco ↔ Inventario) con diagramas, idempotencia y análisis de ambigüedades.
-- [`Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`](Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md) — documento histórico/predecesor de integración con Banco, **deprecado** (ver nota de versión en el propio archivo).
-- [`Mercado/Subastas/03-contratos-eventos-e-idempotencia.md`](Mercado/Subastas/03-contratos-eventos-e-idempotencia.md) — contrato equivalente para subastas (Fase 3, fuera de este sprint).
+- [`integracion/banco/contrato-integracion-mercado-accounting.md`](../integracion/banco/contrato-integracion-mercado-accounting.md) — contrato definitivo y protocolo transaccional unificado con Accounting (eventos Kafka, Item Hold, DLQs y endpoint REST de reconciliación).
+- [`integracion/banco/flujo-mercado-inventario.md`](../integracion/banco/flujo-mercado-inventario.md) — **referencia vigente**: especificación consolidada y ampliada de la saga de compra directa (Mercado ↔ Banco ↔ Inventario) con diagramas, idempotencia y análisis de ambigüedades.
+- [`integracion/banco/archivado/flujo-comunicacion-banco.md`](../integracion/banco/archivado/flujo-comunicacion-banco.md) — documento histórico/predecesor de integración con Banco, **deprecado** (ver nota de versión en el propio archivo).
+- [`mercado/subastas/03-contratos-eventos-e-idempotencia.md`](../mercado/subastas/03-contratos-eventos-e-idempotencia.md) — contrato equivalente para subastas (Fase 3, fuera de este sprint).

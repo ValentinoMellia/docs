@@ -73,4 +73,4 @@
 *   **Impacto en datos / migraciones:** ninguno adicional.
 *   **Riesgos y mitigación:** que el rechazo llegue sin motivo diferenciado y el alumno no entienda por qué no pudo comprar; se mitiga acordando el motivo en el contrato.
 
-> **Cambio de fondo respecto a la versión anterior:** el tope de vidas ya no es un valor simulado dentro de Mercado — el tope lo valida Banco al acreditar (consistente con CONTEXTO §9.7). Ver [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../CONTRATOS-COMUNICACION-SPRINT1.md) §4, task #1002/#1003.
+> **Cambio de fondo respecto a la versión anterior:** el tope de vidas ya no es un valor simulado dentro de Mercado — el tope lo valida Banco al acreditar (consistente con CONTEXTO §9.7). Ver [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../../arquitectura/CONTRATOS-COMUNICACION-SPRINT1.md) §4, task #1002/#1003.

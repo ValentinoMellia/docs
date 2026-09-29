@@ -1,6 +1,6 @@
 # Contexto consolidado — Mercado (Tema 09 / Grupo 11) para Sprint 1
 
-> **Estado: cerrado para arrancar Sprint 1.** Este documento incorpora el contexto disponible al 16/09/2026 **más los 6 pendientes genuinos que el equipo cerró en vivo el 18/09/2026**, más una auditoría línea por línea de las fuentes originales (`diagramas-mercado.md`, `Mercado/Catalogos/README.md`, `Mercado/Subastas/*`, `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md`, `README.md` raíz) que encontró contradicciones concretas con las decisiones ya tomadas. Ya no quedan pendientes genuinos bloqueantes para Sprint 1 (ver Sección 12).
+> **Estado: cerrado para arrancar Sprint 1.** Este documento incorpora el contexto disponible al 16/09/2026 **más los 6 pendientes genuinos que el equipo cerró en vivo el 18/09/2026**, más una auditoría línea por línea de las fuentes originales (`diagramas-mercado.md`, `mercado/catalogos/README.md`, `mercado/subastas/*`, `integracion/banco/archivado/flujo-comunicacion-banco.md`, `README.md` raíz) que encontró contradicciones concretas con las decisiones ya tomadas. Ya no quedan pendientes genuinos bloqueantes para Sprint 1 (ver Sección 12).
 >
 > **Importante — las fuentes originales todavía tienen el contenido viejo.** La auditoría de la Sección 12-D detalla exactamente qué está desactualizado en cada archivo fuente (stock finito, catálogo fijo de plantillas, Opción 2 de subastas como objetivo, eventos en español, orden de liquidación invertido, tres enumeraciones distintas de estado de subasta). Mientras esos archivos no se corrijan físicamente, **este documento manda** sobre todos esos puntos — no la fuente original.
 
@@ -216,7 +216,7 @@ DRAFT → SCHEDULED → OPEN (NO_BIDS ↔ ACTIVE_BIDS)
                        → CLOSED
 ```
 
-**Nota de orden (corrige una contradicción real encontrada en la auditoría):** `CREDITING_ITEM` va **antes** que `CONFIRMING_LEDGER`, no al revés. Una fuente vieja (`Mercado/Subastas/02-matriz-fallos-resiliencia-y-soluciones.md`) tenía el orden invertido (confirmaba el débito antes de acreditar el ítem), lo cual iba contra la decisión #8 y contra lo que el propio `diagramas-mercado.md` mostraba en su diagrama de secuencia. El orden correcto, consistente con la compra directa: corroborar que el ítem se puede entregar/acreditar en Grupo 12 → recién ahí confirmar el débito. Así el caso de "pagó pero no recibió el ítem" deja de ser un escenario normal a compensar — solo ocurre por falla técnica genuina después de corroborar.
+**Nota de orden (corrige una contradicción real encontrada en la auditoría):** `CREDITING_ITEM` va **antes** que `CONFIRMING_LEDGER`, no al revés. Una fuente vieja (`mercado/subastas/02-matriz-fallos-resiliencia-y-soluciones.md`) tenía el orden invertido (confirmaba el débito antes de acreditar el ítem), lo cual iba contra la decisión #8 y contra lo que el propio `diagramas-mercado.md` mostraba en su diagrama de secuencia. El orden correcto, consistente con la compra directa: corroborar que el ítem se puede entregar/acreditar en Grupo 12 → recién ahí confirmar el débito. Así el caso de "pagó pero no recibió el ítem" deja de ser un escenario normal a compensar — solo ocurre por falla técnica genuina después de corroborar.
 
 ### Puja
 ```
@@ -269,7 +269,7 @@ Mercado publica PURCHASE_CONFIRMED al bus
 
 ### Contrato técnico de referencia
 
-`Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md` es la referencia técnica principal y vigente para el mecanismo de reserva/confirmación (SSE, envoltura de eventos, idempotencia) — **salvo** en los puntos que este documento redefine: el modelo de stock (ahora opcional por oferta, decisión #6 revisada 19/09) y quién inserta el ítem (ahora Grupo 12, no Mercado, decisión #13). Los nombres de evento de Banco (`HOLD_*`) siguen siendo el contrato bilateral vigente y no se renombran. `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` queda como antecedente histórico del mismo mecanismo SSE/idempotencia — no citar como referencia vigente (ver nota de versión en ese archivo).
+`integracion/banco/flujo-mercado-inventario.md` es la referencia técnica principal y vigente para el mecanismo de reserva/confirmación (SSE, envoltura de eventos, idempotencia) — **salvo** en los puntos que este documento redefine: el modelo de stock (ahora opcional por oferta, decisión #6 revisada 19/09) y quién inserta el ítem (ahora Grupo 12, no Mercado, decisión #13). Los nombres de evento de Banco (`HOLD_*`) siguen siendo el contrato bilateral vigente y no se renombran. `integracion/banco/archivado/flujo-comunicacion-banco.md` queda como antecedente histórico del mismo mecanismo SSE/idempotencia — no citar como referencia vigente (ver nota de versión en ese archivo).
 
 ---
 
@@ -281,7 +281,7 @@ Mercado publica PURCHASE_CONFIRMED al bus
 
 **Confirmado (decisión #3): la Opción 1 (Hold Escrow Total) es la arquitectura final, no un paso intermedio hacia la Opción 2.** Banco retiene el 100% de cada puja de cada participante hasta el cierre; al cierre se confirma la ganadora y se liberan todas las demás en batch.
 
-> **Corrección de auditoría:** `Mercado/Subastas/01-analisis-opciones-arquitectura.md` (Sección 6, "Dictamen del Analista Senior") y `02-matriz-fallos-resiliencia-y-soluciones.md` (solución al Error 4) todavía describen la Opción 2 (Leader-Only Floating Hold) como la "arquitectura objetivo" hacia la que Mercado debería evolucionar. **Eso queda descartado por la decisión #3.** La Opción 2 se mantiene documentada únicamente como análisis histórico de por qué se evaluó y no se eligió — no como roadmap. Los payloads SSE específicos de Opción 2 (`{status:"LEADER"}`/`{status:"OUTBID"}`) quedan huérfanos y no deben implementarse.
+> **Corrección de auditoría:** `mercado/subastas/01-analisis-opciones-arquitectura.md` (Sección 6, "Dictamen del Analista Senior") y `02-matriz-fallos-resiliencia-y-soluciones.md` (solución al Error 4) todavía describen la Opción 2 (Leader-Only Floating Hold) como la "arquitectura objetivo" hacia la que Mercado debería evolucionar. **Eso queda descartado por la decisión #3.** La Opción 2 se mantiene documentada únicamente como análisis histórico de por qué se evaluó y no se eligió — no como roadmap. Los payloads SSE específicos de Opción 2 (`{status:"LEADER"}`/`{status:"OUTBID"}`) quedan huérfanos y no deben implementarse.
 
 ### 8.2 Los 5 errores críticos y sus soluciones (vigentes, sin cambios)
 
@@ -506,7 +506,7 @@ Estado: **resuelto**. Reservar→confirmar/liberar (Sección 9.1), idempotencia 
 
 ### 12-D. Auditoría de fuentes (18/09/2026) — contradicciones encontradas y ya corregidas en este documento
 
-La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, `Mercado/Subastas/{README,01,02,03}.md`, `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` y `README.md` raíz encontró:
+La relectura completa de `diagramas-mercado.md`, `mercado/catalogos/README.md`, `mercado/subastas/{README,01,02,03}.md`, `integracion/banco/archivado/flujo-comunicacion-banco.md` y `README.md` raíz encontró:
 
 1. **Modelo de stock finito** (`StockHold`, `availableStock`, SQL de decremento, `409 OUT_OF_STOCK`) en 4 archivos — contradice la decisión #6. Corregido en Secciones 5 y 7 de este documento; **las fuentes originales todavía no están corregidas**.
 2. **Catálogo fijo de ítems concretos** (`ItemBaseTemplate` con 4 tipos cerrados, sin parametrización real) en 3 archivos — contradice la decisión #5 y quedó superado además por la decisión #14. Corregido en Sección 5.
@@ -535,28 +535,28 @@ La relectura completa de `diagramas-mercado.md`, `Mercado/Catalogos/README.md`, 
 
 **Impacto:**
 - Cualquier contrato de integración de Mercado con la mochila del alumno debe dirigirse al microservicio de Inventario, no a Accounting/Banco.
-- El documento `Comunicacion/Grupo-08-Banco/contrato-integracion-mercado-accounting.md` describe a Accounting como custodio de la mochila en su §1 paso 3 — ese punto quedó desactualizado por este split; tiene una nota de advertencia agregada el 27/09/2026 señalándolo.
-- Detalle completo del estado real de implementación (qué hay hecho, qué falta) en [`Comunicacion/Grupo-08-Banco/ESTADO-IMPLEMENTACION-BANCO.md`](Comunicacion/Grupo-08-Banco/ESTADO-IMPLEMENTACION-BANCO.md).
+- El documento `integracion/banco/contrato-integracion-mercado-accounting.md` describe a Accounting como custodio de la mochila en su §1 paso 3 — ese punto quedó desactualizado por este split; tiene una nota de advertencia agregada el 27/09/2026 señalándolo.
+- Detalle completo del estado real de implementación (qué hay hecho, qué falta) en [`integracion/banco/ESTADO-IMPLEMENTACION-BANCO.md`](../integracion/banco/ESTADO-IMPLEMENTACION-BANCO.md).
 
 ---
 
 ## 13. Referencias
 
-> **Nota:** esta tabla refleja el estado detectado en la auditoría del 18/09/2026. Para el estado *vigente* de cada documento, consultar [`README.md` § Fuente de Verdad por Tema](README.md#-fuente-de-verdad-por-tema).
+> **Nota:** esta tabla refleja el estado detectado en la auditoría del 18/09/2026. Para el estado *vigente* de cada documento, consultar [`README.md` § Fuente de Verdad por Tema](../README.md#-fuente-de-verdad-por-tema).
 
 | Documento | Contenido | Estado tras la auditoría del 18/09 |
 |---|---|---|
 | `README.md` (raíz) | Índice general del repo y mapa de tópicos Kafka | Desactualizado: modelo de stock (12-D #1), catálogo fijo (12-D #2), falta el mapa de tópicos de subastas |
 | `diagramas-mercado.md` | Borradores Mermaid: contexto C4, modelo de dominio, máquinas de estado, secuencias | Desactualizado: `StockHold` (12-D #1), `ItemBaseTemplate` fijo (12-D #2), enum de subasta distinto (12-D #6) |
-| `Mercado/Catalogos/README.md` | Spec técnica de catálogo y stock hold | Desactualizado en casi todo su contenido de stock (12-D #1) y plantillas fijas (12-D #2) |
-| `Mercado/Subastas/README.md` | Índice del paquete documental de Subastas | Vigente como índice; los 3 docs que enlaza están desactualizados |
-| `Mercado/Subastas/01-analisis-opciones-arquitectura.md` | 3 opciones de arquitectura de holds, con dictamen | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
-| `Mercado/Subastas/02-matriz-fallos-resiliencia-y-soluciones.md` | 5 errores críticos, matriz de fallos, máquina de estados | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
-| `Mercado/Subastas/03-contratos-eventos-e-idempotencia.md` | Contratos de eventos e idempotencia de subastas | Desactualizado: eventos en español (12-D #4), convención `tema-XX` (12-D #7), enum propio (12-D #6) |
+| `mercado/catalogos/README.md` | Spec técnica de catálogo y stock hold | Desactualizado en casi todo su contenido de stock (12-D #1) y plantillas fijas (12-D #2) |
+| `mercado/subastas/README.md` | Índice del paquete documental de Subastas | Vigente como índice; los 3 docs que enlaza están desactualizados |
+| `mercado/subastas/01-analisis-opciones-arquitectura.md` | 3 opciones de arquitectura de holds, con dictamen | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
+| `mercado/subastas/02-matriz-fallos-resiliencia-y-soluciones.md` | 5 errores críticos, matriz de fallos, máquina de estados | Corregido en la fuente (commit `f1aca8b`, 18/09): confirma Opción 1 (Hold Escrow Total) como arquitectura final y definitiva; Opción 2 queda descartada y documentada como registro histórico en la Sección 6 de ese archivo. |
+| `mercado/subastas/03-contratos-eventos-e-idempotencia.md` | Contratos de eventos e idempotencia de subastas | Desactualizado: eventos en español (12-D #4), convención `tema-XX` (12-D #7), enum propio (12-D #6) |
 | `PRD-Plataforma-Gamificada-TP.pdf` | Fuente de verdad oficial del producto | Vigente, no tocado por esta auditoría |
 | `Sprint0_Propuesta_Mercado.pdf` | DoD del equipo, cálculo de capacidad, épicas M-00/M-01/M-02 con historias Gherkin | Vigente como base; las épicas quedaron reescritas en la Sección 11 de este documento |
-| `Comunicacion/Grupo-08-Banco/flujo-comunicacion-banco.md` | Saga completa de compra directa con SSE, contratos de eventos | Deprecado — superado por `Comunicacion/Grupo-08-Banco/flujo-mercado-inventario.md` (ver nota de versión en ese mismo archivo, línea 4). Se conserva como documento histórico. |
-| `Workflow/README.md` | Convenciones de branching y commits del repo completo | Vigente, no relacionado con este contenido |
+| `integracion/banco/archivado/flujo-comunicacion-banco.md` | Saga completa de compra directa con SSE, contratos de eventos | Deprecado — superado por `integracion/banco/flujo-mercado-inventario.md` (ver nota de versión en ese mismo archivo, línea 4). Se conserva como documento histórico. |
+| `gestion/workflow/README.md` | Convenciones de branching y commits del repo completo | Vigente, no relacionado con este contenido |
 
 ## 14. Repositorios de código (fuente de verdad de implementación)
 
@@ -564,11 +564,11 @@ Agregado el 19/09/2026. Estos tres repositorios de GitHub son la fuente de verda
 
 | Repositorio | Rol | Nota de acceso |
 |---|---|---|
-| [`2026-P4-BE/tpi-market`](https://github.com/2026-P4-BE/tpi-market) | Backend — fuente de verdad principal (git flow, backlog técnico, issues/PRs) | Privado/inaccesible sin autenticación al 19/09/2026 — no se pudo verificar en vivo contra `Workflow/README.md` |
+| [`2026-P4-BE/tpi-market`](https://github.com/2026-P4-BE/tpi-market) | Backend — fuente de verdad principal (git flow, backlog técnico, issues/PRs) | Privado/inaccesible sin autenticación al 19/09/2026 — no se pudo verificar en vivo contra `gestion/workflow/README.md` |
 | [`2026-P4-FE/2026-PIV-TPI-FE`](https://github.com/2026-P4-FE/2026-PIV-TPI-FE) | Frontend — agregado el 19/09/2026, fuente de verdad fuerte | Privado/inaccesible sin autenticación al 19/09/2026 |
 | [`2026-P4-FE/2026-PIV-TPI-UI-KIT`](https://github.com/2026-P4-FE/2026-PIV-TPI-UI-KIT) | UI Kit / design system consumido por el frontend | Privado/inaccesible sin autenticación al 19/09/2026 |
 
-Pendiente: autorizar acceso (MCP de GitHub o `gh auth login` con una cuenta miembro de `2026-P4-BE`/`2026-P4-FE`) para confirmar si el contenido real de estos repos coincide con `Workflow/README.md` y con el backlog de `Taiga/`.
+Pendiente: autorizar acceso (MCP de GitHub o `gh auth login` con una cuenta miembro de `2026-P4-BE`/`2026-P4-FE`) para confirmar si el contenido real de estos repos coincide con `gestion/workflow/README.md` y con el backlog de `Taiga/`.
 
 {
   "eventId": "d81a...",

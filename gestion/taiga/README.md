@@ -2,7 +2,7 @@
 
 Este directorio contiene la exportación directa y sincronizada de todas las **Épicas** e **Historias de Usuario** pertenecientes al Grupo 11 (G11) extraídas desde el proyecto en Taiga.
 
-> **Contexto de negocio:** [`../CONTEXTO-MERCADO-SPRINT1.md`](../CONTEXTO-MERCADO-SPRINT1.md) es el documento que reconcilia todo este backlog con las decisiones cerradas del equipo, y está preparado explícitamente para servir de contexto a un futuro ciclo SDD (`sdd-explore → sdd-propose → sdd-spec → sdd-design → sdd-tasks → sdd-apply`) — todavía no se ejecuta ese ciclo, pero cuando se haga, ese es el punto de partida.
+> **Contexto de negocio:** [`../CONTEXTO-MERCADO-SPRINT1.md`](../../arquitectura/CONTEXTO-MERCADO-SPRINT1.md) es el documento que reconcilia todo este backlog con las decisiones cerradas del equipo, y está preparado explícitamente para servir de contexto a un futuro ciclo SDD (`sdd-explore → sdd-propose → sdd-spec → sdd-design → sdd-tasks → sdd-apply`) — todavía no se ejecuta ese ciclo, pero cuando se haga, ese es el punto de partida.
 
 ## Resumen de Épicas (6)
 
@@ -21,9 +21,9 @@ Este directorio contiene la exportación directa y sincronizada de todas las **�
 
 | Ref | ID | Título | Épica Asociada | Tareas | Estado | Documento |
 | :---: | :---: | :--- | :--- | :---: | :---: | :--- |
-| **#92** | 9535755 | G11 — Publicar una oferta en mi curso a partir de una plantilla | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-092-crear-un-item.md](./users/US-092-crear-un-item.md) |
+| **#92** | 9535755 | G11 — Publicar una oferta en mi curso a partir de una plantilla | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | Done | [US-092-crear-un-item.md](./users/US-092-crear-un-item.md) |
 | **#94** | 9535762 | G11 — Consultar la vitrina de mi curso | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-094-consultar-catalogo-disponible.md](./users/US-094-consultar-catalogo-disponible.md) |
-| **#95** | 9535768 | G11 — Editar una oferta publicada | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-095-modificar-un-item.md](./users/US-095-modificar-un-item.md) |
+| **#95** | 9535768 | G11 — Editar una oferta publicada | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | Done | [US-095-modificar-un-item.md](./users/US-095-modificar-un-item.md) |
 | **#96** | 9535772 | G11 — Activar o desactivar una oferta | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-096-activar-o-desactivar-un-item.md](./users/US-096-activar-o-desactivar-un-item.md) |
 | **#98** | 9535782 | G11 — Consultar el detalle de una oferta | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | [US-098-consultar-detalle-de-un-articulo.md](./users/US-098-consultar-detalle-de-un-articulo.md) |
 | **#945** | 9555132 | G11 — Listar las plantillas base disponibles | [#90](./epics/EPIC-090-gestion-del-catalogo-de-mercado.md) | 0 | New | *(sin archivo local — creada en Taiga el 17/09/2026)* |

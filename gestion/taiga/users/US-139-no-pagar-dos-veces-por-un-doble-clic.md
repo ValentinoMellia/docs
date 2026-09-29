@@ -73,4 +73,4 @@
 *   **Impacto en datos / migraciones:** tabla de claves consumidas con índice único y huella del contenido.
 *   **Riesgos y mitigación:** generar una clave nueva en cada reintento anula toda la protección; se mitiga exigiendo una prueba que reintente con la misma clave.
 
-> **Pendiente detectado en la propia historia:** el endpoint `POST /api/v1/market/orders` todavía no recibe la clave de idempotencia en su contrato actual — hay que agregarla antes de poder implementar esta historia. Ver [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../CONTRATOS-COMUNICACION-SPRINT1.md) §1.2.
+> **Pendiente detectado en la propia historia:** el endpoint `POST /api/v1/market/orders` todavía no recibe la clave de idempotencia en su contrato actual — hay que agregarla antes de poder implementar esta historia. Ver [`CONTRATOS-COMUNICACION-SPRINT1.md`](../../../arquitectura/CONTRATOS-COMUNICACION-SPRINT1.md) §1.2.

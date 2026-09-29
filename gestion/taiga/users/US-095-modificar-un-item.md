@@ -2,7 +2,7 @@
 
 > **Taiga Ref:** #95 | **ID:** 9535768
 > **Épica:** [#90 — G11 — Catálogo Abierto por Plantillas](../epics/EPIC-090-gestion-del-catalogo-de-mercado.md)
-> **Estado:** New | **Puntos:** 3
+> **Estado:** Done | **Puntos:** 3
 > **Asignado a:** Sin asignar | **Propietario:** Melina Yain Medina
 
 ## Detalle / Especificación (Taiga)
