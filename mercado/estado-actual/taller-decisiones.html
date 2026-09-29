@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller de decisiones de Mercado</title>
+<style>
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f4; --text: #1b1f27; --muted: #5b6472;
+  --border: #d9dde5; --accent: #2456d6; --accent-ink: #ffffff; --ok: #16794a; --warn: #a15c00;
+  --bad: #b3261e; --info: #5b3fd0; --rec: #0f766e; --focus: #2456d6;
+  --p0: #b3261e; --p1: #a15c00; --p2: #5b6472;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --surface: #171b21; --surface-2: #1f242c; --text: #e8ebf0; --muted: #9aa4b2;
+    --border: #2b323c; --accent: #7aa2ff; --accent-ink: #0b1220; --ok: #4cc38a; --warn: #f0b04a;
+    --bad: #ff8a80; --info: #b3a1ff; --rec: #5eead4; --focus: #7aa2ff;
+    --p0: #ff8a80; --p1: #f0b04a; --p2: #9aa4b2;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --surface: #171b21; --surface-2: #1f242c; --text: #e8ebf0; --muted: #9aa4b2;
+  --border: #2b323c; --accent: #7aa2ff; --accent-ink: #0b1220; --ok: #4cc38a; --warn: #f0b04a;
+  --bad: #ff8a80; --info: #b3a1ff; --rec: #5eead4; --focus: #7aa2ff;
+  --p0: #ff8a80; --p1: #f0b04a; --p2: #9aa4b2;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 150px; }
+@media (max-width: 720px) { header.top { position: static; } html { scroll-padding-top: 0; } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+code { font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+a { color: var(--accent); }
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+header.top { position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--border); }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 12px 0; }
+.bar h1 { font-size: 18px; margin: 0; flex: 1 1 260px; }
+.bar h1 small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; }
+.progress { flex: 1 1 220px; min-width: 200px; }
+.progress .meter { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.progress .meter > span { display: block; height: 100%; background: var(--ok); width: 0; transition: width .2s; }
+.progress .label { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border: 1px solid var(--border); background: var(--surface); padding: 7px 12px; border-radius: 8px; cursor: pointer; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 4px 9px; font-size: 13px; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 0 0 12px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.group > .gl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 2px; }
+.chip { border: 1px solid var(--border); background: var(--surface); padding: 3px 10px; border-radius: 99px; cursor: pointer; font-size: 13px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.search { flex: 1 1 200px; min-width: 160px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+
+main.wrap { padding-top: 18px; padding-bottom: 80px; }
+.intro { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+.intro h2 { margin: 0 0 6px; font-size: 16px; }
+.intro p { margin: 4px 0; color: var(--muted); }
+.meta { display: grid; grid-template-columns: 180px 1fr; gap: 8px 12px; margin-top: 10px; }
+.meta input { padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); width: 100%; }
+@media (max-width: 640px) { .meta { grid-template-columns: 1fr; } }
+
+.count { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 12px; margin-bottom: 12px; }
+.card[data-status="done"] { border-left-color: var(--ok); }
+.card[data-status="deferred"] { border-left-color: var(--warn); }
+.card[data-status="info"] { border-left-color: var(--info); }
+.card[data-status="rejected"] { border-left-color: var(--bad); }
+.card > summary, .card .head { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; padding: 12px 14px; }
+.card > summary::-webkit-details-marker { display: none; }
+.id { font: 600 12.5px ui-monospace, Menlo, Consolas, monospace; color: var(--muted); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.tag { font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.tag.p0 { color: var(--p0); border-color: var(--p0); } .tag.p1 { color: var(--p1); border-color: var(--p1); } .tag.p2 { color: var(--p2); }
+.tag.state { font-weight: 600; }
+.tag.state.done { color: var(--ok); border-color: var(--ok); } .tag.state.deferred { color: var(--warn); border-color: var(--warn); }
+.tag.state.info { color: var(--info); border-color: var(--info); } .tag.state.rejected { color: var(--bad); border-color: var(--bad); }
+.body { padding: 0 14px 14px; border-top: 1px solid var(--border); }
+.body h4 { margin: 14px 0 4px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.body p { margin: 4px 0; }
+.evidence { color: var(--muted); font-size: 13px; }
+.opts { display: grid; gap: 8px; margin-top: 6px; }
+.opt { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; background: var(--bg); }
+.opt:hover { border-color: var(--accent); }
+.opt.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--surface-2); }
+.opt input { margin-top: 3px; }
+.opt .ol { font-weight: 600; }
+.opt .rec { color: var(--rec); font-size: 12px; font-weight: 700; margin-left: 6px; }
+.opt .pc { font-size: 13px; color: var(--muted); }
+.opt .pc b.pro { color: var(--ok); } .opt .pc b.con { color: var(--bad); }
+.fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+.fields label { display: block; font-size: 12.5px; color: var(--muted); }
+.fields input, .fields select, .fields textarea { width: 100%; margin-top: 3px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+.fields .wide { grid-column: 1 / -1; }
+@media (max-width: 720px) { .fields { grid-template-columns: 1fr; } }
+.refs a { margin-right: 10px; font-size: 13px; }
+.empty { text-align: center; color: var(--muted); padding: 40px 0; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50; }
+.toast.show { opacity: 1; }
+dialog { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); max-width: 760px; width: calc(100% - 32px); padding: 16px; }
+dialog::backdrop { background: rgba(0,0,0,.45); }
+dialog pre { max-height: 55vh; overflow: auto; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 12.5px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <h1>Taller de decisiones de Mercado
+        <small>Snapshot 29/09/2026 · tpi-market develop@7528610 · tpi-accounting develop@f965420</small></h1>
+      <div class="progress" aria-live="polite">
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="meter"><span id="meterFill"></span></div>
+        <div class="label" id="progressLabel"></div>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="btnExportJson" type="button">Exportar JSON</button>
+        <button class="btn" id="btnExportMd" type="button">Exportar Markdown</button>
+        <button class="btn" id="btnImport" type="button">Importar</button>
+        <button class="btn" id="btnTheme" type="button" aria-label="Cambiar tema">Tema</button>
+        <button class="btn" id="btnReset" type="button">Reiniciar</button>
+        <input type="file" id="fileImport" accept="application/json,.json" hidden>
+      </div>
+    </div>
+    <div class="filters" id="filters"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <h2>Cómo usar esta página en la reunión</h2>
+    <p>1) Filtrá por área o prioridad y andá tarjeta por tarjeta. 2) En las <b>decisiones</b> elegí una opción (o escribí otra) y anotá el motivo; en las <b>tareas</b> marcá si se acepta, se difiere o se descarta, con responsable y sprint. 3) Al terminar, <b>Exportar JSON</b> y pasale el archivo a Claude en este chat: lo usa como contexto para arreglar el código y escribir la documentación de los pasos siguientes. Todo se guarda solo en este navegador; <b>Importar</b> permite retomar o combinar el archivo de otra persona.</p>
+    <div class="meta">
+      <label for="metaDate">Fecha de la reunión</label><input id="metaDate" type="date">
+      <label for="metaPeople">Participantes</label><input id="metaPeople" type="text" placeholder="Nombres separados por coma">
+    </div>
+  </section>
+  <p class="count" id="count"></p>
+  <div id="list"></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<dialog id="dlg"><h3 id="dlgTitle" style="margin-top:0"></h3><pre id="dlgBody"></pre>
+  <div class="actions" style="justify-content:flex-end;margin-top:10px">
+    <button class="btn" id="dlgCopy" type="button">Copiar</button>
+    <button class="btn primary" id="dlgClose" type="button">Cerrar</button></div></dialog>
+
+<script>
+"use strict";
+/* ============ DATOS ============ */
+const AREAS = { integracion: "Integración Mercado ↔ Accounting", compra: "Compra", tienda: "Gestión de tienda", subasta: "Subasta (Sprint 02)", calidad: "Calidad y plataforma" };
+const SPRINTS = ["Sin asignar", "Sprint 02", "Sprint 03", "Backlog"];
+const DOCS = {
+  integ: ["../../integracion/banco/estado-integracion-mercado-accounting.md", "Integración"],
+  compra: ["./compra.md", "Compra"], tienda: ["./gestion-de-tienda.md", "Tienda"],
+  subasta: ["./subasta.md", "Subasta"], brechas: ["./brechas-y-pendientes.md", "Brechas"]
+};
+const D = (id, area, prio, title, context, options, extra = {}) => ({ kind: "decision", id, area, prio, title, context, options, ...extra });
+const T = (id, area, prio, title, context, extra = {}) => ({ kind: "task", id, area, prio, title, context, ...extra });
+
+const ITEMS = [
+/* ---------- DECISIONES: INTEGRACIÓN ---------- */
+D("D7", "integracion", "P0", "¿Qué topics usan Mercado y Accounting?",
+  "Mercado usa <code>accounting.holds.commands/events</code>, <code>inventory.items.commands/events</code> y <code>market.orders.events</code>. Accounting solo consume/publica <code>accounting.events</code> y consume <code>market.events</code>. El <code>init-topics.sh</code> de la plataforma no crea los de Mercado y la auto-creación está deshabilitada, así que hoy no viaja nada.",
+  [
+    { id: "A", label: "Mercado adopta los topics de plataforma", pro: "Cambio chico (configuración + un listener con filtro por eventType). Sin topics nuevos.", con: "El listener de Mercado recibe también eventos ajenos de accounting.events (se ignoran).", rec: true },
+    { id: "B", label: "Accounting suma los topics de Mercado", pro: "Mercado no cambia.", con: "Hay que crear topics y DLT en la plataforma y rehacer listeners en Accounting; se aparta del contrato contratos-kafka v3." },
+    { id: "C", label: "Crear topics nuevos compartidos y migrar ambos", pro: "Contrato limpio a futuro.", con: "Más trabajo en los dos lados y coordinación con Plataforma." }
+  ], { evidence: "tpi-market application.properties:38-42 · tpi-accounting InboundTopic.java · tpi-system-compose event-bus/init-topics.sh", docs: ["integ"], owner: "Mercado" }),
+D("D8", "integracion", "P0", "¿Cómo se identifica la orden ante Accounting (orderId)?",
+  "Mercado envía <code>String.valueOf(order.id)</code> (ej. <code>\"42\"</code>). Accounting exige UUID canónico y responde <code>HOLD_REJECTED / MALFORMED_COMMAND</code>. Un <code>orderId</code> además es dueño de un solo hold por cuenta para siempre.",
+  [
+    { id: "A", label: "Mercado genera un orderRef UUID por orden y lo persiste", pro: "Sin cambios en Accounting. Sirve para correlar ITEM_CREDITED (que no trae correlationId).", con: "Migración de la tabla orders (columna + índice único).", rec: true },
+    { id: "B", label: "Accounting acepta strings arbitrarios", pro: "Mercado no cambia.", con: "Cambia el modelo de datos (CHAR(36)) y el contrato de la plataforma." }
+  ], { evidence: "OrderHoldServiceImpl.java:91 · HoldCommandParser.java:29-30", docs: ["integ"], owner: "Mercado" }),
+D("D2", "integracion", "P0", "Q5: ¿ITEM_CONFIRMED reemplaza al par inventory.items.*?",
+  "Mercado hoy espera <code>ITEM_PROVISIONED / ITEM_PROVISION_FAILED</code>. Accounting entiende <code>ITEM_CONFIRMED</code> (en <code>market.events</code>) y responde <code>ITEM_CREDITED</code> (sin correlationId). En Mercado el envío de <code>ITEM_CONFIRMED</code> está detrás de un flag en <code>false</code>.",
+  [
+    { id: "A", label: "Sí: ITEM_CONFIRMED → ITEM_CREDITED es el paso de aprovisionamiento", pro: "Es lo que Accounting ya implementó y tiene en producción (flag on).", con: "Mercado debe correlar por orderId y agregar timeout propio.", rec: true },
+    { id: "B", label: "Accounting implementa el par inventory.items.*", pro: "Mercado no cambia su saga.", con: "Trabajo nuevo en Accounting, topics nuevos, contrato aparte." },
+    { id: "C", label: "Mantener ambos caminos", pro: "Transición gradual.", con: "Duplica lógica y riesgo de acreditar dos veces." }
+  ], { evidence: "OutboxInventoryItemProvisionClient · ItemConfirmedInboundHandler.java · openspec us-138-t07 (Q5)", docs: ["integ", "compra"], owner: "Mercado + Accounting" }),
+D("D9", "integracion", "P0", "¿Qué pasa si ITEM_CONFIRMED falla en Accounting?",
+  "Un <code>catalogItemId</code> desconocido, cuenta inactiva o <code>effect</code> vacío hace 3 reintentos y va a <code>market.events.DLT</code> <b>sin avisar a Mercado</b>. La orden queda en <code>ITEM_PROVISION_REQUESTED</code> y las monedas retenidas.",
+  [
+    { id: "A", label: "Accounting publica un evento de error (con correlación) y Mercado libera el hold", pro: "Falla explícita y rápida; consistente con el resto del contrato.", con: "Hay que definir el evento y sus códigos.", rec: true },
+    { id: "B", label: "Solo timeout en Mercado", pro: "Sin cambios en Accounting.", con: "Detección lenta; no se sabe la causa." },
+    { id: "C", label: "Ambos: evento de error + timeout de seguridad", pro: "Robusto ante mensajes perdidos.", con: "Más piezas." }
+  ], { evidence: "InventoryItemServiceImpl.java · docs de Accounting (AsyncAPI)", docs: ["integ"], owner: "Accounting" }),
+D("D10", "integracion", "P0", "¿Cómo conoce Accounting los ítems que vende Mercado?",
+  "El catálogo de Accounting es un placeholder: solo acepta <code>ITEM-PLACEHOLDER-1/2/3</code> (1, 2 y 3 cargas). Mercado envía el id de la oferta (ej. <code>\"17\"</code>) y no manda las cargas en <code>ITEM_CONFIRMED</code>.",
+  [
+    { id: "A", label: "Accounting acepta cualquier catalogItemId y toma cargas/atributos del payload", pro: "Desacopla: Mercado es el dueño del catálogo.", con: "Agregar <code>charges</code> (y quizás <code>scope</code>) al contrato.", rec: true },
+    { id: "B", label: "Accounting consulta a Mercado por REST", pro: "Fuente única de verdad.", con: "Acoplamiento síncrono y dependencia mutua." },
+    { id: "C", label: "Tabla sincronizada a mano / seed", pro: "Rápido para la demo.", con: "Se desincroniza con cada oferta nueva de un profesor." }
+  ], { evidence: "InventoryCatalog.java:18-21", docs: ["integ"], owner: "Accounting + Mercado" }),
+D("D3", "integracion", "P0", "Q6: vocabulario de effect por tipo de ítem",
+  "Mercado deriva <code>SHIELD→ABSORB_FAILURE</code> (confirmado), <code>BOOST_XP→BOOST_XP</code>, <code>BOOST_COINS→BOOST_COINS</code>, <code>LIFE→EXTRA_LIFE</code> (sin confirmar). El modelo de Accounting nombra <code>XP_MULTIPLIER</code> y <code>COIN_MULTIPLIER</code>. Un <code>effect</code> vacío rompe el procesamiento.",
+  [
+    { id: "A", label: "Usar el vocabulario del modelo de Accounting (ABSORB_FAILURE, XP_MULTIPLIER, COIN_MULTIPLIER)", pro: "Coincide con el doc del dueño del inventario y con Motor.", con: "Mercado cambia su mapeo.", rec: true },
+    { id: "B", label: "Usar el de Mercado", pro: "Sin cambios en Mercado.", con: "Accounting/Motor deben ajustarse; el modelo dice otra cosa." },
+    { id: "C", label: "Lista compartida versionada en docs y validada en ambos", pro: "Evita futuras divergencias.", con: "Requiere mantenimiento." }
+  ], { evidence: "ItemConfirmedPayloadDto (effect) · docs/accounting-modelo.md ~L235", docs: ["integ"], owner: "Mercado + Accounting + Motor" }),
+D("D13", "integracion", "P0", "¿Quién es el interlocutor de inventario: Accounting o un servicio Inventario aparte?",
+  "Las notas del 26–27/09 dan a Inventario como microservicio separado, pero la organización no tiene un repo de Inventario y <code>tpi-accounting</code> contiene <code>inventory_items</code>, el listener de <code>ITEM_CONFIRMED</code> y <code>ITEM_CREDITED</code>.",
+  [
+    { id: "A", label: "Accounting es dueño de monedas e inventario (estado del código)", pro: "Refleja lo que existe; permite avanzar ya.", con: "Hay que actualizar los docs que asumen dos servicios.", rec: true },
+    { id: "B", label: "Se separa Inventario en otro servicio", pro: "Alineado con las notas.", con: "Nuevo repo, topics y contrato; retrasa el Sprint 02." }
+  ], { docs: ["integ"], owner: "Grupo 08 / PO" }),
+D("D4", "integracion", "P1", "¿Quién expira los holds vencidos?",
+  "Accounting fija <code>expiresAt</code> (300 s en compra) pero no tiene job de expiración, no publica <code>HOLD_EXPIRED</code> y no valida <code>expiresAt</code> al confirmar. Mercado espera <code>HOLD_EXPIRED</code> para vencer órdenes; su reconciliador está apagado.",
+  [
+    { id: "A", label: "Accounting expira y publica HOLD_EXPIRED", pro: "Una sola fuente de verdad sobre saldo reservado.", con: "Trabajo en Accounting (scheduler + evento).", rec: true },
+    { id: "B", label: "Mercado expira y envía HOLD_RELEASE_REQUESTED", pro: "Todo el control en Mercado.", con: "Si Mercado cae, las monedas quedan retenidas; duplica lógica de TTL." },
+    { id: "C", label: "Nadie: el TTL es informativo", pro: "Cero trabajo.", con: "Monedas retenidas indefinidamente por órdenes trabadas." }
+  ], { docs: ["integ", "brechas"], owner: "Accounting" }),
+D("D5", "integracion", "P1", "¿Cómo consulta Mercado el estado de un hold?",
+  "El cliente y el reconciliador de Mercado esperan <code>GET /api/accounting/holds/{holdId}</code>, que Accounting nunca construyó (solo existe el equivalente para life holds). Hoy Mercado solo tiene un mock.",
+  [
+    { id: "A", label: "Accounting expone GET /holds/{holdId} para MS", pro: "Permite reconciliar con certeza.", con: "Nuevo endpoint + permisos.", rec: true },
+    { id: "B", label: "Reintento idempotente del comando (mismo eventId)", pro: "Sin endpoint nuevo.", con: "Depende de HoldReplyResender (hoy sin implementar)." },
+    { id: "C", label: "Eliminar el reconciliador; confiar en HOLD_EXPIRED", pro: "Menos código.", con: "Sin red de seguridad si se pierde un evento." }
+  ], { docs: ["integ"], owner: "Accounting + Mercado" }),
+D("D1", "integracion", "P1", "Compra de vidas y tope de 3 vidas (US-142)",
+  "Mercado ya tiene el plumbing de <code>LIFE_CAP_REACHED</code>, pero nunca se dispara. Accounting <b>trunca en silencio</b> el tope y su handler <code>LIFE_PURCHASE_CONFIRMED</code> está en una rama sin PR. Además, enviar una vida como <code>ITEM_CONFIRMED</code> crea un ítem, no suma una vida.",
+  [
+    { id: "A", label: "Accounting rechaza con motivo (LIFE_CAP_REACHED) y Mercado libera el hold", pro: "El alumno no paga por una vida que no recibe; reusa el plumbing de Mercado.", con: "Mergear y ajustar la rama de Accounting; definir el evento de rechazo.", rec: true },
+    { id: "B", label: "Mercado consulta maxLives/currentLives antes de vender", pro: "Rechazo temprano.", con: "MS no puede leer saldo/vidas hoy; condición de carrera entre la consulta y la compra." },
+    { id: "C", label: "Sacar las vidas de la tienda por ahora (diferir US-142)", pro: "Simplifica el Sprint 02.", con: "La plantilla LIFE queda inutilizable." }
+  ], { docs: ["integ", "compra"], owner: "PO + Accounting + Mercado" }),
+D("D12", "integracion", "P1", "Verificación de matrícula y docente: ¿cómo se integra con Cursos?",
+  "Hoy son mocks en todos los perfiles, incluso <code>prod</code>. Es una dependencia de Mercado para comprar y para gestionar la tienda (fuera del alcance de este análisis: se define con Cursos).",
+  [
+    { id: "A", label: "REST síncrono vía Gateway con service token", pro: "Simple y consistente.", con: "Acopla la disponibilidad de la compra a Cursos (ya hay manejo de 503)." },
+    { id: "B", label: "Réplica local alimentada por courses.events", pro: "Compra sin depender de Cursos en línea.", con: "Consistencia eventual y más código." }
+  ], { docs: ["compra"], owner: "Mercado + Cursos" }),
+D("D6", "integracion", "P2", "¿Existe reembolso de una compra ya confirmada?",
+  "Solo un ADMIN puede revertir el ledger vía Kafka (<code>COIN_LEDGER_REVERSAL_REQUESTED</code>); no hay reembolso manejado por Mercado. Si el ítem se acredita y el cobro falla, no hay compensación automática (el log queda para revisión manual).",
+  [
+    { id: "A", label: "No por ahora: gestión manual de ADMIN", pro: "Sin trabajo.", con: "Casos raros requieren intervención.", rec: true },
+    { id: "B", label: "Accounting expone reversión para Mercado", pro: "Compensación automática.", con: "Requiere diseño de seguridad y de contrato." }
+  ], { docs: ["integ"], owner: "PO" }),
+
+/* ---------- DECISIONES: SUBASTA ---------- */
+D("S1", "subasta", "P1", "Liberación de perdedores: ¿lote o un comando por postor?",
+  "Accounting solo acepta un <code>HOLD_RELEASE_REQUESTED</code> por <code>holdId</code>. <code>releaseHoldsByOrder</code> está documentado y no construido. El diseño de Mercado asumía un evento <code>AUCTION_CLOSED</code> con lista de holdIds.",
+  [
+    { id: "A", label: "Mercado envía N comandos (uno por perdedor)", pro: "Funciona hoy sin tocar Accounting.", con: "Más tráfico con muchas ofertas; hay que llevar los reintentos por hold.", rec: true },
+    { id: "B", label: "Accounting implementa releaseHoldsByOrder", pro: "Un comando, cierre más rápido.", con: "Trabajo en Accounting; depende de su agenda." }
+  ], { docs: ["subasta"], owner: "Mercado + Accounting" }),
+D("S2", "subasta", "P1", "Ajustar los contratos de subasta al vocabulario real de Accounting",
+  "El documento <code>03-contratos…</code> usa <code>releaseReason: AUCTION_REFUND</code>. Accounting solo acepta <code>AUCTION_LOST</code>, <code>AUCTION_CANCELLED</code> y <code>PURCHASE_NOT_COMPLETED</code> (otro valor ⇒ <code>MALFORMED_COMMAND</code>).",
+  [
+    { id: "A", label: "Corregir los documentos de Mercado", pro: "Sin tocar Accounting.", con: "—", rec: true },
+    { id: "B", label: "Pedir a Accounting que acepte AUCTION_REFUND", pro: "Mercado no cambia el diseño.", con: "Cambio de contrato y de enum/CHECK en la base de Accounting." }
+  ], { docs: ["subasta"], owner: "Mercado" }),
+D("S3", "subasta", "P1", "¿Se libera al postor superado antes del cierre?",
+  "Un <code>orderId</code> queda inutilizable tras un <code>release</code> y la épica dice que cada participante tiene retenida su oferta completa hasta el final.",
+  [
+    { id: "A", label: "No: retención completa hasta el cierre", pro: "Coincide con la épica y RF-INT-05; sin orderIds nuevos.", con: "El capital del postor superado queda inmovilizado.", rec: true },
+    { id: "B", label: "Sí: liberar y usar un orderId nuevo por puja", pro: "Libera capital.", con: "Más comandos y complejidad; riesgo de perder el handle del hold." }
+  ], { docs: ["subasta"], owner: "PO" }),
+D("S4", "subasta", "P1", "¿Qué se puede subastar? ¿Se incluyen vidas?",
+  "La épica supone solo equipamiento (escudos y boosts), porque el tope de vidas (PAR-12) puede cambiar durante los días que dura una subasta. Marcado \"a confirmar con el PO\".",
+  [
+    { id: "A", label: "Solo equipamiento (SHIELD, BOOST_XP, BOOST_COINS)", pro: "Coincide con la épica; evita el problema del tope.", con: "—", rec: true },
+    { id: "B", label: "Incluir vidas", pro: "Más completo.", con: "Depende de cerrar D1 y del tope variable." }
+  ], { docs: ["subasta"], owner: "PO" }),
+D("S5", "subasta", "P1", "Archivado de curso y baja de alumno: ¿cómo se entera Mercado y quién libera los holds?",
+  "US-588 exige cancelar/ajustar subastas. La desactivación de cuenta en Accounting necesita <code>AccountCoinReservationsPort</code>, que <b>no tiene implementación</b>: hoy la desactivación falla y no libera holds.",
+  [
+    { id: "A", label: "Mercado consume eventos de Cursos y libera sus holds", pro: "Mercado controla el cierre de sus subastas.", con: "Necesita el contrato de eventos de Cursos (hoy mock).", rec: true },
+    { id: "B", label: "Accounting implementa el puerto y libera solo", pro: "Cubre todos los holds de la cuenta.", con: "Mercado igual debe reasignar al ganador y actualizar la subasta." }
+  ], { docs: ["subasta", "integ"], owner: "Mercado + Cursos + Accounting" }),
+D("S6", "subasta", "P1", "Reglas de puja: mínimo y incremento",
+  "Accounting valida que un aumento sea estrictamente mayor, pero no conoce puja mínima ni incremento mínimo: esas reglas viven en Mercado.",
+  [
+    { id: "A", label: "Sin incremento mínimo (cualquier valor mayor)", pro: "Simple.", con: "Se pueden hacer pujas de +1 moneda." },
+    { id: "B", label: "Incremento mínimo configurable por subasta", pro: "El profesor lo ajusta.", con: "Un campo más en el lanzamiento.", rec: true },
+    { id: "C", label: "Incremento fijo global", pro: "Regla uniforme.", con: "Poca flexibilidad." }
+  ], { docs: ["subasta"], owner: "PO" }),
+D("S7", "subasta", "P1", "Modelo de saga en Mercado: ¿generalizar o duplicar?",
+  "El outbox y la correlación asumen que el agregado es una orden (<code>orderId</code> Long, <code>aggregateType=\"ORDER\"</code>, <code>HoldEventDto</code> sin <code>orderType</code>).",
+  [
+    { id: "A", label: "Generalizar outbox/correlación a un agregado genérico", pro: "Reusa toda la infraestructura testeada.", con: "Refactor previo con riesgo de regresión en compra.", rec: true },
+    { id: "B", label: "Módulo de subastas con su propio outbox", pro: "Aislado de compra.", con: "Duplica código y operación." }
+  ], { docs: ["subasta"], owner: "Mercado" }),
+D("S8", "subasta", "P1", "Latencia: \"cambio de líder visible en < 2 s\" vs. outbox de Accounting (~5 s)",
+  "Las respuestas de Accounting salen por outbox con relay cada 5 s. El KPI de la épica pide < 2 s para ver un cambio de líder.",
+  [
+    { id: "A", label: "Optimista: mostrar el líder al validar en Mercado y confirmar el hold en segundo plano", pro: "Cumple el KPI.", con: "Puede mostrarse una puja que luego se rechaza por fondos." },
+    { id: "B", label: "Confirmar antes de mostrar (esperar HOLD_INCREASED)", pro: "Consistente.", con: "No cumple el KPI (hasta ~5 s)." },
+    { id: "C", label: "Pedir a Accounting bajar el intervalo del relay (~1 s)", pro: "Cumple el KPI sin optimismo.", con: "Más carga; a validar con Accounting.", rec: true }
+  ], { docs: ["subasta"], owner: "Mercado + Accounting" }),
+D("S9", "subasta", "P2", "¿Qué ítem se subasta y de dónde sale?",
+  "La épica dice que el profesor subasta \"un ítem de equipamiento\", sin precisar si sale de una plantilla base, de una oferta existente o de otra fuente. Tras ganar, el ítem se acredita con <code>ITEM_CONFIRMED</code>.",
+  [
+    { id: "A", label: "Ítem definido desde una plantilla al lanzar la subasta (snapshot)", pro: "Consistente con la tienda; independiente de las ofertas.", con: "Formulario de lanzamiento más completo.", rec: true },
+    { id: "B", label: "Se elige entre las ofertas activas del curso", pro: "Reusa el catálogo.", con: "Acopla subastas con ofertas y stock." }
+  ], { docs: ["subasta"], owner: "PO" }),
+D("S10", "subasta", "P2", "Duración máxima de una subasta (y TTL del hold)",
+  "El hold de <code>AUCTION_BID</code> exige <code>ttlSeconds</code> y no se extiende al aumentar la oferta; Accounting no valida un máximo. Conviene usar duración restante + margen.",
+  [
+    { id: "A", label: "Máximo 72 horas", pro: "Acota el riesgo de monedas inmovilizadas.", con: "—" },
+    { id: "B", label: "Máximo 7 días", pro: "Cubre subastas de una semana.", con: "Más tiempo de capital retenido.", rec: true },
+    { id: "C", label: "Sin tope", pro: "Máxima flexibilidad.", con: "Riesgo operativo." }
+  ], { docs: ["subasta"], owner: "PO" }),
+
+/* ---------- DECISIONES: TIENDA ---------- */
+D("T1", "tienda", "P1", "Semántica de stock: ¿qué es unitsSold y cuándo se incrementa?",
+  "<code>units_sold</code> nunca se incrementa. Editar <code>totalStock</code> tras vender deja <code>availableStock = nuevoTotal</code>: las unidades vendidas y reservadas vuelven al stock (sobreventa).",
+  [
+    { id: "A", label: "Incrementar unitsSold al confirmar la orden; disponible = total − vendidas − reservadas", pro: "Refleja ventas reales; el piso de edición funciona.", con: "Migrar datos existentes (recalcular).", rec: true },
+    { id: "B", label: "Derivar unitsSold de las órdenes CONFIRMED (consulta)", pro: "Sin contador que se desincronice.", con: "Consulta más costosa en el listado." }
+  ], { evidence: "CourseCatalogManageServiceImpl · OrderConfirmationServiceImpl (no toca units_sold)", docs: ["tienda"], owner: "Mercado" }),
+D("T2", "tienda", "P2", "Caducidad del ítem (US-785, 778, 786–788): ¿definitivamente descartada?",
+  "Se fusionó (PR #44) y se revirtió (PR #60, issue #56). Quedan restos en entidad, DTO y validador; ni Mercado ni Accounting guardan fecha de vencimiento del ítem.",
+  [
+    { id: "A", label: "Descartada: retirar restos y archivar el cambio de OpenSpec", pro: "Código y docs consistentes.", con: "Si vuelve, se reimplementa.", rec: true },
+    { id: "B", label: "Reabrir: agregar expiresAt en Accounting y en el contrato", pro: "Cumple las historias de vencimiento.", con: "Trabajo en ambos servicios; cambio de contrato." },
+    { id: "C", label: "Diferir la decisión", pro: "Sin costo ahora.", con: "Los restos siguen confundiendo." }
+  ], { docs: ["tienda"], owner: "PO" }),
+D("T3", "tienda", "P2", "Cohortes: ¿alcanza con courseId?",
+  "Una oferta se liga a un <code>courseId</code> opaco (el \"curso-cohorte\"). No existe entidad de cohorte.",
+  [
+    { id: "A", label: "Mantener courseId como curso-cohorte", pro: "Simple; coincide con lo que usa Accounting.", con: "Sin datos propios de cohorte.", rec: true },
+    { id: "B", label: "Modelar la cohorte en Mercado", pro: "Consultas por cohorte.", con: "Duplica datos de Cursos." }
+  ], { docs: ["tienda"], owner: "Mercado" }),
+D("T4", "tienda", "P2", "Baja de ofertas: ¿hace falta borrado lógico?",
+  "La columna <code>deleted</code> no tiene escritor y no hay endpoint. Hoy solo se puede desactivar.",
+  [
+    { id: "A", label: "Desactivar alcanza", pro: "Sin trabajo.", con: "La lista del profesor crece.", rec: true },
+    { id: "B", label: "Agregar DELETE lógico", pro: "Limpia la lista.", con: "Nuevo endpoint y reglas con órdenes existentes." }
+  ], { docs: ["tienda"], owner: "PO" }),
+D("T5", "tienda", "P2", "Publicar: ¿se valida plantilla, tipo y multiplicador mínimo?",
+  "Hoy no se verifica que <code>templateId</code> exista ni que coincida con <code>itemType</code>, ni el multiplicador mínimo de 1,10 de la plantilla (solo <code>&gt; 0</code>).",
+  [
+    { id: "A", label: "Validar todo al publicar", pro: "Datos consistentes.", con: "Rechaza requests que hoy pasan.", rec: true },
+    { id: "B", label: "Dejarlo libre", pro: "Flexible.", con: "Ofertas inconsistentes con la plantilla." }
+  ], { docs: ["tienda"], owner: "Mercado" }),
+D("T6", "tienda", "P2", "Vencimiento de la publicación: ¿se puede extender o republicar?",
+  "El TTL se fija solo al publicar; una oferta vencida no puede reactivarse por edición (400).",
+  [
+    { id: "A", label: "Mantener: para volver a ofrecerla se publica otra oferta", pro: "Regla simple y ya implementada.", con: "El profesor duplica datos.", rec: true },
+    { id: "B", label: "Permitir extender el TTL al editar", pro: "Más cómodo.", con: "Cambia la regla probada por US-2402." }
+  ], { docs: ["tienda"], owner: "PO" }),
+
+/* ---------- TAREAS ---------- */
+T("K01", "integracion", "P0", "Accounting: implementar HoldReplyResender y activar app.holds.commands.enabled", "Sin esto los comandos de hold no funcionan: con el flag apagado Mercado no recibe respuesta y activarlo rompe el arranque.", { docs: ["integ"], owner: "Accounting" }),
+T("K02", "integracion", "P0", "Mercado: usar los topics de plataforma (depende de D7)", "Comandos y respuestas de hold en accounting.events; ITEM_CONFIRMED y eventos de orden en market.events; un listener que filtre por eventType.", { docs: ["integ"], owner: "Mercado" }),
+T("K03", "integracion", "P0", "Mercado: orderRef UUID por orden (depende de D8)", "Nueva columna con índice único, usada como orderId en holds e ITEM_CONFIRMED.", { docs: ["integ"], owner: "Mercado" }),
+T("K04", "integracion", "P0", "Mercado: reemplazar el aprovisionamiento por ITEM_CONFIRMED → ITEM_CREDITED (depende de D2)", "Mapear ITEM_CREDITED a la transición ITEM_PROVISION_REQUESTED → ITEM_PROVISIONED y agregar timeout propio.", { docs: ["integ"], owner: "Mercado" }),
+T("K05", "integracion", "P0", "Accounting: catálogo real, charges en ITEM_CONFIRMED, correlationId en ITEM_CREDITED y evento de error (depende de D9, D10)", "Hoy solo acepta ITEM-PLACEHOLDER-1..3 y los fallos van a DLT sin aviso.", { docs: ["integ"], owner: "Accounting" }),
+T("K06", "compra", "P0", "Mercado: que el contexto arranque bajo transport=kafka", "Falta un bean BankHoldQueryClient fuera de transport=mock (por lectura estática) y la app lee SPRING_KAFKA_BOOTSTRAP_SERVERS mientras .tpi pasa KAFKA_SERVERS.", { docs: ["compra"], owner: "Mercado" }),
+T("K07", "compra", "P0", "Mercado: KafkaSagaIntegrationTest en verde + prueba de contrato con los payloads reales de Accounting", "El IT de Kafka nunca corrió en verde (requiere Docker) y no hay pruebas contra contratos reales.", { docs: ["compra"], owner: "Mercado" }),
+T("K08", "compra", "P0", "Mercado + Cursos: cliente real de matrícula y docente (depende de D12)", "Hoy mocks en todos los perfiles.", { docs: ["compra"], owner: "Mercado + Cursos" }),
+T("K09", "calidad", "P0", "Plataforma: verificar que accounting.events, market.events y sus .DLT existan en el broker compartido", "El AsyncAPI de Accounting decía que no existían al momento de escribirse; no verificado.", { docs: ["integ"], owner: "Plataforma" }),
+T("K10", "calidad", "P1", "Plataforma: puerto de Mercado (8100 en el registro vs 8084 en la app) y re-renderizar micros.yml", "El micros.yml generado no incluye la red ni el servicio de Mercado.", { docs: ["integ"], owner: "Plataforma + Mercado" }),
+T("K11", "compra", "P1", "Mercado: vencer órdenes trabadas", "Nada vence HOLD_REQUESTED, ITEM_PROVISION_REQUESTED, ITEM_PROVISIONED ni una CREATED tras fallar requestHold; el reconciliador está apagado.", { docs: ["compra"], owner: "Mercado" }),
+T("K12", "integracion", "P1", "Accounting: job de expiración de holds y evento HOLD_EXPIRED (depende de D4)", "Además validar expiresAt al confirmar.", { docs: ["integ"], owner: "Accounting" }),
+T("K13", "integracion", "P1", "Accounting: GET /api/accounting/holds/{holdId} para servicios (depende de D5)", "O eliminar la dependencia en Mercado.", { docs: ["integ"], owner: "Accounting" }),
+T("K14", "compra", "P1", "Mercado: mapear cada razón de HOLD_REJECTED y el reasonCode de aprovisionamiento", "Hoy cualquier rechazo del hold se muestra como fondos insuficientes y el reasonCode se descarta.", { docs: ["compra"], owner: "Mercado" }),
+T("K15", "compra", "P1", "Mercado: robustecer el outbox", "El relay se frena ante la primera fila fallida; outbox_events y processed_events sin índice ni purga.", { docs: ["compra"], owner: "Mercado" }),
+T("K16", "compra", "P1", "Mercado: mapear excepciones que hoy son 500", "BankHoldUnavailableException, InventoryItemProvisionUnavailableException y ObjectOptimisticLockingFailureException.", { docs: ["compra"], owner: "Mercado" }),
+T("K17", "integracion", "P1", "Accounting: liberar holds al desactivar una cuenta", "AccountCoinReservationsPort no tiene implementación: la desactivación falla y va a DLT.", { docs: ["integ"], owner: "Accounting" }),
+T("K18", "compra", "P1", "Implementar el tope de vidas según lo decidido en D1 (US-142)", "Issues #13 y #15 abiertos en tpi-market; rama feature/lives-purchase-credit sin PR en Accounting.", { docs: ["compra", "integ"], owner: "Mercado + Accounting" }),
+T("K19", "tienda", "P1", "Mercado: corregir units_sold y la edición de stock (depende de T1)", "Sobreventa al editar totalStock después de vender.", { docs: ["tienda"], owner: "Mercado" }),
+T("K20", "tienda", "P1", "Mercado: endurecer la autorización del servicio de gestión", "contains() sobre headers y atajos cuando el header viene vacío; la barrera real hoy es @PreAuthorize.", { docs: ["tienda"], owner: "Mercado" }),
+T("K21", "tienda", "P2", "Mercado: validar plantilla/tipo/multiplicador al publicar (depende de T5)", "", { docs: ["tienda"], owner: "Mercado" }),
+T("K22", "tienda", "P2", "Mercado: chequear vencimiento en el detalle de una oferta", "El detalle responde 200 a un alumno para una oferta vencida pero activa.", { docs: ["tienda"], owner: "Mercado" }),
+T("K23", "tienda", "P2", "Mercado: retirar restos de itemValidityDays y archivar item-validity-duration (depende de T2)", "", { docs: ["tienda"], owner: "Mercado" }),
+T("K24", "calidad", "P2", "CI: correr tests en PRs a develop", "Hoy solo valida el nombre de la rama; mvn verify corre contra main/release.", { docs: ["brechas"], owner: "Mercado" }),
+T("K25", "calidad", "P2", "Mercado: versionar el esquema (Flyway/Liquibase)", "Hoy lo genera Hibernate (ddl-auto); Accounting sí usa Flyway.", { docs: ["brechas"], owner: "Mercado" }),
+T("K26", "calidad", "P2", "Mercado: limpiar OpenSpec", "~9 cambios terminados sin archivar; config.yaml dice \"No Kafka\" y menciona un unique constraint ya entregado.", { docs: ["brechas"], owner: "Mercado" }),
+T("K27", "calidad", "P2", "Mercado: regenerar javadoc/swagger y reescribir README y diagramas", "Faltan 17 clases en el javadoc; swagger con placeholders; diagramas con un PingController que no existe.", { docs: ["brechas"], owner: "Mercado" }),
+T("K28", "calidad", "P2", "Mercado: unificar producer y groupId", "producer market-service vs tema-09-mercado; groupId del listener de holds fijo.", { docs: ["brechas"], owner: "Mercado" }),
+T("K29", "subasta", "P1", "Ajustar los documentos de subasta (02 y 03) a lo que Accounting acepta (depende de S1, S2)", "AUCTION_REFUND y el evento en lote AUCTION_CLOSED no existen en Accounting.", { docs: ["subasta"], owner: "Mercado" }),
+T("K30", "subasta", "P1", "Mercado: generalizar la saga a un agregado genérico (depende de S7)", "orderId Long, aggregateType fijo en ORDER, HoldEventDto sin orderType.", { docs: ["subasta"], owner: "Mercado" }),
+T("K31", "subasta", "P1", "Mercado: extender BankHoldClient con HOLD_INCREASE_REQUESTED / HOLD_INCREASED", "Y guardar el holdId por postor.", { docs: ["subasta"], owner: "Mercado" }),
+T("K32", "subasta", "P1", "Mercado: modelo, API y jobs de subasta", "Tablas auction, auction_bid, auction_pending_refund; lanzar, listar, ofertar, cancelar; cierre único con @Version; reintentos de devolución; retomar cierres a medias (US-578 a US-589).", { docs: ["subasta"], owner: "Mercado" }),
+T("K33", "subasta", "P2", "Observabilidad de subastas", "Alerta si un cierre tarda más de 2 min y si una devolución lleva más de 15 min sin confirmarse.", { docs: ["subasta"], owner: "Mercado" })
+];
+
+/* ============ ESTADO ============ */
+const KEY = "mercado-taller-decisiones-v1";
+const STATUS = {
+  decision: [["pending", "Sin decidir"], ["done", "Decidido"], ["deferred", "Diferido"], ["info", "Falta información"]],
+  task: [["pending", "Sin revisar"], ["done", "Aceptada"], ["deferred", "Diferida"], ["rejected", "Descartada"]]
+};
+let state = { meta: { date: "", people: "" }, items: {} };
+let ui = { areas: new Set(), kinds: new Set(), prios: new Set(), status: "all", q: "", open: new Set() };
+
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch (e) { /* sin storage: sigue en memoria */ }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignorar */ } }
+const entry = id => (state.items[id] ||= { status: "pending", option: "", custom: "", notes: "", owner: "", sprint: "Sin asignar", updatedAt: "" });
+const statusLabel = (it, s) => (STATUS[it.kind].find(x => x[0] === s) || [0, s])[1];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const strip = s => String(s).replace(/<[^>]+>/g, "").replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+
+/* ============ FILTROS ============ */
+function visible(it) {
+  const e = entry(it.id);
+  if (ui.areas.size && !ui.areas.has(it.area)) return false;
+  if (ui.kinds.size && !ui.kinds.has(it.kind)) return false;
+  if (ui.prios.size && !ui.prios.has(it.prio)) return false;
+  if (ui.status === "pending" && e.status !== "pending") return false;
+  if (ui.status === "treated" && e.status === "pending") return false;
+  if (ui.q) { const hay = (it.id + " " + it.title + " " + strip(it.context) + " " + (it.owner || "")).toLowerCase(); if (!hay.includes(ui.q)) return false; }
+  return true;
+}
+function chipGroup(label, pairs, set) {
+  const g = document.createElement("div"); g.className = "group";
+  g.innerHTML = `<span class="gl">${esc(label)}</span>`;
+  for (const [val, text] of pairs) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = text;
+    b.setAttribute("aria-pressed", set.has(val));
+    b.onclick = () => { set.has(val) ? set.delete(val) : set.add(val); b.setAttribute("aria-pressed", set.has(val)); renderList(); };
+    g.appendChild(b);
+  }
+  return g;
+}
+function buildFilters() {
+  const f = document.getElementById("filters"); f.innerHTML = "";
+  f.appendChild(chipGroup("Área", Object.entries(AREAS), ui.areas));
+  f.appendChild(chipGroup("Tipo", [["decision", "Decisiones"], ["task", "Tareas"]], ui.kinds));
+  f.appendChild(chipGroup("Prioridad", [["P0", "P0"], ["P1", "P1"], ["P2", "P2"]], ui.prios));
+  const s = document.createElement("div"); s.className = "group";
+  s.innerHTML = `<span class="gl">Estado</span>`;
+  const sel = document.createElement("select"); sel.className = "search"; sel.style.flex = "0 0 auto"; sel.setAttribute("aria-label", "Filtrar por estado");
+  sel.innerHTML = `<option value="all">Todos</option><option value="pending">Solo pendientes</option><option value="treated">Solo tratados</option>`;
+  sel.onchange = () => { ui.status = sel.value; renderList(); };
+  s.appendChild(sel); f.appendChild(s);
+  const q = document.createElement("input"); q.type = "search"; q.className = "search"; q.placeholder = "Buscar…"; q.setAttribute("aria-label", "Buscar");
+  q.oninput = () => { ui.q = q.value.trim().toLowerCase(); renderList(); };
+  f.appendChild(q);
+}
+
+/* ============ RENDER ============ */
+function refLinks(it) { return (it.docs || []).map(k => `<a href="${DOCS[k][0]}" target="_blank" rel="noopener">${esc(DOCS[k][1])}</a>`).join(""); }
+function cardHTML(it) {
+  const e = entry(it.id); const open = ui.open.has(it.id) ? " open" : "";
+  const opts = it.kind === "decision" ? `<h4>Opciones</h4><div class="opts" role="radiogroup" aria-label="Opciones de ${esc(it.id)}">` + it.options.map(o => `
+      <label class="opt${e.option === o.id ? " sel" : ""}"><input type="radio" name="opt-${it.id}" value="${o.id}" ${e.option === o.id ? "checked" : ""} data-id="${it.id}" data-act="opt">
+        <span><span class="ol">${o.id}) ${esc(o.label)}</span>${o.rec ? '<span class="rec">RECOMENDADA</span>' : ""}
+        <span class="pc" style="display:block"><b class="pro">+</b> ${esc(o.pro)} · <b class="con">−</b> ${esc(o.con)}</span></span></label>`).join("") + `</div>` : "";
+  const sOpts = STATUS[it.kind].map(([v, l]) => `<option value="${v}" ${e.status === v ? "selected" : ""}>${l}</option>`).join("");
+  const spr = SPRINTS.map(s => `<option ${e.sprint === s ? "selected" : ""}>${s}</option>`).join("");
+  return `<details class="card" id="c-${it.id}" data-status="${e.status}" data-id="${it.id}"${open}>
+    <summary><span class="id">${it.id}</span><span class="title">${esc(it.title)}</span>
+      <span class="tag ${it.prio.toLowerCase()}">${it.prio}</span><span class="tag">${esc(AREAS[it.area])}</span><span class="tag">${it.kind === "decision" ? "Decisión" : "Tarea"}</span>
+      <span class="tag state ${e.status}">${statusLabel(it, e.status)}</span></summary>
+    <div class="body">
+      <h4>Situación hoy</h4><p>${it.context || "—"}</p>
+      ${it.evidence ? `<p class="evidence">Evidencia: ${esc(it.evidence)}</p>` : ""}
+      ${opts}
+      <div class="fields">
+        <label>Estado<select data-id="${it.id}" data-act="status">${sOpts}</select></label>
+        <label>Responsable${it.owner ? ` (sugerido: ${esc(it.owner)})` : ""}<input type="text" value="${esc(e.owner)}" data-id="${it.id}" data-act="owner" placeholder="${esc(it.owner || "Nombre")}"></label>
+        <label>Sprint objetivo<select data-id="${it.id}" data-act="sprint">${spr}</select></label>
+        ${it.kind === "decision" ? `<label class="wide">Otra opción o matiz<input type="text" value="${esc(e.custom)}" data-id="${it.id}" data-act="custom" placeholder="Si el grupo define algo distinto a las opciones"></label>` : ""}
+        <label class="wide">Notas / motivo<textarea rows="2" data-id="${it.id}" data-act="notes" placeholder="Por qué se decidió así, condiciones, dudas pendientes">${esc(e.notes)}</textarea></label>
+      </div>
+      ${it.docs ? `<h4>Documentos</h4><div class="refs">${refLinks(it)}</div>` : ""}
+    </div></details>`;
+}
+function renderList() {
+  const items = ITEMS.filter(visible);
+  const list = document.getElementById("list");
+  list.innerHTML = items.length ? items.map(cardHTML).join("") : '<div class="empty">Ninguna tarjeta coincide con los filtros.</div>';
+  document.getElementById("count").textContent = `${items.length} de ${ITEMS.length} tarjetas`;
+  updateProgress();
+}
+function patchCard(id) {
+  const it = ITEMS.find(x => x.id === id); const old = document.getElementById("c-" + id);
+  if (!old) return; const t = document.createElement("template"); ui.open.add(id); t.innerHTML = cardHTML(it).trim();
+  const fresh = t.content.firstElementChild; const active = document.activeElement; const act = active && active.dataset ? active.dataset.act : null;
+  old.replaceWith(fresh);
+  if (act && act !== "opt") { const el = fresh.querySelector(`[data-act="${act}"]`); if (el) { el.focus(); if (el.setSelectionRange && el.value) try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} } }
+  updateProgress();
+}
+function updateProgress() {
+  const treated = ITEMS.filter(i => entry(i.id).status !== "pending").length;
+  const decDone = ITEMS.filter(i => i.kind === "decision" && entry(i.id).status === "done").length;
+  const decTotal = ITEMS.filter(i => i.kind === "decision").length;
+  const pct = Math.round(treated * 100 / ITEMS.length);
+  document.getElementById("meterFill").style.width = pct + "%";
+  document.getElementById("meter").setAttribute("aria-valuenow", pct);
+  document.getElementById("progressLabel").textContent = `${treated}/${ITEMS.length} tratadas (${pct}%) · decisiones tomadas: ${decDone}/${decTotal}`;
+}
+
+/* ============ EVENTOS ============ */
+document.getElementById("list").addEventListener("toggle", ev => {
+  const d = ev.target; if (d.dataset && d.dataset.id) { d.open ? ui.open.add(d.dataset.id) : ui.open.delete(d.dataset.id); }
+}, true);
+function onChange(ev) {
+  const el = ev.target; const act = el.dataset && el.dataset.act; if (!act) return;
+  const id = el.dataset.id; const e = entry(id); const it = ITEMS.find(x => x.id === id);
+  if (act === "opt") { e.option = el.value; if (e.status === "pending") e.status = "done"; }
+  else if (act === "status") { e.status = el.value; }
+  else e[act] = el.value;
+  e.updatedAt = new Date().toISOString(); save();
+  if (act === "owner" || act === "custom" || act === "notes") { const c = document.getElementById("c-" + id); if (c) { c.dataset.status = e.status; } updateProgress(); return; }
+  patchCard(id);
+}
+document.getElementById("list").addEventListener("change", onChange);
+document.getElementById("list").addEventListener("input", ev => {
+  const act = ev.target.dataset && ev.target.dataset.act;
+  if (act === "owner" || act === "custom" || act === "notes") { const e = entry(ev.target.dataset.id); e[act] = ev.target.value; e.updatedAt = new Date().toISOString(); save(); }
+});
+
+/* ============ EXPORT / IMPORT ============ */
+function buildExport() {
+  const rows = ITEMS.map(it => {
+    const e = entry(it.id); const opt = (it.options || []).find(o => o.id === e.option);
+    return { id: it.id, kind: it.kind, area: it.area, priority: it.prio, title: it.title, status: e.status, statusLabel: statusLabel(it, e.status),
+      chosenOptionId: e.option || null, chosenOptionLabel: opt ? opt.label : null, recommendedOptionId: ((it.options || []).find(o => o.rec) || {}).id || null,
+      customOption: e.custom || null, notes: e.notes || null, owner: e.owner || null, suggestedOwner: it.owner || null, targetSprint: e.sprint, updatedAt: e.updatedAt || null };
+  });
+  return {
+    schema: "mercado-decisiones/v1", exportedAt: new Date().toISOString(),
+    snapshot: { market: "tpi-market develop@7528610", accounting: "tpi-accounting develop@f965420", docs: "ValentinoMellia/docs branch docs/market-current-state (mercado/estado-actual/)" },
+    meeting: { date: state.meta.date || null, participants: state.meta.people || null },
+    summary: { total: rows.length, treated: rows.filter(r => r.status !== "pending").length, decisionsDone: rows.filter(r => r.kind === "decision" && r.status === "done").length, pending: rows.filter(r => r.status === "pending").length },
+    items: rows
+  };
+}
+function buildMarkdown() {
+  const x = buildExport(); const L = [];
+  L.push("# Decisiones del taller de Mercado", "", `Fecha: ${x.meeting.date || "sin fecha"} · Participantes: ${x.meeting.participants || "sin especificar"}`, `Snapshot: ${x.snapshot.market}; ${x.snapshot.accounting}`, `Progreso: ${x.summary.treated}/${x.summary.total} tratadas; ${x.summary.decisionsDone} decisiones tomadas.`, "");
+  L.push("> Para Claude: usar este archivo como contexto. Cada ítem tiene id (D/S/T = decisión, K = tarea), estado, opción elegida (o `customOption`), responsable y sprint. Las decisiones \"Falta información\" o \"Sin decidir\" no están resueltas. Con esto: (1) actualizar la documentación de `docs/mercado/`, (2) proponer los pasos técnicos por repo respetando responsables y sprint, (3) listar lo que queda bloqueado.", "");
+  for (const [ak, an] of Object.entries(AREAS)) {
+    const rows = x.items.filter(r => r.area === ak); if (!rows.length) continue;
+    L.push(`## ${an}`, "");
+    for (const r of rows) {
+      L.push(`### ${r.id} · ${r.title} (${r.priority}, ${r.kind === "decision" ? "decisión" : "tarea"})`, `- Estado: **${r.statusLabel}**`);
+      if (r.kind === "decision") L.push(`- Elegida: ${r.chosenOptionId ? `${r.chosenOptionId}) ${r.chosenOptionLabel}` : "—"}${r.chosenOptionId && r.chosenOptionId === r.recommendedOptionId ? " (era la recomendada)" : ""}`);
+      if (r.customOption) L.push(`- Otra opción: ${r.customOption}`);
+      L.push(`- Responsable: ${r.owner || r.suggestedOwner || "sin asignar"} · Sprint: ${r.targetSprint}`);
+      if (r.notes) L.push(`- Notas: ${r.notes}`);
+      L.push("");
+    }
+  }
+  return L.join("\n");
+}
+function download(name, text, type) {
+  const blob = new Blob([text], { type }); const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+const stamp = () => new Date().toISOString().slice(0, 10);
+document.getElementById("btnExportJson").onclick = () => { download(`decisiones-mercado-${stamp()}.json`, JSON.stringify(buildExport(), null, 2), "application/json"); toast("JSON exportado"); };
+const dlg = document.getElementById("dlg");
+document.getElementById("btnExportMd").onclick = () => {
+  const md = buildMarkdown(); document.getElementById("dlgTitle").textContent = "Resumen en Markdown"; document.getElementById("dlgBody").textContent = md;
+  document.getElementById("dlgCopy").onclick = async () => { try { await navigator.clipboard.writeText(md); toast("Copiado"); } catch (e) { toast("No se pudo copiar; usá Descargar"); } };
+  dlg.showModal(); download(`decisiones-mercado-${stamp()}.md`, md, "text/markdown");
+};
+document.getElementById("dlgClose").onclick = () => dlg.close();
+document.getElementById("btnImport").onclick = () => document.getElementById("fileImport").click();
+document.getElementById("fileImport").onchange = async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text()); if (data.schema !== "mercado-decisiones/v1") throw new Error("schema");
+    let n = 0; for (const r of data.items) {
+      if (!ITEMS.find(i => i.id === r.id)) continue; const cur = entry(r.id);
+      if (!cur.updatedAt || (r.updatedAt && r.updatedAt > cur.updatedAt)) {
+        Object.assign(cur, { status: r.status, option: r.chosenOptionId || "", custom: r.customOption || "", notes: r.notes || "", owner: r.owner || "", sprint: r.targetSprint || "Sin asignar", updatedAt: r.updatedAt || "" }); n++;
+      }
+    }
+    if (data.meeting) { state.meta.date ||= data.meeting.date || ""; state.meta.people ||= data.meeting.participants || ""; syncMeta(); }
+    save(); renderList(); toast(`Importadas ${n} respuestas (se conserva la más reciente)`);
+  } catch (e) { toast("Archivo inválido: se espera un JSON exportado por esta página"); }
+  ev.target.value = "";
+};
+document.getElementById("btnReset").onclick = () => { if (confirm("¿Borrar todas las respuestas guardadas en este navegador?")) { state = { meta: { date: "", people: "" }, items: {} }; save(); syncMeta(); renderList(); toast("Respuestas borradas"); } };
+document.getElementById("btnTheme").onclick = () => {
+  const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+};
+function syncMeta() { document.getElementById("metaDate").value = state.meta.date || ""; document.getElementById("metaPeople").value = state.meta.people || ""; }
+document.getElementById("metaDate").oninput = e => { state.meta.date = e.target.value; save(); };
+document.getElementById("metaPeople").oninput = e => { state.meta.people = e.target.value; save(); };
+
+/* ============ INIT ============ */
+load(); syncMeta(); buildFilters(); renderList();
+</script>
+</body>
+</html>
