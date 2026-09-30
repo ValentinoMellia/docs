@@ -44,6 +44,8 @@ This repository maintains the technical specifications, domain models, **Open Ca
 | Integración con Banco — estado real de implementación | [`integracion/banco/ESTADO-IMPLEMENTACION-BANCO.md`](./integracion/banco/ESTADO-IMPLEMENTACION-BANCO.md) | Refleja lo implementado en `tpi-market` (T03/T04 hechos, sincrónico y mockeado; T05/T07 sin iniciar) — distinto del diseño objetivo de la fila anterior |
 | Subastas — arquitectura y resiliencia | [`mercado/subastas/README.md`](./mercado/subastas/README.md) (índice) → `01-analisis-opciones-arquitectura.md`, `02-matriz-fallos-resiliencia-y-soluciones.md` | Vigentes desde el commit `f1aca8b` (18/09). **Diseño de Fase 3: no hay código de subastas en `tpi-market` todavía.** |
 | Subastas — contratos de eventos e idempotencia | [`mercado/subastas/03-contratos-eventos-e-idempotencia.md`](./mercado/subastas/03-contratos-eventos-e-idempotencia.md) | — |
+| **Meta colectiva** (aporte grupal con pérdida si falla) | [`mercado/metas-colectivas/README.md`](./mercado/metas-colectivas/README.md) | Diseño, sin código. Acreditar el mismo ítem a varios alumnos queda **pendiente de Banco** (§9) |
+| Propuesta de ítems nuevos (cofres, cosméticos, ayudas) | [`mercado/nuevos-items/propuesta-cofres-metas-y-nuevos-items.md`](./mercado/nuevos-items/propuesta-cofres-metas-y-nuevos-items.md) | Propuesta sin acordar; su §3 remite a `metas-colectivas/` |
 | Cómo viaja una petición (nginx → Gateway → micros, service tokens, Kafka) | [`arquitectura/flujo-de-una-peticion.md`](./arquitectura/flujo-de-una-peticion.md) | Verificado contra `tpi-api-gateway` y `tpi-system-compose`; incluye inconsistencias abiertas (§7) |
 | Estándar de eventos Kafka (envelope, reglas) | [`arquitectura/KAFKA_EVENT_STANDARD.md`](./arquitectura/KAFKA_EVENT_STANDARD.md) | La lista de topics **provisionados** vive en `tpi-system-compose` (ver sección Kafka abajo) |
 | Diagramas de dominio (Mermaid) | [`arquitectura/diagramas-mercado.md`](./arquitectura/diagramas-mercado.md) | — |
@@ -90,6 +92,10 @@ docs/
 │   │   ├── README.md                        # Technical specification, DTOs & payloads
 │   │   ├── catalogo-abierto-interactivo.html# Interactive simulator & dual-hold saga previewer
 │   │   └── curacion-catalogo-profesor.html  # Professor curation UI mock
+│   ├── metas-colectivas/                    # Collective goal ("Colecta") — design only
+│   │   └── README.md                        # Rules, states, API, pending items for Bank
+│   ├── nuevos-items/                        # New item proposals (chests, cosmetics, helpers)
+│   │   └── propuesta-cofres-metas-y-nuevos-items.md
 │   └── subastas/                            # Auction subsystem (Epic #577, Phase 3 — design only)
 │       ├── README.md                        # Architecture index
 │       ├── 01-analisis-opciones-arquitectura.md
