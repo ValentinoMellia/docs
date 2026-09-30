@@ -31,6 +31,8 @@ Lista priorizada completa: [`brechas-y-pendientes.md`](./estado-actual/brechas-y
 | Entender cómo viaja una petición hasta Mercado | [`arquitectura/flujo-de-una-peticion.md`](../arquitectura/flujo-de-una-peticion.md) |
 | Diseño funcional del catálogo por plantillas | [`catalogos/README.md`](./catalogos/README.md) (parcialmente desactualizado) |
 | Diseño técnico de subastas | [`subastas/README.md`](./subastas/README.md) (diseño de Fase 3) |
+| Diseño de la meta colectiva ("Colecta") | [`metas-colectivas/README.md`](./metas-colectivas/README.md) (diseño; acreditación grupal pendiente de Banco) |
+| Propuesta de ítems nuevos (cofres, cosméticos, ayudas y otros) | [`nuevos-items/propuesta-cofres-metas-y-nuevos-items.md`](./nuevos-items/propuesta-cofres-metas-y-nuevos-items.md) (propuesta, sin acordar) |
 | Decisiones del equipo en Sprint 1 | [`arquitectura/CONTEXTO-MERCADO-SPRINT1.md`](../arquitectura/CONTEXTO-MERCADO-SPRINT1.md) |
 | Historias y épicas | [`gestion/taiga/`](../gestion/taiga/README.md) |
 
