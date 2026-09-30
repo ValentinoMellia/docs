@@ -2,7 +2,6 @@
 
 > **Estado al 29/09/2026**, verificado leyendo el código de `tpi-market` (`develop` @ `7528610`) y `tpi-accounting` (`develop` @ `f965420`), más las PRs e issues abiertos de ambos repos.
 > **Accounting** es el servicio "Grupo 12 / Banco / Inventario" de los documentos anteriores: monedas y retenciones (holds), vidas e inventario del alumno viven en el mismo repo. Este documento **reemplaza como referencia de estado** a [`ESTADO-IMPLEMENTACION-BANCO.md`](./ESTADO-IMPLEMENTACION-BANCO.md) (que asumía Banco e Inventario separados y solo síncronos/mockeados).
-> Para el detalle de Accounting en sí (repo, contratos, REST, dominio, pendientes) ver [`accounting-estado-y-contratos.md`](./accounting-estado-y-contratos.md).
 > Alcance: solo lo que Mercado necesita de Accounting para **compra**, **gestión de tienda** y **subasta**.
 
 ## 1. Resumen ejecutivo
