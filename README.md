@@ -35,6 +35,7 @@ This repository maintains the technical specifications, domain models, **Open Ca
 | Tema | Documento vigente | Otros documentos relacionados |
 |---|---|---|
 | **Estado actual de Mercado** (compra, gestión de tienda, subasta) | [`mercado/README.md`](./mercado/README.md) → [`estado-actual/`](./mercado/estado-actual/brechas-y-pendientes.md) | Verificado contra el código (29/09/2026); **manda sobre los documentos de diseño** cuando difieren |
+| **Accounting (Banco): estado del repo y contratos respecto de Mercado** | [`integracion/banco/accounting-estado-y-contratos.md`](./integracion/banco/accounting-estado-y-contratos.md) | Verificado contra `tpi-accounting` develop @ 3013f6c (30/09/2026) |
 | **Integración Mercado ↔ Accounting** (desajustes y flujo recomendado) | [`integracion/banco/estado-integracion-mercado-accounting.md`](./integracion/banco/estado-integracion-mercado-accounting.md) | Reemplaza como estado a `ESTADO-IMPLEMENTACION-BANCO.md` |
 | Contexto y decisiones del equipo (Sprint 1) | [`arquitectura/CONTEXTO-MERCADO-SPRINT1.md`](./arquitectura/CONTEXTO-MERCADO-SPRINT1.md) | Su §13 es un registro histórico de auditoría, no un índice de vigencia. |
 | Catálogo abierto por plantillas | [`mercado/catalogos/README.md`](./mercado/catalogos/README.md) | — |
@@ -71,6 +72,7 @@ docs/
 │
 ├── integracion/
 │   └── banco/                               # Bank / Accounting / Inventory integration
+│       ├── accounting-estado-y-contratos.md # Accounting repo and contracts as seen from Market
 │       ├── estado-integracion-mercado-accounting.md # Real Market ↔ Accounting status (read first)
 │       ├── ESTADO-IMPLEMENTACION-BANCO.md   # Historical status (27/09), superseded
 │       ├── flujo-mercado-inventario.md      # Target saga design (current)

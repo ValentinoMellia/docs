@@ -26,7 +26,8 @@ Lista priorizada completa: [`brechas-y-pendientes.md`](./estado-actual/brechas-y
 |---|---|
 | Entender el estado real de cada función | `estado-actual/` (esta carpeta) |
 | **Definir en grupo** las decisiones abiertas y repartir tareas | [`estado-actual/taller-decisiones.html`](./estado-actual/taller-decisiones.html) (abrir con doble clic; exporta JSON/Markdown) y [`decisiones/README.md`](./decisiones/README.md) |
-| Ver el contrato y los desajustes con Accounting | [`integracion/banco/estado-integracion-mercado-accounting.md`](../integracion/banco/estado-integracion-mercado-accounting.md) |
+| Ver cómo está hoy el repo de Accounting y sus contratos | [`integracion/banco/accounting-estado-y-contratos.md`](../integracion/banco/accounting-estado-y-contratos.md) |
+| Ver los desajustes Mercado ↔ Accounting y el flujo recomendado | [`integracion/banco/estado-integracion-mercado-accounting.md`](../integracion/banco/estado-integracion-mercado-accounting.md) |
 | Entender cómo viaja una petición hasta Mercado | [`arquitectura/flujo-de-una-peticion.md`](../arquitectura/flujo-de-una-peticion.md) |
 | Diseño funcional del catálogo por plantillas | [`catalogos/README.md`](./catalogos/README.md) (parcialmente desactualizado) |
 | Diseño técnico de subastas | [`subastas/README.md`](./subastas/README.md) (diseño de Fase 3) |
